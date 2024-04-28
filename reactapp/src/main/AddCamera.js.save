@@ -1,0 +1,221 @@
+import * as React from 'react';
+import { TextField, Button, Grid,Box, Divider, Toolbar, Typography, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
+// component import
+import PCard from '../components/FeatureCard';
+import AddCameraModal from "../components/AddCameraModal"
+
+
+const drawerWidth = 240;
+
+function Main(props) {
+    if (!localStorage.getItem('loggedin')){
+        window.location = "/login"
+    }
+
+    const [open, setOpen] = React.useState(false);
+    const [dopen, setDOpen] = React.useState(false);
+    const [cardData, setCardData] = React.useState({})
+
+    const handleClickOpen = () => {
+      setOpen(true);
+    };
+  
+    const handleClose = () => {
+      setOpen(false);
+    };
+
+    const handleDOpen = () => {
+        setDOpen(!dopen)
+    }
+
+    const [textInput, setTextInput] = React.useState('');
+
+    const handleTextInputChange = event => {
+        setTextInput(event.target.value);
+    };
+
+    // React.useEffect(() => {
+    //     get_template()
+    // },[])
+
+    // const get_template = async() => {
+    //     if (window.location.pathname.split("/").length>2){
+    //         const response = await fetch('http://'+process.env.REACT_APP_PRIVATE_IP+':'+process.env.REACT_APP_PORT+'/get_template?id=' + String(window.location.pathname.split("/")[2]),{method : "GET"});
+    //         setCardData((await response.json())['object_alerts'])
+    //         // setLoading(!loading)
+    //     }
+    // }
+
+    const addCamera = () => {
+        const features = {'intrusion':"",'tampering':"",'loitering':"",'camera_fault':"",'face_mask':"",'helmet':"",'multiple_person':""}
+        Object.keys(features).map((value,index) => {
+            if (Object.keys(cardData).includes(value)){
+                features[value] = true
+            }else{
+                features[value] = false
+            }
+        })
+        if (Object.keys(cardData).length==0 || document.getElementById("camera_name").value=="" || document.getElementById("rtsp").value.trim()==""){
+            alert('Fill in details first')
+        }
+        else{
+            fetch('http://'+process.env.REACT_APP_PRIVATE_IP+':'+process.env.REACT_APP_PORT+'/add_camera', {
+                method:"POST",
+                headers: {'Content-Type':'application/json'},
+                body: JSON.stringify({"user":JSON.stringify(Object.assign({}, {"camera_name": document.getElementById("camera_name").value, "rtsp":document.getElementById("rtsp").value.trim(), "sia_suffix":document.getElementById("sia_suffix").value.trim()}, {"features":features},{"object_alerts":cardData}, {"start_time":"00:00:00", "end_time":"23:59:00"}))})
+            })ifconfig | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1 | head -n 1'
+            .then(results => results.json())
+            .catch(error => {
+                alert(error)
+            });
+            window.location.href = '/'
+        }
+        
+    };
+
+    const addTemplate = () => {
+        fetch('http://'+process.env.REACT_APP_PRIVATE_IP+':'+process.env.REACT_APP_PORT+'/add_template', {
+            method:"POST",
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({"user":JSON.stringify(Object.assign({},{"template_name":textInput}, {"object_alerts":cardData}))})
+        })
+        .then(results => results.json())
+        .catch(error => {
+            alert(error)
+        });
+        window.location.href = '/'
+        
+    };
+
+    const deleteTemplate = () => {
+        fetch('http://'+process.env.REACT_APP_PRIVATE_IP+':'+process.env.REACT_APP_PORT+'/delete_template/' + window.location.pathname.split("/")[2], {
+            method:"POST",
+            headers: {'Content-Type':'application/json'}
+        })
+        .then(results => results.json())
+        .catch(error => {
+            console.log(error)
+        });
+        window.location.href = '/'
+    }
+
+
+    
+    const [rtsp,setRTSP] = React.useState("")
+    const updateRTSP = (event) =>{
+        setRTSP(event.target.value)
+    }
+  return(
+    <>
+        <div>
+            <Dialog open={dopen} onClose={handleDOpen} aria-labelledby="alert-dialog-title" aria-describedby="alert-dialog-description">
+                <DialogTitle id="alert-dialog-title">
+                Template
+                </DialogTitle>
+                <DialogContent>
+                <DialogContentText id="alert-dialog-description">
+                    Are you sure you want to delete this Template?
+                </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                <Button onClick={handleDOpen}>Cancel</Button>
+                <Button onClick={deleteTemplate} autoFocus>
+                    Confirm
+                </Button>
+                </DialogActions>
+            </Dialog>
+        </div>
+        <div>
+            <Dialog open={open} onClose={handleClose}>
+                <DialogTitle>Save Template</DialogTitle>
+                <Divider/>
+                <DialogContent>
+                <DialogContentText>
+                    Name the template
+                </DialogContentText>
+                <TextField
+                    autoFocus
+                    margin="dense"
+                    id="name"
+                    label="Template Name"
+                    fullWidth
+                    variant="standard"
+                    onChange= {handleTextInputChange}
+                />
+                </DialogContent>
+                <DialogActions>
+                <Button onClick={handleClose}>Cancel</Button>
+                <Button onClick={addTemplate}>Save Template</Button>
+                </DialogActions>
+            </Dialog>
+        </div>
+        <Box
+            component="main"
+            sx={{ display:"flex", flexFlow: "column", py: 2, px: 3, width: { sm: `calc(100% - ${drawerWidth}px)` } }}
+        >
+            <Toolbar />
+            
+            <Box container sx={{alignItems:"top"}}>
+                <Grid item xs={6}>
+                    <div>
+                        <div style={{display:"flex",alignItems:"center",paddingBottom:"20px"}}>
+                            <TextField
+                                hiddenLabel
+                                id="camera_name"
+                                label="Camera Name"
+                                variant="outlined"
+                                sx={{mr:4}}
+                            />
+                            { process.env.REACT_APP_SUFFIX_SHOW == "true" ? 
+                                <>
+                                    <TextField
+                                            hiddenLabel
+                                            id="sia_suffix"
+                                            label="SIA SUFFIX"
+                                            variant="outlined"
+                                            sx={{mr:4}}
+                                    />
+                                </> : null
+                            }
+                            <TextField
+                                hiddenLabel
+                                id="rtsp"
+                                label="RTSP LINK"
+                                variant="outlined"
+                                sx={{width:"400px",mr:4}}
+                                onChange = {updateRTSP}
+                            />
+                        </div>
+                        <div style={{display:"flex",alignItems:"center",paddingBottom:"20px"}}>
+                            <Button variant='outlined' sx={{mr:2}} onClick={addCamera}>Save Camera</Button>
+                            {window.location.pathname.split("/").length>2 ? <Button variant='outlined' onClick={handleDOpen}>Delete Template</Button> : null}
+                        </div>
+                    </div>
+                </Grid>
+            </Box>
+
+            <div style = {{paddingBottom:"30px"}}>
+                <Divider/>
+                <div style={{display:"flex",padding:"30px 0",alignItems:"center"}}>
+                    <Typography variant='h4' sx={{width:'fit-content',mr:2}}>Features Activated</Typography>
+                    <AddCameraModal list = {cardData} text = "Add" addCard = {setCardData} camera_rtsp = {rtsp}/>
+                </div>
+                <div id = "cards" style={{display:"flex",flexWrap: "wrap",justifyContent: "space-between"}}>
+                    {Object.keys(cardData).length==0 ? "Add Features to Camera" : Object.entries(cardData).map(([key,value]) => 
+                        <PCard name = {key} properties = {value} fixed = {true} list = {cardData} addCard = {setCardData} />
+                    )}
+
+                    <div style={{width:"350px"}}></div>
+                    <div style={{width:"350px"}}></div>
+                    <div style={{width:"350px"}}></div>
+                    <div style={{width:"350px"}}></div>
+                    <div style={{width:"350px"}}></div>
+                </div>
+            </div>
+
+        </Box>
+    </>
+  );
+}
+
+export default Main;

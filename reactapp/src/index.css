@@ -1,0 +1,47 @@
+body {
+  margin: 0;
+  font-family: Poppins, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans',
+  'Liberation Sans', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: Poppins, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans',
+  'Liberation Sans', sans-serif;
+}
+
+#alertCard{
+  color: aqua;
+}
+
+
+
+@media screen and (min-width: 993px) {
+  #cards {
+    display:flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    padding-bottom:20px;
+  }
+  #alertMain {
+    display: flex;
+  }
+}
+
+@media screen and (max-width: 992px) {
+  #cards{
+    display:flex;
+    justify-content: space-between;
+    padding-bottom:20px;
+    width:100vw;
+    overflow: scroll;
+  }
+  #alertMain {
+    display: flex;
+    flex-direction: column;
+  }
+  #alertMain #alertGrid{
+    margin-bottom: 50px;
+  }
+}

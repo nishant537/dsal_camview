@@ -1,0 +1,172 @@
+
+/* for mobile & tablet */
+@media screen and (max-width: 1024px) {
+    #homeGrid{
+        display: none;
+    }
+    #dCard{
+        flex-direction: column;
+    }
+    #alertMain{
+        flex-direction: column;
+    }
+    #alertGrid{
+        height: 400px;
+        width: 100% !important;
+    }
+    #alertImage{
+        margin:0 !important;
+        width:100% !important;
+    }
+
+    .summary_view{
+        display:flex;
+        flex-direction: column;
+        /* justify-content:"space-between"; */
+        margin:40px 0px;
+    }
+    .summary_card{
+        width: 100% !important;
+        border:1px solid #e8e8e8;
+        box-shadow:5px 5px 5px whitesmoke;
+        border-radius: 20px;
+    }
+    #headerUM{
+        display:flex;
+        flex-direction: column;
+    }
+    #postHeaderUM{
+        display:flex;
+        flex-direction: column;
+        padding:20px 0;
+        margin:10px 0
+    }
+    #userCards{
+        display:flex;
+        flex-direction: column;
+    }
+    .userCard{
+        border:1px solid #e8e8e8;
+        box-shadow:5px 5px 5px whitesmoke;
+        padding:0px 15px 15px 15px;
+        margin:15px 0px;
+        display:flex;
+        flex-direction:column;
+        width:100%
+    }
+    #headerAD{
+        display: flex;
+        flex-direction: column;
+        gap: 30px;
+        padding: 20px;
+    }
+    #postHeaderAD{
+        display: flex;
+        flex-direction: column;
+    }
+    /* #postHeaderAD div{
+        width: 100%;
+    } */
+    #cards{
+        display:flex;
+        justify-content: space-between;
+        padding-bottom:20px;
+        width:100vw;
+        overflow: scroll;
+    }
+    #alertMain {
+    display: flex;
+    flex-direction: column;
+    }
+    #alertMain #alertGrid{
+    margin-bottom: 50px;
+    }
+}
+
+/* for desktop */
+@media screen and (min-width: 1025px) {
+    #alertImage{
+        display:flex;
+        flex-direction:column;
+        margin:20px 0px 20px 20px;
+        width:30%;
+    }
+    .active_menu{
+        background-color: #e8e8e8;
+    }
+
+    .summary_view{
+        display:flex;
+        justify-content:space-between;
+        margin:40px 0px;
+    }
+    .summary_card{
+        max-width: 500px ;
+        border:1px solid #e8e8e8;
+        box-shadow:5px 5px 5px whitesmoke;
+        border-radius: 20px;
+    }
+    #headerUM{
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+    }
+    #postHeaderUM{
+        display:flex;
+        align-items:center;
+        padding:20px 0;
+        gap:100px
+    }
+    #userCards{
+        display:flex;
+        justify-content:space-between;
+        flex-wrap:wrap
+    }
+    .userCard{
+        border:1px solid #e8e8e8;
+        box-shadow:5px 5px 5px whitesmoke;
+        padding:0px 15px 15px 15px;
+        margin:15px 0px;
+        display:flex;
+        flex-direction:column;
+        width:30%
+    }
+    #headerAD{
+        display: flex;
+        gap: 50px;
+        padding: 20px;
+        align-items:center;
+    }
+    #postHeaderAD{
+        display: flex;
+        gap:20px;
+    }
+    .chartAD,.cardsAD{
+        width: 50%;
+    }
+    #cards {
+        display:flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        padding-bottom:20px;
+    }
+    #alertMain {
+    display: flex;
+    }
+}
+
+#clusterUMSection{
+    display: flex;
+    gap: 10px;
+    justify-content: space-between;
+}
+
+#clusterUMSection button{
+    /* width: 150px; */
+    height: 40px;
+}
+
+#clusterUMSection button.active{
+    background-color: rgb(94, 94, 226);
+    color: white;
+}
