@@ -22,6 +22,10 @@ async def post(server_data:FeatureInSchema, db: Session = Depends(get_db)):
     response = await feature_crud.post(db,payload=server_data)
     return response
 
+@router.delete("/")
+async def delete(id:int, db: Session = Depends(get_db)):
+    response = await feature_crud.delete(db,id=id)
+    return response
 # @router.get("/{id}")
 # async def get_service(id: int,db: Session = Depends(get_db)):
 #     response = await get(db,id=id)

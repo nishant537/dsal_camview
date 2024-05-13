@@ -2,7 +2,7 @@ from distutils.log import debug
 from email import message
 from telnetlib import STATUS
 from urllib import response
-from fastapi import APIRouter, Depends, Query 
+from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy.orm import Session
 from db.database import *
 from model.roi_model import *
@@ -12,19 +12,23 @@ from typing import Optional, Annotated, List
 
 router = APIRouter()
 
-@router.get("/", response_model = List[RoiOutSchema])
-async def get(db: Session = Depends(get_db)):
-    response = await roi_crud.get(db)
+@router.get("/")
+async def get(
+    request: Request,
+    db: Session = Depends(get_db)
+    ):
+    response = await roi_crud.get(db, request)
     return response
 
 @router.post('/')
-async def post(server_data:RoiInSchema, db: Session = Depends(get_db)):
-    response = await roi_crud.post(db,payload=server_data)
+async def post(payload:RoiInSchema, db: Session = Depends(get_db)):
+    response = await roi_crud.post(db,payload)
+
     return response
 
-@router.put("/")
-async def get_service(id: int,db: Session = Depends(get_db)):
-    response = await get(db,id=id)
+@router.put("/{id}")
+async def put(id: int, payload:RoiInSchema, db: Session = Depends(get_db)):
+    response = await roi_crud.put(db,id, payload)
     return response
 
 # @router.post('/')

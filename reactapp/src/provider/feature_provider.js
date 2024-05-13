@@ -4,8 +4,6 @@ export const get = async(urlParams) => {
     try {
         const response = await fetch(`http://localhost:8000/client/?${urlParams}`,{method : "GET"});
         if (!response.ok) {
-          // intercepter to throw errors
-          // timeout (api is down, refetch)
           throw new Error('Network response was not ok.');
         }
         const data = await response.json();
@@ -37,21 +35,21 @@ export const post = async(payload) => {
         }
         const data = await response.json()['data'];
         // return data
-      return [{ id: 1, center_name: '1350_ABC', location: 'Noida, Delhi', feature_type: 'Zone Intrusion', timestamp: "09:42:00 AM", total_alert:4},]
+        return [{ id: 1, name: 'NTA', code: 'Jon', address:"Lorem Ipsum", username: "nta_user", password: "nishant", instances: 8, active_exam:1, completed_exam: 3 }]
       } catch (error) {
         alert(error.message)
     }
 }
 
-export const del = async(row_id) => {
+export const del = async(id) => {
     try {
-        const response = await fetch(`http://localhost:8000/client/`,{method : "POST", body: JSON.stringify({"id": row_id})});
+        const response = await fetch(`http://localhost:8000/feature/?id=${id}`,{method : "DELETE"});
         if (!response.ok) {
           throw new Error('Network response was not ok.');
         }
-        const data = await response.json()['data'];
-        // return data
-        return [{ id: 1, center_name: '1350_ABC', location: 'Noida, Delhi', feature_type: 'Zone Intrusion', timestamp: "09:42:00 AM", total_alert:4},]
+        const data = await response.json();
+        console.log(data)
+        return data
       } catch (error) {
         alert(error.message)
     }

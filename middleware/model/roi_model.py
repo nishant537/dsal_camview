@@ -1,7 +1,6 @@
 import enum 
-from pydantic import BaseModel, Json
+from pydantic import BaseModel
 from typing import Optional
-# from .feature_model import FeatureOutSchema
 from datetime import datetime
 
 class StatusTypeEnum(str, enum.Enum):
@@ -11,19 +10,18 @@ class StatusTypeEnum(str, enum.Enum):
     rejected = "rejected"
 
 class RoiBaseSchema(BaseModel):
-    feature_id: int
-    name: str
+    feature_id: int | None = None
+    name: str | None = None
     comment: str | None = None
-    json: Json
-    status: StatusTypeEnum = StatusTypeEnum['pending']
-    last_updated: datetime = datetime.now()
+    json: str | None = None
+    status: StatusTypeEnum | None = StatusTypeEnum['pending']
+    last_updated: datetime| None = datetime.now()
 
 class RoiInSchema(RoiBaseSchema):
     pass
 
 class RoiOutSchema(RoiBaseSchema):
     id: int
-    # exams: list[FeatureOutSchema] = []
     class Config:
         orm_mode = True
 

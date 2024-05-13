@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Grid, Box, IconButton, Toolbar, Typography, TextField, InputAdornment, Stack,Button, Modal, FormControl, Paper, Divider, Select, MenuItem, ToggleButtonGroup, ToggleButton} from '@mui/material';
-import { DataGrid,GridToolbarContainer,GridToolbarFilterButton,GridColumnHeaderParams, GridFooterContainer, GridFooter, gridClasses} from '@mui/x-data-grid';
+import { DataGrid,GridToolbarContainer,GridToolbarFilterButton,GridColumnHeaderParams, GridFooterContainer, GridFooter, gridClasses, getGridNumericOperators, getGridStringOperators} from '@mui/x-data-grid';
 import {Search, FilterAlt,Groups, Storage, LibraryBooks, CheckBox, Cancel} from "@mui/icons-material";
 import { useTheme } from '@mui/material/styles';
 import {DataGridPro} from "@mui/x-data-grid-pro";
@@ -15,19 +15,31 @@ const drawerWidth = 280;
 function Main(props) {
     const theme = useTheme();
     const navigate = useNavigate();
-    
+    const operator_to_string = {"=":"eq","!=":"not",">":"gt",">=":"gte","<":"lt","<=":"lte","contains":"like"};
+    const string_to_operator = Object.fromEntries(Object.entries(operator_to_string).map(a => a.reverse()));
+    const numeric_operators = getGridNumericOperators().filter(
+        (operator) => operator.value === '=' || operator.value === '>',
+    )
+    const string_operators = getGridStringOperators().filter(
+        (operator) => operator.value === 'contains',
+    )
+
+
     const [modalOpen, setModalOpen] = React.useState(false);    
     const [rows,setRows] = React.useState([])
-    const [urlParams, setUrlParams] = React.useState("")
+    const [urlParams, setUrlParams] = React.useState(()=>{
+        const data = new URLSearchParams(window.location.search)
+        return data.toString()
+    })
     const [filter, setFilter] = React.useState(()=>{
         const data = new URLSearchParams(window.location.search)
         const filterItems = [];
         for (let p of data) {
-            filterItems.push({'field':p[0], "operator":'=', "value":p[1]});
+            filterItems.push({'field':p[0].split('__')[0], "operator":string_to_operator[p[0].split('__')[1]], "value":p[1]});
         }
         return filterItems;
     })
-    const [selectedRow, setSelectedRow] = React.useState(null)
+    const [selectedRow, setSelectedRow] = React.useState([])    
     const [featureSelected, setFeatureSelected] = React.useState(0);    
 
     React.useEffect(() => {
@@ -38,22 +50,28 @@ function Main(props) {
         })
       }, [urlParams]);
 
+      console.log(JSON.parse(
+        '{"a":"b"}'
+      ))
     const columns = [
     { 
         field: 'id', 
         headerName: "#",
         flex:1, 
+        filterOperators: numeric_operators,
     },
     {
         field: 'name',
         headerName: "CAMERA NAME",
         flex:1,
-        renderCell: (params) => {return <a href="hi">{params.value}</a>}
+        filterOperators: string_operators,
+        renderCell: (params) => {return <a href={`/provisioning/${params.row.id}`}>{params.value}</a>}
     },
     {
-        field: 'sub_location',
+        field: 'sublocation',
         headerName: "SUBLOCATION",
         flex:1,
+        filterOperators: string_operators,
     },
     {
         field: 'features',
@@ -62,19 +80,21 @@ function Main(props) {
         renderCell: (params) => {
             return (
                 <ToggleButtonGroup color="primary" value={featureSelected} exclusive onChange={(event, newAlignment) => {setFeatureSelected(newAlignment)}} aria-label="Features Active" fullWidth={true} style={{justifyContent:"center"}}>
-                    {Object.keys(params.row.features).map((value, index)=>(
-                    <ToggleButton value={index}>{value}</ToggleButton>
+                    {params.row.features.map((value, index)=>(
+                        <ToggleButton value={index}>{value['name']}</ToggleButton>
                     ))
                     }
                 </ToggleButtonGroup>
             )    
-        }
+        },
+        filterable: false
     },
     {
         field: 'time',
         headerName: "ACTIVATED TIME",
         flex:1,
-        renderCell: (params) => {return `${Object.values(params.row.features)[featureSelected]["start_time"]}-${Object.values(params.row.features)[featureSelected]["end_time"]}`},
+        renderCell: (params) => {return `${JSON.parse(params.row.features[featureSelected]['json'])["start_time"]}-${JSON.parse(params.row.features[featureSelected]['json'])["end_time"]}`},
+        filterable: false
     },
     {
         field: 'status',
@@ -93,6 +113,7 @@ function Main(props) {
                 </Stack>
             )
         },
+        filterable: false
     },
     ];
 
@@ -110,7 +131,7 @@ function Main(props) {
                         }
                     }}
                 />
-                <TextField sx={{width: "450px",my:2,mr:4 }} id="outlined-search" placeholder='Seach Center by Code, Name, Location' type="search" InputProps={{
+                <TextField sx={{width: "450px",my:2,mr:4, background:"#f4f2ff" }} id="contained-search" variant="outlined" placeholder='Seach Client' type="search" InputProps={{
                     startAdornment: (
                         <InputAdornment>
                             <IconButton>
@@ -169,10 +190,11 @@ function Main(props) {
     }
     
     const onFilterModelChange = (newFilterModel) => {
+        console.log("Filter model Changed!")
         const data = new URLSearchParams();
         newFilterModel['items'].map((value, index)=>{
             if (value['value']){
-                data.append(value['field'], value['value'])
+                data.append(`${value['field']}__${operator_to_string[value['operator']]}`, value['value'])
             }
         })
         window.history.replaceState({}, '', `${window.location.pathname}?${data}`);
@@ -211,7 +233,6 @@ function Main(props) {
                             fontWeight:"500",
                             backgroundColor: '#f4f2ff',
                             color:"#8b83ba",
-                            textAlign:"-webkit-center"
                         },
                         [`& .${gridClasses.cell}, & .${gridClasses.columnHeaderTitleContainer}`]: {
                             borderBottom: '1px solid #e8e8e8',
@@ -240,6 +261,7 @@ function Main(props) {
                     checkboxSelection
                     disableRowSelectionOnClick
                     
+                    // this does not trigger model change, just shows on ui
                     initialState={{
                         filter: {
                           filterModel: {
@@ -256,7 +278,7 @@ function Main(props) {
                         );
                         setSelectedRow(selectedRowData);
                     }}
-                />  
+                />   
 
             </Box>
         </>

@@ -2,7 +2,7 @@ from distutils.log import debug
 from email import message
 from telnetlib import STATUS
 from urllib import response
-from fastapi import APIRouter, Depends, Query 
+from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy.orm import Session
 from db.database import *
 from model.center_model import *
@@ -12,9 +12,12 @@ from typing import Optional, Annotated, List
 
 router = APIRouter()
 
-@router.get("/", response_model = List[CenterOutSchema])
-async def get(db: Session = Depends(get_db)):
-    response = await center_crud.get(db)
+@router.get("/")
+async def get(
+    request: Request,
+    db: Session = Depends(get_db)
+    ):
+    response = await center_crud.get(db, request)
     return response
 
 @router.post('/')

@@ -1,25 +1,13 @@
 import * as React from 'react';
 
-export const get = async(urlParams) => {
+export const get_dropdown = async(urlParams) => {
     try {
-        const response = await fetch(`http://localhost:8000/shift/?${urlParams}`,{method : "GET"});
+        const response = await fetch(`http://localhost:8000/exam/?${urlParams}`,{method : "GET"});
         if (!response.ok) {
           throw new Error('Network response was not ok.');
         }
         const data = await response.json();
-        // return data
-        const returned_response = [];
-        data.map((value,index)=>{
-          // const active = 0;
-          // value['exams'].map((value,index)=>{
-          //   value['shifts'].map((value,index)=>{
-
-          //   })
-          // })
-          const temp={ id: value.id, code: value.code, exam_name:value.exam.name, date: value.date, start_time: value.start_time, end_time: value.end_time, centers:value.centers.length, cameras: value.centers!=0 ? value.centers[0].cameras.length : 0 };
-          returned_response.push(temp)
-        })
-        return returned_response;
+        return data;
       } catch (error) {
         alert(error.message)
     }

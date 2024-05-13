@@ -1,70 +1,151 @@
 import * as React from 'react';
 import { Grid, Box, IconButton, Toolbar, Typography, TextField, InputAdornment, Stack,Button, Modal, FormControl, Paper, Divider, Select, MenuItem, ToggleButtonGroup, ToggleButton} from '@mui/material';
-import { DataGrid,GridToolbarContainer,GridToolbarFilterButton,GridColumnHeaderParams, GridFooterContainer, GridFooter, gridClasses} from '@mui/x-data-grid';
-import {Search, FilterAlt,Groups, Storage, LibraryBooks, CheckBox} from "@mui/icons-material";
+import { DataGrid,GridToolbarContainer,GridToolbarFilterButton,GridColumnHeaderParams, GridFooterContainer, GridFooter, gridClasses,getGridStringOperators, getGridNumericOperators} from '@mui/x-data-grid';
+import {Search, FilterAlt,Groups, Storage, LibraryBooks, CheckBox, Image, VideoCall} from "@mui/icons-material";
 import { useTheme } from '@mui/material/styles';
 import {DataGridPro} from "@mui/x-data-grid-pro";
 import { LineChart } from '@mui/x-charts/LineChart';
+import { useNavigate } from 'react-router-dom';
 
+import {get, post, get_summary, get_group} from '../provider/alert_provider';
+import { useForm } from 'react-hook-form'
 
-// icon import
-import SearchIcon from '@mui/icons-material/Search';
-// component import
-import DashboardCards from '../components/DashboardCards';
 
 const drawerWidth = 280;
 
 function Main(props) {
     const theme = useTheme();
+    const navigate = useNavigate();
+    const operator_to_string = {"=":"eq","!=":"not",">":"gt",">=":"gte","<":"lt","<=":"lte","contains":"like"};
+    const string_to_operator = Object.fromEntries(Object.entries(operator_to_string).map(a => a.reverse()));
+    const numeric_operators = getGridNumericOperators().filter(
+        (operator) => operator.value === '=' || operator.value === '>',
+    )
+    const string_operators = getGridStringOperators().filter(
+        (operator) => operator.value === 'contains',
+    )
 
     const [modalOpen, setModalOpen] = React.useState(false);    
+    const [rows,setRows] = React.useState([])
+    const [subRows,setSubRows] = React.useState([])
+    const [urlParams, setUrlParams] = React.useState(()=>{
+        const data = new URLSearchParams(window.location.search)
+        return data.toString()
+    })
+    const [filter, setFilter] = React.useState(()=>{
+        const data = new URLSearchParams(window.location.search)
+        const filterItems = [];
+        for (let p of data) {
+            filterItems.push({'field':p[0].split('__')[0], "operator":string_to_operator[p[0].split('__')[1]], "value":p[1]});
+        }
+        return filterItems;
+    })
+    const [selectedRow, setSelectedRow] = React.useState([])
+    const [cardData, setCardData] = React.useState([])
     const [alignment, setAlignment] = React.useState("6H");    
     const [alignment2, setAlignment2] = React.useState("image");    
-    const [alignment3, setAlignment3] = React.useState("true");    
+    const [alignment3, setAlignment3] = React.useState("true");   
 
+    React.useEffect(() => {
+        get_summary((urlParams)).then((value)=>{
+            if (value){
+                console.log(value)
+                setCardData(value)
+            }
+        })
+        get_group((urlParams)).then((value)=>{
+            if (value){
+                console.log(JSON.stringify(value))
+                setRows(value)
+            }
+        })
+      }, [urlParams]);
+
+    
     const columns = [
     { 
         field: 'id', 
+        headerName: "#",
+        type: "number",
         flex:1, 
-        renderHeader:() => (<Typography variant="h3" component="span">ID</Typography>)
+        filterOperators: numeric_operators,
     },
     {
-        field: 'center_name',
+        field: 'camera',
+        headerName: "NAME",
         flex:1,
-        renderHeader:() => (<Typography variant="h3" component="span">NAME</Typography>)
+        filterOperators: string_operators,
     },
     {
         field: 'location',
+        headerName: "LOCATION",
         flex:1,
-        renderHeader:() => (<Typography variant="h3" component="span">LOCATION</Typography>)
+        filterOperators: string_operators,
     },
     {
-        field: 'feature_type',
+        field: 'feature',
+        headerName: "FEATURE",
         flex:1,
-        renderHeader:() => (<Typography variant="h3" component="span">FEATURE</Typography>)
+        filterOperators: string_operators,
     },
     {
         field: 'timestamp',
+        headerName: "TIME",
         flex:1,
-        renderHeader:() => (<Typography variant="h3" component="span">Time</Typography>)
+        filterOperators: string_operators,
     },
-    {
-        field: 'total_alert',
-        flex:1,
-        renderHeader:() => (<Typography variant="h3" component="span">PRIORITY</Typography>),
-        renderCell: (params) => {
-            return (
-                <div style={{display:"flex",justifyContent:"center",height:"100%",alignItems:"center"}}>
-                    <div style={{width:"20px", height:"20px", background:params.value===0 ? "#39d56f" : params.value<=2 ? "#86ed62" : params.value < 5 ? "#ffcd29" : params.value < 10 ? "#ffa629" : "#ff7250" ,borderRadius:"3px"}}></div>
-                </div>
-            )
-        },
-    },
+    // {
+    //     field: 'total_alert',
+    //     headerName: "PRIORITY",
+    //     flex:1,
+    //     renderCell: (params) => {
+    //         return (
+    //             <div style={{display:"flex",justifyContent:"center",height:"100%",alignItems:"center"}}>
+    //                 <div style={{width:"20px", height:"20px", background:params.value===0 ? "#39d56f" : params.value<=2 ? "#86ed62" : params.value < 5 ? "#ffcd29" : params.value < 10 ? "#ffa629" : "#ff7250" ,borderRadius:"3px"}}></div>
+    //             </div>
+    //         )
+    //     },
+    //     filterable: false,
+    // },
     ];
 
-    const rows = [
-    { id: 1, center_name: '1350_ABC', location: 'Noida, Delhi', feature_type: 'Zone Intrusion', timestamp: "09:42:00 AM", total_alert:4},
-    ];
+    const sub_columns = [
+        { 
+            field: 'id', 
+            headerName: "#",
+            type: "number",
+            flex:1, 
+            filterable:false
+        },
+        {
+            field: 'timestamp',
+            headerName: "TIME",
+            flex:1,
+            filterOperators: string_operators,
+        },
+        {
+            field: 'image_path',
+            headerName: "IMAGE",
+            flex:1,
+            renderCell: (params) => {
+                return (
+                    <Image/>
+                )
+            },
+            filterable: false,
+        },
+        {
+            field: 'video_path',
+            headerName: "VIDEO",
+            flex:1,
+            renderCell: (params) => {
+                return (
+                    <VideoCall/>
+                )
+            },
+            filterable: false,
+        }
+        ];
 
     function CustomToolbar() {
     return (
@@ -80,7 +161,7 @@ function Main(props) {
                         }
                     }}
                 />
-                <TextField sx={{width: "450px",my:2,mr:4 }} id="outlined-search" placeholder='Seach Center by Code, Name, Location' type="search" InputProps={{
+                <TextField sx={{width: "450px",my:2,mr:4, background:"#f4f2ff" }} id="contained-search" variant="outlined" placeholder='Seach Client' type="search" InputProps={{
                     startAdornment: (
                         <InputAdornment>
                             <IconButton>
@@ -137,6 +218,34 @@ function Main(props) {
         </GridFooterContainer>
     );
     }
+
+    const onFilterModelChange = (newFilterModel) => {
+        console.log("Filter model Changed!")
+        const data = new URLSearchParams();
+        newFilterModel['items'].map((value, index)=>{
+            if (value['value']){
+                data.append(`${value['field']}__${operator_to_string[value['operator']]}`, value['value'])
+            }
+        })
+        window.history.replaceState({}, '', `${window.location.pathname}?${data}`);
+        setUrlParams(data.toString())
+    }
+
+    const {register, handleSubmit} = useForm([])
+    const onSubmit = (data, e) => {post(data)};
+    const onError = (errors, e) => {post(errors)};
+
+    const handleImgData = (ids) => {
+        const data = new URLSearchParams(urlParams);
+        data.append(`camera__${operator_to_string['contains']}`, ids['row']['camera'])
+        data.append(`feature__${operator_to_string['contains']}`, ids['row']['feature'])
+        get((data.toString())).then((value)=>{
+            if (value){
+                setSubRows(value)
+            }
+        })
+        setModalOpen(true)
+    }
     
     return(
         <>
@@ -148,47 +257,75 @@ function Main(props) {
                 aria-describedby="modal-modal-description"
             >
                 <Box sx={{position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', bgcolor: 'background.paper', boxShadow: 24,}}>
-                    <Typography variant="h1" color="primary" component="div" sx={{borderBottom:"5px solid"}} textAlign="center">
-                        Client
-                    </Typography>
-                    <FormControl component="form" variant="outlined" onSubmit={props.submit}>
-                        <Paper style={{ padding: 16,}}>
-
-                            <Grid container alignItems="flex-start" spacing={2} p={3}>
-                                <Grid item xs={6}>
-                                    <Typography variant="h3">Name</Typography>
-                                    <TextField  name="company"  placeholder="Enter Client Name"/>
-                                </Grid>
-                                <Grid item xs={6}>
-                                    <Typography variant="h3">Address</Typography>
-                                    <TextField  name="company"  placeholder="Enter Client Address"/>
-                                </Grid>
-                                <Grid item xs={12}>
-                                    <Button variant="outlined" color="primary" onClick="">Generate Code</Button>
-                                </Grid>
-                                <Grid item xs={12}>
-                                    <Typography variant="h3">Code</Typography>
-                                    <TextField  name="company"  placeholder="Enter Client Code"/>
-                                </Grid>
-                                <Grid item xs={6}>
-                                    <Typography variant="h3">Username</Typography>
-                                    <TextField  name="company"  placeholder="Enter Client Username"/>
-                                </Grid>
-                                <Grid item xs={6}>
-                                    <Typography variant="h3">Password</Typography>
-                                    <TextField  name="company"  placeholder="Enter Client Password"/>
-                                </Grid>
-                                <Grid item style={{ marginTop: 30 }}>
-                                    <Stack alignItems="center" direction="row" gap={3}>
-                                        <Button variant="outlined" color="primary" onClick={(e) => {setModalOpen(false)}}>Cancel</Button>
-                                        <Button variant="contained" color="primary" type="submit" onClick={(e) => {e.preventDefault();setModalOpen(true)}}>Create Client</Button>
-                                    </Stack>
-                                </Grid>
-                            </Grid>
-                        </Paper>
-                    </FormControl>
+                <DataGridPro
+                            sx={{
+                                minHeight:"600px",
+                                minWidth:"800px",
+                                [`& .${gridClasses.cell}:focus, & .${gridClasses.cell}:focus-within`]: {
+                                outline: 'none',
+                                },
+                                [`& .${gridClasses.columnHeader}:focus, & .${gridClasses.columnHeader}:focus-within`]:
+                                {
+                                    outline: 'none',
+                                },
+                                [`& .${gridClasses.columnHeader}`]:
+                                {
+                                    fontFamily: "Poppins",
+                                    fontSize: "1rem",
+                                    lineHeight: "2rem",
+                                    fontWeight:"500",
+                                    backgroundColor: '#f4f2ff',
+                                    color:"#8b83ba",
+                                },
+                                [`& .${gridClasses.cell}, & .${gridClasses.columnHeaderTitleContainer}`]: {
+                                    borderBottom: '1px solid #e8e8e8',
+                                    textAlign:"-webkit-center",
+                                    justifyContent:"center"
+                                },
+                                
+                            }}
+                            rows={subRows}
+                            columns={sub_columns
+                            }
+                            disableMultipleRowSelection={true}
+                            // initialState={{
+                            // pagination: {
+                            //     paginationModel: {
+                            //     pageSize: 5,
+                            //     },
+                            // },
+                            // }}
+                            autoHeight={true}
+                            // slots={{
+                            //     toolbar: CustomToolbar,
+                            //     footer: CustomFooter,
+                            // }}
+                            pageSizeOptions={[5]}
+                            // pageSize={100}
+                            checkboxSelection
+                            disableRowSelectionOnClick
+                            
+                            // this does not trigger model change, just shows on ui
+                            initialState={{
+                                filter: {
+                                filterModel: {
+                                    items: filter,
+                                },
+                                },
+                            }}
+                            filterMode='server'
+                            onFilterModelChange={(newFilterModel) => onFilterModelChange(newFilterModel)}
+                            onRowSelectionModelChange={(ids) => {
+                                const selectedIDs = new Set(ids);
+                                const selectedRowData = rows.filter((row) =>
+                                    (selectedIDs.has(row.id))
+                                );
+                                setSelectedRow(selectedRowData);
+                            }}
+                        /> 
                 </Box>
             </Modal>
+
             <Box
                 component="main"
                 sx={{ display:"flex", flexFlow: "column", py: 2, px: 3, width: { sm: `calc(100% - ${drawerWidth}px)`,'& .MuiDataGrid-columnHeaders': { backgroundColor: '#f4f2ff',fontSize:"1.2rem", fontWeight:800,color:"#8b83ba"},} }}
@@ -198,8 +335,9 @@ function Main(props) {
                 <Stack direction="row">
                     <Box minWidth="50%" p={1}>
                         <Stack direction="column" alignItems="flex-end">
-                            <ToggleButtonGroup
+                            {/* <ToggleButtonGroup
                                 sx={{paddingX:"20px"}}
+                                fullWidth
                                 color="primary"
                                 value={alignment}
                                 exclusive
@@ -210,7 +348,7 @@ function Main(props) {
                                 <ToggleButton value="4H">2H</ToggleButton>
                                 <ToggleButton value="6H">6H</ToggleButton>
                                 <ToggleButton value="12H">12H</ToggleButton>
-                            </ToggleButtonGroup>
+                            </ToggleButtonGroup> */}
                             <LineChart
                                 xAxis={[{ data: [7.00, 8.00, 9.00, 10.00, 11.00, 12.00, 13.00, 14.00, 15.00] }]}
                                 series={[
@@ -314,8 +452,9 @@ function Main(props) {
 
                 <Stack direction="row" gap={2}>
                     <div style={{minWidth:"60%"}}>
-                        <DataGrid
+                        <DataGridPro
                             sx={{
+                                height:"100% !important",
                                 [`& .${gridClasses.cell}:focus, & .${gridClasses.cell}:focus-within`]: {
                                 outline: 'none',
                                 },
@@ -323,9 +462,25 @@ function Main(props) {
                                 {
                                     outline: 'none',
                                 },
+                                [`& .${gridClasses.columnHeader}`]:
+                                {
+                                    fontFamily: "Poppins",
+                                    fontSize: "1rem",
+                                    lineHeight: "2rem",
+                                    fontWeight:"500",
+                                    backgroundColor: '#f4f2ff',
+                                    color:"#8b83ba",
+                                },
+                                [`& .${gridClasses.cell}, & .${gridClasses.columnHeaderTitleContainer}`]: {
+                                    borderBottom: '1px solid #e8e8e8',
+                                    textAlign:"-webkit-center",
+                                    justifyContent:"center"
+                                },
+                                
                             }}
                             rows={rows}
                             columns={columns}
+                            disableMultipleRowSelection={true}
                             // initialState={{
                             // pagination: {
                             //     paginationModel: {
@@ -339,15 +494,34 @@ function Main(props) {
                                 footer: CustomFooter,
                             }}
                             pageSizeOptions={[5]}
+                            // pageSize={100}
                             checkboxSelection
                             disableRowSelectionOnClick
-                        />
+                            
+                            // this does not trigger model change, just shows on ui
+                            initialState={{
+                                filter: {
+                                filterModel: {
+                                    items: filter,
+                                },
+                                },
+                            }}
+                            filterMode='server'
+                            onFilterModelChange={(newFilterModel) => onFilterModelChange(newFilterModel)}
+                            onRowSelectionModelChange={(ids) => {
+                                const selectedIDs = new Set(ids);
+                                const selectedRowData = rows.filter((row) =>
+                                    (selectedIDs.has(row.id))
+                                );
+                                setSelectedRow(selectedRowData);
+                            }}
+                            onRowClick = {(ids) => {handleImgData(ids)}}
+                        />  
                     </div>
-
                     <Stack direction="column" gap={1}>
-                        <ToggleButtonGroup color="secondary" value={alignment2} exclusive onClick={(e,newAlignment)=>setAlignment2(newAlignment)} aria-label="Platform" style={{width:"100%"}}>
-                            <ToggleButton value="image" id="alert_image" style={{width:"50%"}}>Image</ToggleButton>
-                            <ToggleButton value="video" id="alert_video" style={{width:"50%"}}>Video</ToggleButton>
+                        <ToggleButtonGroup color="secondary" value={alignment2} fullWidth exclusive onClick={(e,newAlignment)=>setAlignment2(newAlignment)} aria-label="Platform" style={{width:"100%"}}>
+                            <ToggleButton value="image" id="alert_image">Image</ToggleButton>
+                            <ToggleButton value="video" id="alert_video">Video</ToggleButton>
                         </ToggleButtonGroup>
                         <img src="alert.png" alt="Alert for Zone Intrusion"/>
                         <Box container border={"1px solid #e8e8e8"} borderRadius={3} p={2}>
@@ -390,9 +564,9 @@ function Main(props) {
                                 </Grid>
                             </Grid>
                         </Box>
-                        <ToggleButtonGroup color="secondary" value={alignment3} exclusive onClick={(e,newAlignment)=>setAlignment3(newAlignment)} aria-label="Platform" style={{width:"100%"}}>
-                            <ToggleButton value="true" id="alert_image" style={{width:"50%"}}>True</ToggleButton>
-                            <ToggleButton value="false" id="alert_video" style={{width:"50%"}}>False</ToggleButton>
+                        <ToggleButtonGroup color="secondary" value={alignment3} fullWidth exclusive onClick={(e,newAlignment)=>setAlignment3(newAlignment)} aria-label="Platform" style={{width:"100%"}}>
+                            <ToggleButton value="true" id="alert_image">True</ToggleButton>
+                            <ToggleButton value="false" id="alert_video">False</ToggleButton>
                         </ToggleButtonGroup>
                         <Button variant="contained" color="primary">Submit</Button>
                         

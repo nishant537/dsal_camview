@@ -308,7 +308,7 @@ function Main(props) {
                                     <Stack alignItems="center" direction="row" gap={3}>
                                         <Button variant="outlined" color="secondary" onClick={(e) => {setModalOpen(true)}}>Cancel</Button>
                                         <Button variant="outlined" color="secondary" onClick={(e) => {setModalOpen(true)}}>Save Draft</Button>
-                                        <Button variant="contained" color="secondary" type="submit" onClick={()=>setStep(3)}>Next</Button>
+                                        <Button variant="contained" color="secondary" type="submit" onClick={()=>setStep(2)}>Next</Button>
                                     </Stack>
                                 </Grid>
                             </Grid>
@@ -464,9 +464,9 @@ function Main(props) {
                                     </Stack>
                                 </Stack>
                                 <Stack alignItems="center" direction="row" gap={5} m={4}>
-                                    <Button variant="outlined" color="secondary" onClick={() => {setStep(2)}}>Back</Button>
-                                    <Button variant="outlined" color="secondary" onClick={() => {setStep(2)}}>Save Draft</Button>
-                                    <Button variant="contained" color="secondary" type="submit" onClick={() => {setPreviewOpen(true)}}>Preview</Button>
+                                    <Button variant="outlined" color="secondary" onClick={() => {setStep(3)}}>Back</Button>
+                                    <Button variant="outlined" color="secondary">Save Draft</Button>
+                                    <Button variant="contained" color="secondary" type="submit" onClick={() => {navigate('/shift')}}>Preview</Button>
                                 </Stack>
                             </Box>
                         :

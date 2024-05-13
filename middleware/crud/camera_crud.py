@@ -9,13 +9,18 @@ from model.camera_model import *
 from html_response_codes import *
 
 
-async def get(db: Session):
-    data = db.query(Camera)
-    # data = data.join(Server.types).filter(
-    #         Type.id == type_id
-    #     )
-    # data = data.options(joinedload(Server.sites))
-    # data = data.options(joinedload(Server.types))
+async def get(
+        db: Session,
+        request # *******SETBACK******* = in documentation query parameters are not specified with this approach    
+    ):
+    params = request.query_params
+    data = db.query(Camera).options(joinedload(Camera.features).subqueryload(Feature.roi))
+    # for instances, active_exams would need to iterate through results as filter by cannot filter
+    for query in [x for x in params if params[x] is not None]:
+        attr, operator = query.split('__') 
+        data = data.filter(get_sqlalchemy_operator(operator)(getattr(Camera,attr),params[query]))
+
+    print(data.all())
     return data.all()
 
 async def post(db: Session,payload: CameraInSchema):

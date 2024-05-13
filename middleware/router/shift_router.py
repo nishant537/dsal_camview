@@ -2,7 +2,7 @@ from distutils.log import debug
 from email import message
 from telnetlib import STATUS
 from urllib import response
-from fastapi import APIRouter, Depends, Query 
+from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy.orm import Session
 from db.database import *
 from model.shift_model import *
@@ -14,15 +14,16 @@ router = APIRouter()
 
 @router.get("/")
 async def get(
-    exam_name: str | None = None,
-    code: str | None = None,
-    date: str | None = None,
-    start_time: str | None = None,
-    end_time: str | None = None,
-    centers: int | None = None,
-    cameras: int | None = None,
+    # exam_name: str | None = None,
+    # code: str | None = None,
+    # date: str | None = None,
+    # start_time: str | None = None,
+    # end_time: str | None = None,
+    # centers: int | None = None,
+    # cameras: int | None = None,
+    request: Request,
     db: Session = Depends(get_db)):
-    response = await shift_crud.get(db,exam_name,code,date,start_time,end_time,centers,cameras)
+    response = await shift_crud.get(db, request)
     return response
 
 @router.post('/')

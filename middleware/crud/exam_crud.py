@@ -1,6 +1,6 @@
 from json import JSONEncoder
 import logging
-from sqlalchemy import select
+from sqlalchemy import select, func
 from db.database import *
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
@@ -9,13 +9,28 @@ from model.exam_model import *
 from html_response_codes import *
 
 
-async def get(db: Session):
-    data = db.query(Exam)
-    # data = data.join(Server.types).filter(
-    #         Type.id == type_id
-    #     )
-    # data = data.options(joinedload(Server.sites))
-    # data = data.options(joinedload(Server.types))
+async def get(
+        db: Session,
+        request # *******SETBACK******* = in documentation query parameters are not specified with this approach
+
+    ):
+    params = request.query_params
+    data = db.query(Exam).options(joinedload(Exam.client),joinedload(Exam.instances),joinedload(Exam.shifts).subqueryload(Shift.centers))
+
+    # for instances, active_exams would need to iterate through results as filter by cannot filter
+    for query in [x for x in params if params[x] is not None]:
+        attr, operator = query.split('__') 
+        data = data.filter(get_sqlalchemy_operator(operator)(getattr(Exam,attr),params[query]))
+
+    # with association_proxy
+    # data = data.filter(Exam.username.like('string'))
+    # with has approach for nested searching
+    # data = data.filter(Exam.client.has(name='string'))
+    # with join approach
+    # data = data.join(Exam.client).filter_by(name='string')
+
+    # for length of children
+    # data = data.join(Shift).group_by(Exam.id).having(func.count(Shift.id) == 4)
     return data.all()
 
 async def post(db: Session,payload: ExamInSchema):
@@ -23,7 +38,11 @@ async def post(db: Session,payload: ExamInSchema):
     # payload.sites = db_object
 
     db_item = Exam(**payload.dict())
-    db.add(db_item)
+    # see if this affects association proxy
+    # parent = (db.query(Client).get(db_item.__dict__['client_id']))
+    # parent.exams.append(db_item)
+    # db.add(parent)
+    db.add()
     db.commit()
     db.refresh(db_item)
     return db_item

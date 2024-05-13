@@ -20,6 +20,8 @@ from sqlalchemy import (
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker
 from sqlalchemy_utils import database_exists, create_database
+from sqlalchemy.ext.associationproxy import association_proxy
+from sqlalchemy.sql import func
 
 DATABASE_URL = "mysql+pymysql://root:nishant@127.0.0.1:3306/trustview"
 
@@ -66,7 +68,7 @@ class Client(Base):
     username = Column(String(64), nullable=False, unique=True)
     password = Column(Text, nullable=False)
 
-    exams = relationship("Exam", back_populates="client")
+    exams = relationship("Exam", back_populates="client",order_by="Exam.id")
 
 class ExamTypeEnum(str, enum.Enum):
     live = "live"
@@ -84,8 +86,9 @@ class Exam(Base):
     type = Column(Enum(ExamTypeEnum), nullable=False)
     description = Column(Text, comment="Description for exam")
 
-    instances = relationship("Instance", back_populates="exam")
+    instances = relationship("Instance", back_populates="exam",order_by="Instance.id")
     client = relationship("Client", back_populates="exams")
+    client_name = association_proxy("client","name")
     shifts = relationship("Shift", back_populates="exam", order_by="Shift.date")
 
 class Instance(Base):
@@ -108,6 +111,7 @@ class Shift(Base):
     end_time = Column(Time, nullable=False)
 
     exam = relationship("Exam", back_populates="shifts")    
+    exam_name = association_proxy("exam","name")
     centers = relationship("Center", back_populates="shift")        
 
 class Center(Base):
@@ -128,6 +132,7 @@ class Camera(Base):
     id = Column(Integer, primary_key=True, index=True)
     center_id = Column(Integer, ForeignKey("center.id"), nullable=False,)
     name = Column(Text, nullable=False)
+    sublocation = Column(Text, nullable=False)
     dss_id = Column(Integer, nullable=False)
     dss_channel = Column(Integer, nullable=False)
 
@@ -140,15 +145,16 @@ class Feature(Base):
     id = Column(Integer, primary_key=True, index=True)
     camera_id = Column(Integer, ForeignKey("camera.id"), nullable=False,)
     name = Column(Text, nullable=False)
-    json = Column(JSON, nullable=False)
+    json = Column(Text, nullable=False)
 
     camera = relationship("Camera", back_populates="features")       
     roi = relationship("Roi", back_populates="feature")       
 
 class RoiTypeEnum(str, enum.Enum):
-    live = "live"
-    alpha = "alpha"
-    beta = "beta"
+    pending = "pending"
+    marked = "marked"
+    approved = "approved"
+    rejected = "rejected"
 
 class Roi(Base):
     __tablename__ = "roi"
@@ -157,11 +163,51 @@ class Roi(Base):
     feature_id = Column(Integer, ForeignKey("feature.id"), nullable=False,)
     name = Column(Text, nullable=False)
     comment = Column(Text)
-    json = Column(JSON, nullable=False)
-    status = Column(Enum(RoiTypeEnum), nullable=False)
-    last_updated = Column(DateTime, nullable=False)
+    json = Column(Text, nullable=False)
+    status = Column(Enum(RoiTypeEnum), nullable=False, server_default=RoiTypeEnum.pending)
+    last_updated = Column(DateTime, nullable=False, server_default=func.now(), server_onupdate=func.now())
 
-    feature = relationship("Feature", back_populates="roi")                    
+    feature = relationship("Feature", back_populates="roi")     
+
+# class AlertTypeEnum(str, enum.Enum):
+#     supressed = '0'
+#     active = '1'
+
+class Alert(Base):
+    __tablename__ = "alert"
+
+    id = Column(Integer, primary_key=True, index=True)
+    feature = Column(Text, nullable=False)
+    exam = Column(Text, nullable=False)
+    shift = Column(Text, nullable=False)
+    center = Column(Text, nullable=False)
+    location = Column(Text, nullable=False)
+    camera = Column(Text, nullable=False)
+    sublocation = Column(Text)
+    timestamp = Column(DateTime, nullable=False, server_default=func.now())
+    # status = Column(Enum(AlertTypeEnum), nullable=True, server_default=AlertTypeEnum.active)
+    image_path = Column(Text, nullable=False)
+    video_path = Column(Text, nullable=False)
+
+    review = relationship("AlertActivity", back_populates="alert")    
+
+
+class AlertActivityTypeEnum(str, enum.Enum):
+    true = 'true'
+    false = 'false'
+
+class AlertActivity(Base):
+    __tablename__ = "alert_review"
+
+    id = Column(Integer, primary_key=True, index=True)
+    alert_id = Column(Integer, ForeignKey("alert.id"), nullable=False,)
+    # to be done
+    # user_id = Column(Integer, ForeignKey("user.id"), nullable=False,)
+    comment = Column(Text, nullable=False)
+    status = Column(Enum(AlertActivityTypeEnum), nullable=True)
+    last_updated = Column(DateTime, nullable=False, server_default=func.now(), server_onupdate=func.now())
+
+    alert = relationship("Alert", back_populates="review")                            
 
 Base.metadata.create_all(engine)
 

@@ -26,6 +26,8 @@ root.render(
       <Route exact path="/shift" element={<App view = "Shift"/>} /> 
       <Route exact path="/feature_table" element={<App view = "FeatureTable"/>} /> 
       <Route exact path="/center" element={<App view = "Center"/>} /> 
+      <Route exact path="/camera" element={<App view = "Camera"/>} /> 
+      <Route exact path="/provisioning/:camera_id" element={<App view = "Provisioning"/>} /> 
       <Route exact path="/alert" element={<App view = "Alert"/>} /> 
       <Route exact path="/user" element={<App view = "User"/>} /> 
       <Route exact path="/camera" element={<App view = "Camera"/>} /> 
@@ -34,6 +36,7 @@ root.render(
       <Route exact path="/alert_summary" element={<App view = "AlertSummary"/>} /> 
       <Route exact path="/ticket_summary" element={<App view = "TicketSummary"/>} /> 
       <Route exact path="/camera_health" element={<App view = "CameraHealth"/>} /> 
+      <Route exact path="/training_videos" element={<App view = "TrainingVideo"/>} /> 
       <Route path="*" element={<PageNotFound/>} />
       <Route path="/login" element={<Login view="SignIn"/>} />
       <Route path="/forgot_password" element={<Login view="ForgotPassword"/>} />

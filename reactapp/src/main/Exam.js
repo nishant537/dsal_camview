@@ -1,10 +1,11 @@
 import * as React from 'react';
-import { Grid, Box, IconButton, Toolbar, Typography, TextField, InputAdornment, Checkbox,FormControl,Button, Modal, Divider,Paper,Select,InputLabel,MenuItem,Stack,RadioGroup,FormControlLabel,Radio,FormLabel,} from '@mui/material';
-import { DataGrid,GridToolbarContainer,GridToolbarColumnsButton,GridToolbarFilterButton,GridToolbarExport,GridToolbarDensitySelector, GridFooterContainer, GridFooter,gridClasses,} from '@mui/x-data-grid';
+import { Grid, Box, IconButton, Toolbar, Typography, TextField, InputAdornment,Button,} from '@mui/material';
+import { GridToolbarContainer,GridToolbarFilterButton,GridFooterContainer, GridFooter,gridClasses,getGridStringOperators, getGridNumericOperators,} from '@mui/x-data-grid';
 import {Search, AccessTime, Done, FilterAlt, AddCircleOutline, CloudUpload} from "@mui/icons-material";
 import { useTheme } from '@mui/material/styles';
 import {DataGridPro} from "@mui/x-data-grid-pro";
 import { useNavigate } from 'react-router-dom';
+
 import {get, post, del} from '../provider/exam_provider';
 
 const drawerWidth = 280;
@@ -12,19 +13,30 @@ const drawerWidth = 280;
 function Main(props) {
     const theme = useTheme();
     const navigate = useNavigate();
+    const operator_to_string = {"=":"eq","!=":"not",">":"gt",">=":"gte","<":"lt","<=":"lte","contains":"like"};
+    const string_to_operator = Object.fromEntries(Object.entries(operator_to_string).map(a => a.reverse()));
+    const numeric_operators = getGridNumericOperators().filter(
+        (operator) => operator.value === '=' || operator.value === '>',
+    )
+    const string_operators = getGridStringOperators().filter(
+        (operator) => operator.value === 'contains',
+    )
 
     const [modalOpen, setModalOpen] = React.useState(false);    
     const [rows,setRows] = React.useState([])
-    const [urlParams, setUrlParams] = React.useState("")
+    const [urlParams, setUrlParams] = React.useState(()=>{
+        const data = new URLSearchParams(window.location.search)
+        return data.toString()
+    })
     const [filter, setFilter] = React.useState(()=>{
         const data = new URLSearchParams(window.location.search)
         const filterItems = [];
         for (let p of data) {
-            filterItems.push({'field':p[0], "operator":'=', "value":p[1]});
+            filterItems.push({'field':p[0].split('__')[0], "operator":string_to_operator[p[0].split('__')[1]], "value":p[1]});
         }
         return filterItems;
     })
-    const [selectedRow, setSelectedRow] = React.useState(null)
+    const [selectedRow, setSelectedRow] = React.useState([])
     const [activeIndex, setActiveIndex] = React.useState("view");    
 
     React.useEffect(() => {
@@ -40,53 +52,61 @@ function Main(props) {
         field: 'id', 
         headerName: "#",
         flex:1, 
+        filterOperators: numeric_operators,
     },
     {
         field: 'client_name',
         headerName: "CLIENT NAME",
         flex:1,
-        renderCell: (params) => {return <a href={`/exam?client_name=${params.value}`}>{params.value}</a>},
+        filterable: false,
+        renderCell: (params) => {return <a href={`/exam?client_name__like=${params.value}`}>{params.value}</a>},
     },
     {
         field: 'name',
         headerName: "EXAM NAME",
         flex:1,
+        filterOperators: string_operators,
+        renderCell: (params) => {return <a href={`/shift?exam_name__like=${params.value}`}>{params.value}</a>},
     },
     {
         field: 'code',
         headerName: "EXAM CODE",
         flex:1,
-        renderCell: (params) => {return <a href={`/exam?code=${params.value}`}>{params.value}</a>},
+        filterOperators: string_operators,
 
     },
     {
         field: 'date_range',
         headerName: "DATE RANGE",
         flex:1.5,
+        filterable: false,
     },
     {
         field: 'total_shifts',
         headerName: "SHIFTS",
         type: 'number',
         flex:1,
+        filterable: false,
     },
     {
         field: 'total_centers',
         headerName: "CENTERS",
         type: 'number',
         flex:1,
+        filterable: false,
     },
     {
         field: 'total_instances',
         headerName: "INSTANCES",
         type: 'number',
         flex:1,
+        filterable: false,
     },
     ];
 
     function CustomToolbar() {
     return (
-        <GridToolbarContainer sx={{backgroundColor:"#f4f2ff",color:"black", '& button': {color:"primary", display:"flex"}}}>
+        <GridToolbarContainer>
             <GridToolbarFilterButton
                 componentsProps={{
                     button: {
@@ -96,7 +116,7 @@ function Main(props) {
                     }
                 }}
             />
-            <TextField sx={{width: "350px",my:2,mr:4 }} id="outlined-search" placeholder='Seach Center by Code, Name, Location' type="search" InputProps={{
+            <TextField sx={{width: "450px",my:2,mr:4, background:"#f4f2ff" }} id="contained-search" variant="outlined" placeholder='Seach Center by Code, Name, Location' type="search" InputProps={{
                 startAdornment: (
                     <InputAdornment>
                         <IconButton>
@@ -107,9 +127,9 @@ function Main(props) {
             }}/>
 
             <Box sx={{display:"flex",justifyContent:"space-between",width:"400px"}}>
-                <Button color="primary" size="small" variant='outlined'>Edit Client</Button>
-                <Button color='primary' size="small" variant='outlined' onClick={()=>{setModalOpen(true)}}>Add Client</Button>
-                <Button color='primary' size="small" variant='outlined'>Delete Client</Button>
+                <Button color="secondary" size="medium" variant='outlined'>Edit Exam</Button>
+                <Button color='secondary' size="medium" variant='outlined' onClick={()=>{navigate('/create_exam')}}>Add Exam</Button>
+                <Button color='secondary' size="medium" variant='outlined'disabled={selectedRow.length===0 ? true : false} onClick={()=>{del(selectedRow[0]['id'])}}>Delete Exam</Button>
             </Box>
         </GridToolbarContainer>
     );
@@ -127,10 +147,11 @@ function Main(props) {
     }
 
     const onFilterModelChange = (newFilterModel) => {
+        console.log("Filter model Changed!")
         const data = new URLSearchParams();
         newFilterModel['items'].map((value, index)=>{
             if (value['value']){
-                data.append(value['field'], value['value'])
+                data.append(`${value['field']}__${operator_to_string[value['operator']]}`, value['value'])
             }
         })
         window.history.replaceState({}, '', `${window.location.pathname}?${data}`);
@@ -140,24 +161,9 @@ function Main(props) {
     return(
         <>
 
-            <Modal
-                open={modalOpen}
-                onClose={() => {setModalOpen(false)}}
-                aria-labelledby="modal-modal-title"
-                aria-describedby="modal-modal-description"
-            >
-                <Box sx={{position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 400, bgcolor: 'background.paper', border: '2px solid #000', boxShadow: 24, p: 4,}}>
-                    <Typography variant="h3" component="div" sx={{borderBottom:"2px solid black"}} textAlign="center">
-                        Client
-                    </Typography>
-                    <Typography id="modal-modal-description" sx={{ mt: 2 }}>
-                        Duis mollis, est non commodo luctus, nisi erat porttitor ligula.
-                    </Typography>
-                </Box>
-            </Modal>
             <Box
                 component="main"
-                sx={{ display:"flex", flexFlow: "column", py: 2, px: 3, width: { sm: `calc(100% - ${drawerWidth}px)`,'& .MuiDataGrid-columnHeaders': { backgroundColor: '#f4f2ff',fontSize:"1.2rem", color:"#8b83ba"},} }}
+                sx={{ display:"flex", flexFlow: "column", py: 2, px: 3, width: { sm: `calc(100% - ${drawerWidth}px)`,} }}
             >
                 <Toolbar />
 
@@ -178,71 +184,69 @@ function Main(props) {
                     Select Examination
                 </Typography>
 
-                <div style={{height:"100%",width:"100%"}}>
-                    <DataGridPro
-                        sx={{
-                            height:"100%",
-                            [`& .${gridClasses.cell}:focus, & .${gridClasses.cell}:focus-within`]: {
-                            outline: 'none',
-                            },
-                            [`& .${gridClasses.columnHeader}:focus, & .${gridClasses.columnHeader}:focus-within`]:
-                            {
-                                outline: 'none',
-                            },
-                            [`& .${gridClasses.columnHeader}`]:
-                            {
-                                fontFamily: "Poppins",
-                                fontSize: "1rem",
-                                lineHeight: "2rem",
-                                fontWeight:"500",
-                                backgroundColor: '#f4f2ff',
-                                color:"#8b83ba",
-                            },
-                            [`& .${gridClasses.cell}, & .${gridClasses.columnHeaderTitleContainer}`]: {
-                                borderBottom: '1px solid #e8e8e8',
-                                textAlign:"-webkit-center",
-                                justifyContent:"center"
-                            },
-                            
-                        }}
-                        rows={rows}
-                        columns={columns}
-                        disableMultipleRowSelection={true}
-                        // initialState={{
-                        // pagination: {
-                        //     paginationModel: {
-                        //     pageSize: 5,
-                        //     },
-                        // },
-                        // }}
-                        autoHeight={true}
-                        slots={{
-                            toolbar: CustomToolbar,
-                            footer: CustomFooter,
-                        }}
-                        pageSizeOptions={[5]}
-                        // pageSize={100}
-                        checkboxSelection
-                        disableRowSelectionOnClick
-                        
-                        initialState={{
-                        filter: {
-                          filterModel: {
-                            items: filter,
-                          },
+                <DataGridPro
+                    sx={{
+                        height:"100%",
+                        [`& .${gridClasses.cell}:focus, & .${gridClasses.cell}:focus-within`]: {
+                        outline: 'none',
                         },
+                        [`& .${gridClasses.columnHeader}:focus, & .${gridClasses.columnHeader}:focus-within`]:
+                        {
+                            outline: 'none',
+                        },
+                        [`& .${gridClasses.columnHeader}`]:
+                        {
+                            fontFamily: "Poppins",
+                            fontSize: "1rem",
+                            lineHeight: "2rem",
+                            fontWeight:"500",
+                            backgroundColor: '#f4f2ff',
+                            color:"#8b83ba",
+                        },
+                        [`& .${gridClasses.cell}, & .${gridClasses.columnHeaderTitleContainer}`]: {
+                            borderBottom: '1px solid #e8e8e8',
+                            textAlign:"-webkit-center",
+                            justifyContent:"center"
+                        },
+                        
                     }}
-                        filterMode='server'
-                        onFilterModelChange={(newFilterModel) => onFilterModelChange(newFilterModel)}
-                        onRowSelectionModelChange={(ids) => {
-                            const selectedIDs = new Set(ids);
-                            const selectedRowData = rows.filter((row) =>
-                                (selectedIDs.has(row.id))
-                            );
-                            setSelectedRow(selectedRowData);
-                        }}
-                    />  
-                </div>
+                    rows={rows}
+                    columns={columns}
+                    disableMultipleRowSelection={true}
+                    // initialState={{
+                    // pagination: {
+                    //     paginationModel: {
+                    //     pageSize: 5,
+                    //     },
+                    // },
+                    // }}
+                    autoHeight={true}
+                    slots={{
+                        toolbar: CustomToolbar,
+                        footer: CustomFooter,
+                    }}
+                    pageSizeOptions={[5]}
+                    // pageSize={100}
+                    checkboxSelection
+                    disableRowSelectionOnClick
+                    
+                    initialState={{
+                    filter: {
+                    filterModel: {
+                        items: filter,
+                    },
+                    },
+                }}
+                    filterMode='server'
+                    onFilterModelChange={(newFilterModel) => onFilterModelChange(newFilterModel)}
+                    onRowSelectionModelChange={(ids) => {
+                        const selectedIDs = new Set(ids);
+                        const selectedRowData = rows.filter((row) =>
+                            (selectedIDs.has(row.id))
+                        );
+                        setSelectedRow(selectedRowData);
+                    }}
+                />  
 
             </Box>
         </>

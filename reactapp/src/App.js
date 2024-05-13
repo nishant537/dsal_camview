@@ -4,7 +4,7 @@ import ScrollableFeed from 'react-scrollable-feed'
 import PropTypes from 'prop-types';
 import {List, ListItemButton, ListItemIcon, ListItemText, ListItem, Button, Grid, AppBar, InputAdornment, TextField, Box, CssBaseline, Stack, Divider, Drawer, IconButton, Toolbar, Typography } from '@mui/material';
 // icon import
-import {AddAPhoto, Preview, Dashboard, ExpandLess, ExpandMore, NotificationsActive, Menu, Search, CloudDownloadOutlined, ManageAccounts, Psychology, LocationOn, LineWeight, LibraryBooks, Group, TableView} from '@mui/icons-material';
+import {AddAPhoto, Preview, Dashboard, ExpandLess, ExpandMore, NotificationsActive, Menu, Search, CloudDownloadOutlined, ManageAccounts, Psychology, LocationOn, LineWeight, LibraryBooks, Group, TableView, RateReview, Summarize} from '@mui/icons-material';
 // main import
 import Client from './main/Client'
 import Exam from './main/Exam'
@@ -13,13 +13,16 @@ import Shift from './main/Shift'
 import FeatureTable from './main/FeatureTable'
 import Center from './main/Center'
 import Camera from './main/Camera'
+import Provisioning from './main/Provisioning'
 import Alert from './main/Alert'
 import User from './main/User'
 import ROISummary from './main/ROISummary'
 import ROIReview from './main/ROIReview'
 import AlertSummary from './main/AlertSummary'
 import TicketSummary from './main/TicketSummary'
+import TicketDashboard from './main/TicketDashboard'
 import CameraHealth from './main/CameraHealth'
+import TrainingVideo from './main/TrainingVideo'
 // component import
 import MenuItem from './components/MenuItem';
 import Profile from './components/Profile'
@@ -29,7 +32,6 @@ import { createTheme, ThemeProvider, styled } from '@mui/material/styles';
 const drawerWidth = 280;
 
 function ResponsiveDrawer(props) {
-
   const theme = createTheme({
     palette: {
       mode: "light",
@@ -76,19 +78,22 @@ function ResponsiveDrawer(props) {
         fontSize: "2rem",
         lineHeight: "3rem",
         fontWeight:"700",
-        color:"#3c4046"
+        color:"#3c4046",
+        overflow: "visible",
       },
       h2:{
         fontFamily: "Poppins",
         fontSize: "1.5rem",
         lineHeight: "2.5rem",
-        fontWeight:"700"
+        fontWeight:"700",
+        overflow: "visible",
       },
       h3:{
         fontFamily: "Poppins",
         fontSize: "1rem",
         lineHeight: "2rem",
-        fontWeight:"500"
+        fontWeight:"500",
+        overflow: "visible",
       }
     },
   });
@@ -155,15 +160,25 @@ function ResponsiveDrawer(props) {
             </ListItemButton>
           </ListItem>
 
-          {/* FOR USER PAGE */}
-          <ListItem key="Users" disablePadding>
-            <ListItemButton  onClick={(e)=> {navigate('/');}}>
+          {/* FOR ROI SUMMARY PAGE */}
+          <ListItem key="ROI_summary" disablePadding>
+            <ListItemButton  onClick={(e)=> {navigate('/roi_summary');}}>
               <ListItemIcon sx={{color:theme.palette.primary.contrastText}}>
-                <Group />
+                <Summarize/>
               </ListItemIcon>
-              <ListItemText primary={<Typography variant="h3" component="span">Users</Typography>} />
+              <ListItemText primary={<Typography variant="h3" component="span">ROI Summary</Typography>} />
             </ListItemButton>
           </ListItem>
+
+          {/* FOR ROI REVIEW PAGE */}
+          {/* <ListItem key="ROI_review" disablePadding>
+            <ListItemButton  onClick={(e)=> {navigate('/roi_review');}}>
+              <ListItemIcon sx={{color:theme.palette.primary.contrastText}}>
+                <RateReview/>
+              </ListItemIcon>
+              <ListItemText primary={<Typography variant="h3" component="span">ROI Review</Typography>} />
+            </ListItemButton>
+          </ListItem> */}
 
           {/* FOR FEATURE TABLE PAGE */}
           <ListItem key="Feature Table" disablePadding>
@@ -172,6 +187,16 @@ function ResponsiveDrawer(props) {
                 <TableView />
               </ListItemIcon>
               <ListItemText primary={<Typography variant="h3" component="span">Feature Table</Typography>}/>
+            </ListItemButton>
+          </ListItem>
+
+          {/* FOR TRAINING VIDEOS PAGE */}
+          <ListItem key="Feature Table" disablePadding>
+            <ListItemButton  onClick={(e)=> {navigate('/training_videos');}}>
+              <ListItemIcon sx={{color:theme.palette.primary.contrastText}}>
+                <TableView />
+              </ListItemIcon>
+              <ListItemText primary={<Typography variant="h3" component="span">Training Videos</Typography>}/>
             </ListItemButton>
           </ListItem>
     </List>
@@ -276,7 +301,7 @@ function ResponsiveDrawer(props) {
         </Box>
 
         {/* MAIN VIEW */}
-        {props.view=='Client' ? <Client/> : props.view=="Exam" ? <Exam/> : props.view=="CreateExam" ? <CreateExam/> : props.view=="Shift" ? <Shift/> : props.view=="FeatureTable" ? <FeatureTable/> : props.view=="User" ? <User/> : props.view=="Center" ? <Center/> : props.view=="Camera" ? <Camera/> : props.view=="ROISummary" ? <ROISummary/> : props.view=="ROIReview" ? <ROIReview/> : props.view=="AlertSummary" ? <AlertSummary/> : props.view=="TicketSummary" ? <TicketSummary/> : props.view=="CameraHealth" ? <CameraHealth/> : props.view=="Alert" ? <Alert/> : null}
+        {props.view=='Client' ? <Client/> : props.view=="Exam" ? <Exam/> : props.view=="CreateExam" ? <CreateExam/> : props.view=="Shift" ? <Shift/> : props.view=="FeatureTable" ? <FeatureTable/> : props.view=="Center" ? <Center/> : props.view=="Camera" ? <Camera/> : props.view=="Provisioning" ? <Provisioning/> : props.view=="User" ? <User/>  : props.view=="ROISummary" ? <ROISummary/> : props.view=="ROIReview" ? <ROIReview/> : props.view=="AlertSummary" ? <AlertSummary/> : props.view=="TicketSummary" ? <TicketSummary/> : props.view=="CameraHealth" ? <CameraHealth/> : props.view=="Alert" ? <Alert/>: props.view=="TrainingVideo" ? <TrainingVideo/> : null}
 
       </Box>
     </ThemeProvider>

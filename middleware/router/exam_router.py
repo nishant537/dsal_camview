@@ -2,7 +2,7 @@ from distutils.log import debug
 from email import message
 from telnetlib import STATUS
 from urllib import response
-from fastapi import APIRouter, Depends, Query 
+from fastapi import APIRouter, Depends, Query, Request 
 from sqlalchemy.orm import Session
 from db.database import *
 from model.exam_model import *
@@ -14,17 +14,18 @@ router = APIRouter()
 
 @router.get("/")
 async def get(
-    client_name: int | None = None, 
-    exam_name: Annotated[str | None, Query(description="Exam name",max_length=50)] = None, 
-    exam_code: str | None = None, 
-    start_time: str | None = None, 
-    end_time: str | None = None, 
-    shift_count: int | None = None, 
-    center_count: int | None = None, 
-    instance_count: int | None = None, 
-    client_username: int | None = None ,
+    # client_name: int | None = None, 
+    # exam_name: Annotated[str | None, Query(description="Exam name",max_length=50)] = None, 
+    # exam_code: str | None = None, 
+    # start_time: str | None = None, 
+    # end_time: str | None = None, 
+    # shift_count: int | None = None, 
+    # center_count: int | None = None, 
+    # instance_count: int | None = None, 
+    # client_username: int | None = None ,
+    request: Request,
     db: Session = Depends(get_db)):
-    response = await exam_crud.get(db)
+    response = await exam_crud.get(db, request)
     return response
 
 @router.post('/')

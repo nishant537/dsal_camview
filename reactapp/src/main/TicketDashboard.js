@@ -200,13 +200,6 @@ function Main(props) {
     const {register, handleSubmit} = useForm([])
     const onSubmit = (data, e) => {post(data)};
     const onError = (errors, e) => {post(errors)};
-
-    const socket = new WebSocket('ws://localhost:8000/client/ws');
-    socket.onmessage = function(event) {
-        const message = event.data;
-        const temp_rows = [...rows, JSON.parse(message)]
-        setRows(temp_rows)
-    };
     return(
         <>
 
@@ -268,14 +261,8 @@ function Main(props) {
                 <Toolbar />
 
                 <Typography variant="h1" noWrap component="div" textAlign="center" borderBottom={"5px solid"}>
-                    Client
+                    BPSC March 2024
                 </Typography>
-
-                <Box sx={{display:"flex",width:"50%",gap:"50px"}} p={3} >
-                    <Button color="secondary" size="medium" variant='outlined' onClick={()=>{setModalOpen(true)}}>Edit Client</Button>
-                    <Button color='secondary' size="medium" variant='outlined'  onClick={()=>{setModalOpen(true)}}>Add Client</Button>
-                    <Button color='secondary' size="medium" variant='outlined' disabled={selectedRow.length===0 ? true : false} onClick={()=>{del(selectedRow[0]['id'])}}>Delete Client</Button>
-                </Box>
 
                 <DataGridPro
                     sx={{

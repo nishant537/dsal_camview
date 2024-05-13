@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Grid, Box, IconButton, Toolbar, Typography, TextField, InputAdornment, Stack,Button, Modal, FormControl, Paper, Divider, Select, MenuItem} from '@mui/material';
-import { DataGrid,GridToolbarContainer,GridToolbarFilterButton,GridColumnHeaderParams, GridFooterContainer, GridFooter, gridClasses} from '@mui/x-data-grid';
+import { DataGrid,GridToolbarContainer,GridToolbarFilterButton,GridColumnHeaderParams, GridFooterContainer, GridFooter, gridClasses,getGridStringOperators, getGridNumericOperators} from '@mui/x-data-grid';
 import {Search, FilterAlt,Groups, Storage, LibraryBooks, CheckBox, TableView, CalendarMonth, CameraAlt, WatchLater, Apartment} from "@mui/icons-material";
 import { useTheme } from '@mui/material/styles';
 import {DataGridPro} from "@mui/x-data-grid-pro";
@@ -15,19 +15,30 @@ const drawerWidth = 280;
 function Main(props) {
     const theme = useTheme();
     const navigate = useNavigate();
-    
+    const operator_to_string = {"=":"eq","!=":"not",">":"gt",">=":"gte","<":"lt","<=":"lte","contains":"like"};
+    const string_to_operator = Object.fromEntries(Object.entries(operator_to_string).map(a => a.reverse()));
+    const numeric_operators = getGridNumericOperators().filter(
+        (operator) => operator.value === '=' || operator.value === '>',
+    )
+    const string_operators = getGridStringOperators().filter(
+        (operator) => operator.value === 'contains',
+    )
+
     const [modalOpen, setModalOpen] = React.useState(false);    
     const [rows,setRows] = React.useState([])
-    const [urlParams, setUrlParams] = React.useState("")
+    const [urlParams, setUrlParams] = React.useState(()=>{
+        const data = new URLSearchParams(window.location.search)
+        return data.toString()
+    })
     const [filter, setFilter] = React.useState(()=>{
         const data = new URLSearchParams(window.location.search)
         const filterItems = [];
         for (let p of data) {
-            filterItems.push({'field':p[0], "operator":'=', "value":p[1]});
+            filterItems.push({'field':p[0].split('__')[0], "operator":string_to_operator[p[0].split('__')[1]], "value":p[1]});
         }
         return filterItems;
     })
-    const [selectedRow, setSelectedRow] = React.useState(null)
+    const [selectedRow, setSelectedRow] = React.useState([])
 
     React.useEffect(() => {
         get((urlParams)).then((value)=>{
@@ -44,31 +55,36 @@ function Main(props) {
         type: 'number',
         flex:0.3,
         minWidth:100, 
+        filterOperators: numeric_operators,
     },
     {
         field: 'code',
         headerName: 'SHIFT CODE',
         flex:1,
         minWidth:100,
-        renderCell: (params) => {return <a href={`/exam?client_name=${params.value}`}>{params.value}</a>},
+        filterOperators: string_operators,
+        renderCell: (params) => {return <a href={`/center?shift_name__like=${params.value}`}>{params.value}</a>},
     },
     {
         field: 'exam_name',
         headerName: 'EXAM NAME',
         flex:1,
         minWidth:100,
+        filterOperators: string_operators,
     },
     {
         field: 'date',
         headerName: 'SHIFT DATE',
         flex:1,
         minWidth:100,
+        filterOperators: string_operators,
     },
     {
         field: 'start_time',
         headerName: 'SHIFT START',
         flex:1,
         minWidth:100,
+        filterOperators: string_operators,
     },
     {
         field: 'end_time',
@@ -76,6 +92,7 @@ function Main(props) {
         type: 'number',
         flex:1,
         minWidth:100,
+        filterOperators: string_operators,
     },
     {
         field: 'centers',
@@ -83,6 +100,7 @@ function Main(props) {
         type: 'number',
         flex:0.5,
         minWidth:100,
+        filterable: false,
     },
     {
         field: 'cameras',
@@ -90,11 +108,13 @@ function Main(props) {
         type: 'number',
         flex:0.5,
         minWidth:100,
+        filterable: false,
     },
     {
         field: 'feature_table',
         headerName: 'FEATURE TABLE',
         flex:0.5,
+        filterable: false,
         renderCell: (params) => {return <div style={{textAlign:"center"}}><TableView onClick={()=>{navigate('/feature_table')}}/></div> },
     },
     ];
@@ -174,10 +194,11 @@ function Main(props) {
     }
     
     const onFilterModelChange = (newFilterModel) => {
+        console.log("Filter model Changed!")
         const data = new URLSearchParams();
         newFilterModel['items'].map((value, index)=>{
             if (value['value']){
-                data.append(value['field'], value['value'])
+                data.append(`${value['field']}__${operator_to_string[value['operator']]}`, value['value'])
             }
         })
         window.history.replaceState({}, '', `${window.location.pathname}?${data}`);
@@ -206,11 +227,11 @@ function Main(props) {
                             <Grid container alignItems="flex-start" spacing={2} p={3}>
                                 <Grid item xs={6}>
                                     <Typography variant="h3">Name</Typography>
-                                    <TextField  {...register('Name', { required: true })} required defaultValue={selectedRow!==null ? selectedRow[0]['name'] : null} placeholder="Enter Client Name"/>
+                                    <TextField  {...register('Name', { required: true })} required defaultValue={selectedRow.length!==0 ? selectedRow[0]['name'] : null} placeholder="Enter Client Name"/>
                                 </Grid>
                                 <Grid item xs={6}>
                                     <Typography variant="h3">Address</Typography>
-                                    <TextField  {...register('address', { required: true })} defaultValue={selectedRow!==null ? selectedRow[0]['address'] : null} required placeholder="Enter Client Address"/>
+                                    <TextField  {...register('address', { required: true })} defaultValue={selectedRow.length!==0 ? selectedRow[0]['address'] : null} required placeholder="Enter Client Address"/>
                                 </Grid>
                                 <Grid item xs={12}>
                                     {/* button functionality not working as of now */}
@@ -219,16 +240,16 @@ function Main(props) {
                                 <Grid item xs={12}>
                                     <FormControl>
                                         <Typography variant="h3">Code</Typography>
-                                        <TextField  {...register('code', { required: true })} defaultValue={selectedRow!==null ? selectedRow[0]['code'] : null} required placeholder="Enter Client Code"/>
+                                        <TextField  {...register('code', { required: true })} defaultValue={selectedRow.length!==0 ? selectedRow[0]['code'] : null} required placeholder="Enter Client Code"/>
                                     </FormControl>
                                 </Grid>
                                 <Grid item xs={6}>
                                     <Typography variant="h3">Username</Typography>
-                                    <TextField  {...register('username', { required: true })} defaultValue={selectedRow!==null ? selectedRow[0]['username'] : null} required placeholder="Enter Client Username"/>
+                                    <TextField  {...register('username', { required: true })} defaultValue={selectedRow.length!==0 ? selectedRow[0]['username'] : null} required placeholder="Enter Client Username"/>
                                 </Grid>
                                 <Grid item xs={6}>
                                     <Typography variant="h3">Password</Typography>
-                                    <TextField  {...register('password', { required: true })} defaultValue={selectedRow!==null ? selectedRow[0]['password'] : null} required placeholder="Enter Client Password"/>
+                                    <TextField  {...register('password', { required: true })} defaultValue={selectedRow.length!==0 ? selectedRow[0]['password'] : null} required placeholder="Enter Client Password"/>
                                 </Grid>
                                 <Grid item style={{ marginTop: 30 }}>
                                     <Stack alignItems="center" direction="row" gap={3}>

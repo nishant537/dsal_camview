@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Grid, Box, IconButton, Toolbar, Typography, TextField, InputAdornment, Stack,Button, Modal, FormControl, Paper, Divider, Select, MenuItem} from '@mui/material';
-import { DataGrid,GridToolbarContainer,GridToolbarFilterButton,GridColumnHeaderParams, GridFooterContainer, GridFooter, gridClasses} from '@mui/x-data-grid';
+import { DataGrid,GridToolbarContainer,GridToolbarFilterButton,GridColumnHeaderParams, GridFooterContainer, GridFooter, gridClasses, getGridNumericOperators, getGridStringOperators} from '@mui/x-data-grid';
 import {Search, FilterAlt,Groups, Storage, LibraryBooks, CheckBox} from "@mui/icons-material";
 import { useTheme } from '@mui/material/styles';
 import {DataGridPro} from "@mui/x-data-grid-pro";
@@ -15,19 +15,31 @@ const drawerWidth = 280;
 function Main(props) {
     const theme = useTheme();
     const navigate = useNavigate();
-    
+    const operator_to_string = {"=":"eq","!=":"not",">":"gt",">=":"gte","<":"lt","<=":"lte","contains":"like"};
+    const string_to_operator = Object.fromEntries(Object.entries(operator_to_string).map(a => a.reverse()));
+    const numeric_operators = getGridNumericOperators().filter(
+        (operator) => operator.value === '=' || operator.value === '>',
+    )
+    const string_operators = getGridStringOperators().filter(
+        (operator) => operator.value === 'contains',
+    )
+
+
     const [modalOpen, setModalOpen] = React.useState(false);    
     const [rows,setRows] = React.useState([])
-    const [urlParams, setUrlParams] = React.useState("")
+    const [urlParams, setUrlParams] = React.useState(()=>{
+        const data = new URLSearchParams(window.location.search)
+        return data.toString()
+    })
     const [filter, setFilter] = React.useState(()=>{
         const data = new URLSearchParams(window.location.search)
         const filterItems = [];
         for (let p of data) {
-            filterItems.push({'field':p[0], "operator":'=', "value":p[1]});
+            filterItems.push({'field':p[0].split('__')[0], "operator":string_to_operator[p[0].split('__')[1]], "value":p[1]});
         }
         return filterItems;
     })
-    const [selectedRow, setSelectedRow] = React.useState(null)
+    const [selectedRow, setSelectedRow] = React.useState([])
 
     React.useEffect(() => {
         get((urlParams)).then((value)=>{
@@ -42,44 +54,52 @@ function Main(props) {
         field: 'id', 
         headerName: "#",
         flex:1, 
+        filterOperators: numeric_operators,
     },
     {
         field: 'code',
         headerName: "CENTER CODE",
         flex:1,
+        filterOperators: string_operators,
         renderCell: (params) => {return <a href={`/camera?center_code=${params.value}`}>{params.value}</a>},
     },
     {
         field: 'name',
         headerName: "NAME",
         flex:1,
+        filterOperators: string_operators,
     },
     {
         field: 'location',
         headerName: 'LOCATION',
         flex:1,
+        filterOperators: string_operators,
     },
     {
         field: 'cameras',
         headerName: "NO. OF CAMERAS",
         flex:1,
+        filterable:false,
     },
     {
-        field: 'roi_marked',
+        field: 'marked',
         headerName: 'ROI MARKED',
         flex:1,
-        renderCell: (params) => {return `${params.value}/${params.row.total_roi}`},
+        renderCell: (params) => {return `${params.value}/${params.row.rois}`},
+        filterable:false,
     },
     {
-        field: 'roi_approved',
+        field: 'approved',
         headerName: "ROI APPROVED",
         flex:1,
-        renderCell: (params) => {return `${params.value}/${params.row.total_roi}`},
+        renderCell: (params) => {return `${params.value}/${params.row.rois}`},
+        filterable:false,
     },
     {
-        field: 'shift_name',
+        field: 'shift',
         headerName: "FIRST NAME",
         flex:1,
+        filterOperators: string_operators,
     },
     {
         field: 'status',
@@ -118,6 +138,7 @@ function Main(props) {
                     />)
             }
         },
+        filterable: false
     },
     ];
 
@@ -135,7 +156,7 @@ function Main(props) {
                         }
                     }}
                 />
-                <TextField sx={{width: "450px",my:2,mr:4 }} id="outlined-search" placeholder='Seach Center by Code, Name, Location' type="search" InputProps={{
+                <TextField sx={{width: "450px",my:2,mr:4, background:"#f4f2ff" }} id="contained-search" variant="outlined" placeholder='Seach Center by Code, Name, Location' type="search" InputProps={{
                     startAdornment: (
                         <InputAdornment>
                             <IconButton>
@@ -194,10 +215,11 @@ function Main(props) {
     }
 
     const onFilterModelChange = (newFilterModel) => {
+        console.log("Filter model Changed!")
         const data = new URLSearchParams();
         newFilterModel['items'].map((value, index)=>{
             if (value['value']){
-                data.append(value['field'], value['value'])
+                data.append(`${value['field']}__${operator_to_string[value['operator']]}`, value['value'])
             }
         })
         window.history.replaceState({}, '', `${window.location.pathname}?${data}`);

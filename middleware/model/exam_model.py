@@ -1,9 +1,6 @@
 import enum 
 from pydantic import BaseModel
 from typing import Optional
-from .shift_model import ShiftOutSchema
-from .instance_model import InstanceOutSchema
-# from .client_model import ClientOutSchema
  
 # This is redundant, already in database.py with table class models
 class ExamTypeEnum(str, enum.Enum):
@@ -27,9 +24,6 @@ class ExamInSchema(ExamBaseSchema):
 
 class ExamOutSchema(ExamBaseSchema):
     id: int
-    shifts: list[ShiftOutSchema]
-    instances: list[InstanceOutSchema]
-    # owner = ClientOutSchema
     class Config:
         orm_mode = True
 

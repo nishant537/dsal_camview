@@ -9,13 +9,18 @@ from model.center_model import *
 from html_response_codes import *
 
 
-async def get(db: Session):
-    data = db.query(Center)
-    # data = data.join(Server.types).filter(
-    #         Type.id == type_id
-    #     )
-    # data = data.options(joinedload(Server.sites))
-    # data = data.options(joinedload(Server.types))
+async def get(
+        db: Session,
+        request # *******SETBACK******* = in documentation query parameters are not specified with this approach    
+    ):
+    params = request.query_params
+    data = db.query(Center).options(joinedload(Center.shift),joinedload(Center.cameras).subqueryload(Camera.features).subqueryload(Feature.roi))
+    # for instances, active_exams would need to iterate through results as filter by cannot filter
+    for query in [x for x in params if params[x] is not None]:
+        attr, operator = query.split('__') 
+        data = data.filter(get_sqlalchemy_operator(operator)(getattr(Center,attr),params[query]))
+
+    print(data.all())
     return data.all()
 
 async def post(db: Session,payload: CenterInSchema):

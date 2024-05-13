@@ -1,22 +1,39 @@
-import * as React from 'react';
+import React, {useRef} from 'react';
 import { Grid, Box, IconButton, Toolbar, Typography, TextField, InputAdornment, Stack,Button, Modal, FormControl, Paper, Divider, Select, MenuItem, Table, TableBody, TableCell, TableContainer, TableHead, TableRow,} from '@mui/material';
 import { DataGrid,GridToolbarContainer,GridToolbarFilterButton,GridColumnHeaderParams, GridFooterContainer, GridFooter} from '@mui/x-data-grid';
 import {Search, FilterAlt,Groups, Storage, LibraryBooks, CheckBox} from "@mui/icons-material";
 import { useTheme } from '@mui/material/styles';
 import {DataGridPro} from "@mui/x-data-grid-pro";
+import { useNavigate } from 'react-router-dom';
 
-// icon import
-import SearchIcon from '@mui/icons-material/Search';
-// component import
-import DashboardCards from '../components/DashboardCards';
+import {get_dropdown} from '../provider/feature_table_provider';
+
 
 const drawerWidth = 280;
 
 function Main(props) {
     const theme = useTheme();
-    const [date, setDate] = React.useState('');
-    const [shift, setShift] = React.useState('');
+    const navigate = useNavigate();
 
+    // const [rows,setRows] = React.useState([])
+    const [urlParams, setUrlParams] = React.useState(()=>{
+        const data = new URLSearchParams(window.location.search)
+        return data.toString()
+    })
+    const [exam,setExam] = React.useState('')
+    const [shift,setShift] = React.useState('')
+    const [dropdownData,setDropdownData] = React.useState([])
+
+    React.useEffect(() => {
+        get_dropdown("").then((value)=>{
+            setDropdownData(value)
+        })
+        // get((urlParams)).then((value)=>{
+        //     if (value){
+        //         setRows(value)
+        //     }
+        // })
+      }, [urlParams]);
 
     const rows = [
         {"feature":'Crowd Detection',"location": "entry exit","timings": "7:30 am to 8:45 am","alert_threshold": 15,},
@@ -25,6 +42,17 @@ function Main(props) {
         {"feature":'Invigilator not moving',"location": "Classroom","timings": "9:00 am to 11:45 am","alert_threshold": '1 minute',},
       ];
 
+    const handleParamChange = (type, value) => {
+        const data = new URLSearchParams(window.location.search)
+        if (type==="exam" && value!==""){
+            data.set("exam",dropdownData[value]['name'])
+            data.delete("shift")
+        }
+        if (type==="shift" && value!==""){
+            data.set("shift",dropdownData[exam]['shifts'][value]['code'])
+        }
+        window.history.replaceState({}, '', `${window.location.pathname}?${data}`);
+    }
     return(
         <>
 
@@ -44,14 +72,14 @@ function Main(props) {
                             sx={{width:"200px"}}
                             labelId="demo-simple-select-label"
                             id="demo-simple-select"
-                            value={date}
-                            onChange={(e) => {setDate(e.target.value)}}
+                            value={exam}
+                            onChange={(e) => {setExam(e.target.value);setShift("");handleParamChange("exam",e.target.value)}}
                             displayEmpty
                         >
-                        <MenuItem value=''>Select Date</MenuItem>
-                        <MenuItem value={'17-March'}>17 March 2024</MenuItem>
-                        <MenuItem value={'18-March'}>18 March 2024</MenuItem>
-                        <MenuItem value={'19-March'}>19 March 2024</MenuItem>
+                        <MenuItem value=''><Typography color="text.disabled">Select Exam</Typography></MenuItem>
+                        {dropdownData.length>0 && dropdownData.map((value,index) =>
+                            <MenuItem value={index}>{value.name}</MenuItem>
+                        )}
                         </Select>
                     </FormControl>
                     <FormControl>
@@ -60,12 +88,13 @@ function Main(props) {
                             labelId="demo-simple-select-label"
                             id="demo-simple-select"
                             value={shift}
-                            onChange={(e) => {setShift(e.target.value)}}
+                            onChange={(e) => {setShift(e.target.value);handleParamChange("shift",e.target.value)}}
                             displayEmpty
                         >
-                        <MenuItem value=''>Select Shift</MenuItem>
-                        <MenuItem value={"Shift 1"}>Shift 1</MenuItem>
-                        <MenuItem value={"Shift 2"}>Shift 2</MenuItem>
+                        <MenuItem value=''><Typography color="text.disabled">Select Shift</Typography></MenuItem>
+                        {exam!=="" && dropdownData[exam].shifts.map((value,index) =>
+                            <MenuItem value={index}>{value.code}</MenuItem>
+                        )}
                         </Select>
                     </FormControl>
                 </Stack>

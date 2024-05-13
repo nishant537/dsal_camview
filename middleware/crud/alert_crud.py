@@ -5,10 +5,10 @@ from db.database import *
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 from sqlalchemy.orm import joinedload
-from model.client_model import *
+from model.alert_model import *
 from html_response_codes import *
 from sqlalchemy.sql.expression import func
-
+from sqlalchemy import text
 
 async def get(
         db: Session,
@@ -16,26 +16,56 @@ async def get(
     ):
     # using joinedLoad instead of response_model to only fetch required data
     params = request.query_params
-    data = db.query(Client).options(joinedload(Client.exams).subqueryload(Exam.instances),joinedload(Client.exams).subqueryload(Exam.shifts))
+    data = db.query(Alert).options(joinedload(Alert.review))
     # for instances, active_exams would need to iterate through results as filter by cannot filter
     for query in [x for x in params if params[x] is not None]:
         attr, operator = query.split('__') 
-        data = data.filter(get_sqlalchemy_operator(operator)(getattr(Client,attr),params[query]))
+        data = data.filter(get_sqlalchemy_operator(operator)(getattr(Alert,attr),params[query]))
 
     return data.all()
 
-async def post(db: Session,payload: ClientInSchema):
+async def get_group(
+        db: Session,
+        request # *******SETBACK******* = in documentation query parameters are not specified with this approach
+    ):
+    # using joinedLoad instead of response_model to only fetch required data
+    params = request.query_params
+    latest_subquery = db.query(func.max(Alert.timestamp).label('latest_timestamp')).group_by(Alert.camera, Alert.feature).subquery()
+    data = db.query(Alert).join(latest_subquery, Alert.timestamp == latest_subquery.c.latest_timestamp)
+    # for instances, active_exams would need to iterate through results as filter by cannot filter
+    for query in [x for x in params if params[x] is not None]:
+        attr, operator = query.split('__') 
+        data = data.filter(get_sqlalchemy_operator(operator)(getattr(Alert,attr),params[query]))
+
+    return data.all()
+
+async def get_summary(
+        db: Session,
+        request # *******SETBACK******* = in documentation query parameters are not specified with this approach
+    ):
+    # using joinedLoad instead of response_model to only fetch required data
+    params = request.query_params
+    data = db.query(func.date(Alert.timestamp).label('daily'),Alert.feature,func.count().label('count')).group_by(func.date(Alert.timestamp), Alert.feature)
+    for query in [x for x in params if params[x] is not None]:
+        attr, operator = query.split('__') 
+        data = data.filter(get_sqlalchemy_operator(operator)(getattr(Alert,attr),params[query]))
+
+    # select concat(hour(alert_timestamp),':00') as daily,feature_type, count(*) from all_alert group by daily,feature_type;
+    # print(new.mappings().all())
+    return [row._asdict() for row in data.all()]
+
+async def post(db: Session,payload: AlertInSchema):
     print(payload)
     # db_object = db.query(Exam).filter(Site.id.in_(payload.sites)).all()
     # payload.sites = db_object
-    db_item = Client(**payload.dict())
+    db_item = Alert(**payload.dict())
     db.add(db_item)
     db.commit()
     db.refresh(db_item)
     return db_item
 
-async def put(db: Session,id: id, payload: ClientInSchema):
-    data = db.query(Client).filter_by(id=id)
+async def put(db: Session,id: id, payload: AlertInSchema):
+    data = db.query(Alert).filter_by(id=id)
     print(data)
     if not data:
             raise HTTPException(status_code=404, detail="Hero not found")
@@ -56,7 +86,7 @@ async def put(db: Session,id: id, payload: ClientInSchema):
     return data
 
 async def delete(db, id):
-    data = db.get(Client, id)
+    data = db.get(Alert, id)
     db.delete(data)
     db.commit()
     return data

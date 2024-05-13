@@ -11,22 +11,16 @@ from html_response_codes import *
 
 async def get(
         db: Session,
-        exam_name: str | None = None,
-        code: str | None = None,
-        date: str | None = None,
-        start_time: str | None = None,
-        end_time: str | None = None,
-        centers: int | None = None,
-        cameras: int | None = None,
+        request # *******SETBACK******* = in documentation query parameters are not specified with this approach
     ):
-    params = locals().copy()
-    del params['db']
+    params = request.query_params
     data = db.query(Shift).options(joinedload(Shift.exam),joinedload(Shift.centers).subqueryload(Center.cameras))
     # for instances, active_exams would need to iterate through results as filter by cannot filter
-    for attr in [x for x in params if params[x] is not None]:
-        data = db.query(Shift).filter(getattr(Shift, attr).like(params[attr]))
-        
-    print(data.all())
+    for query in [x for x in params if params[x] is not None]:
+        attr, operator = query.split('__') 
+        print(attr, operator)
+        data = data.filter(get_sqlalchemy_operator(operator)(getattr(Shift,attr),params[query]))
+
     return data.all()
 
 async def post(db: Session,payload: ShiftInSchema):
