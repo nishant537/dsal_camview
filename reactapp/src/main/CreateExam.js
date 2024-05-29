@@ -66,7 +66,7 @@ function Main(props) {
     //   }, [urlParams]);
 
     // react-form
-    const {register, handleSubmit} = useForm([])
+    const {register, handleSubmit} = useForm()
     const onSubmit = (data, e) => {alert('hi');console.log(data);setStep(2)};
     const onError = (errors, e) => {console.log(errors);setStep(2)};
 

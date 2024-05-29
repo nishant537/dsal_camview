@@ -8,7 +8,11 @@ from sqlalchemy.orm import joinedload
 from model.alert_model import *
 from html_response_codes import *
 from sqlalchemy.sql.expression import func
-from sqlalchemy import text
+from sqlalchemy import text, desc
+from crud.ticket_crud import post as post_ticket
+from model.ticket_model import *
+from crud.alert_activity_crud import post as post_activity
+from model.alert_activity_model import *
 
 async def get(
         db: Session,
@@ -16,7 +20,7 @@ async def get(
     ):
     # using joinedLoad instead of response_model to only fetch required data
     params = request.query_params
-    data = db.query(Alert).options(joinedload(Alert.review))
+    data = db.query(Alert).options(joinedload(Alert.activity))
     # for instances, active_exams would need to iterate through results as filter by cannot filter
     for query in [x for x in params if params[x] is not None]:
         attr, operator = query.split('__') 
@@ -30,8 +34,10 @@ async def get_group(
     ):
     # using joinedLoad instead of response_model to only fetch required data
     params = request.query_params
-    latest_subquery = db.query(func.max(Alert.timestamp).label('latest_timestamp')).group_by(Alert.camera, Alert.feature).subquery()
-    data = db.query(Alert).join(latest_subquery, Alert.timestamp == latest_subquery.c.latest_timestamp)
+    # grouping on camera~feature so I only see unique places in alert page, this is same as camera~sublocation~feature as every camera at diff sublocation would have diff name
+    # data = db.query(Alert.id, Alert.camera,Alert.location,Alert.feature, Alert.image_path,Alert.video_path, func.count().label('group_count'),func.max(Alert.timestamp).label('timestamp')).options(joinedload(Alert.activity)).group_by(Alert.camera,Alert.feature).order_by(func.count().desc())
+    # cannot get count for priority and latest timestamp
+    data = db.query(Alert).options(joinedload(Alert.activity)).group_by(Alert.camera,Alert.feature).order_by(func.count().desc())
     # for instances, active_exams would need to iterate through results as filter by cannot filter
     for query in [x for x in params if params[x] is not None]:
         attr, operator = query.split('__') 
@@ -45,23 +51,71 @@ async def get_summary(
     ):
     # using joinedLoad instead of response_model to only fetch required data
     params = request.query_params
-    data = db.query(func.date(Alert.timestamp).label('daily'),Alert.feature,func.count().label('count')).group_by(func.date(Alert.timestamp), Alert.feature)
+    print(params)
+    # since now using particular day alerts, data to be hourly, when taken date range make it daily basis (use uncommented instead).
+    # data = db.query(func.date(Alert.timestamp).label('daily'),Alert.feature,func.count().label('count')).group_by(func.date(Alert.timestamp), Alert.feature)
+    data = db.query(func.concat(func.hour(Alert.timestamp), ':00').label('daily'),Alert.feature,func.count().label('count')).group_by('daily', 'feature')
     for query in [x for x in params if params[x] is not None]:
         attr, operator = query.split('__') 
         data = data.filter(get_sqlalchemy_operator(operator)(getattr(Alert,attr),params[query]))
 
     # select concat(hour(alert_timestamp),':00') as daily,feature_type, count(*) from all_alert group by daily,feature_type;
     # print(new.mappings().all())
+    print([row._asdict() for row in data.all()])
+    d = {}
+    for i in [row._asdict() for row in data.all()]:
+        if i['feature'] not in d:
+            d[i['feature']] = {i:0 for i in [f"{i}:00" for i in range(24)]}
+        d[i['feature']][i['daily']] = i['count']
+
+    return d
+
+
+async def get_stats(
+        db: Session,
+        request # *******SETBACK******* = in documentation query parameters are not specified with this approach
+    ):
+    # using joinedLoad instead of response_model to only fetch required data
+    params = request.query_params
+    data = db.query(Alert.id,Alert.center,Alert.feature,Alert.sublocation,AlertActivity.status,func.count().label("count")).join(AlertActivity,Alert.id == AlertActivity.alert_id).group_by(Alert.feature,Alert.sublocation,AlertActivity.status)
+    # for instances, active_exams would need to iterate through results as filter by cannot filter
+    for query in [x for x in params if params[x] is not None]:
+        attr, operator = query.split('__') 
+        data = data.filter(get_sqlalchemy_operator(operator)(getattr(Alert,attr),params[query]))
+
+    print([row._asdict() for row in data.all()])
     return [row._asdict() for row in data.all()]
 
+async def get_review(
+        db: Session,
+        request # *******SETBACK******* = in documentation query parameters are not specified with this approach
+    ):
+    # using joinedLoad instead of response_model to only fetch required data
+    params = request.query_params
+    data = db.query(AlertActivity).options(joinedload(AlertActivity.alert))
+    # for instances, active_exams would need to iterate through results as filter by cannot filter
+    for query in [x for x in params if params[x] is not None]:
+        attr, operator = query.split('__') 
+        data = data.filter(get_sqlalchemy_operator(operator)(getattr(Alert,attr),params[query]))
+
+    return data.all()
+
+
 async def post(db: Session,payload: AlertInSchema):
-    print(payload)
     # db_object = db.query(Exam).filter(Site.id.in_(payload.sites)).all()
     # payload.sites = db_object
     db_item = Alert(**payload.dict())
     db.add(db_item)
     db.commit()
     db.refresh(db_item)
+
+    # add a ticket
+    ticket = await post_ticket(db, TicketInSchema(alert_id=db_item.id,camera=payload.camera,feature=payload.feature))
+
+    # add a status
+    activity = await post_activity(db, AlertActivityInSchema(alert_id=db_item.id))
+    
+    print(db_item.id)
     return db_item
 
 async def put(db: Session,id: id, payload: AlertInSchema):

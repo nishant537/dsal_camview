@@ -38,6 +38,45 @@ export const get_group = async(urlParams) => {
   }
 }
 
+export const get_stats = async(urlParams) => {
+  try {
+      const response = await fetch(`http://localhost:8000/alert/stats?${urlParams}`,{method : "GET"});
+      if (!response.ok) {
+        throw new Error('Network response was not ok.');
+      }
+      const data = await response.json();
+      
+
+      const temp = data.reduce((acc, item) => {
+        acc[item.center] = acc[item.center] || { id: item.id, center: item.center, total: { true: 0, false: 0, null: 0 } };
+        const key = `${item.feature}_${item.sublocation}`;
+        acc[item.center][key] = acc[item.center][key] || { true: 0, false: 0, null: 0 };
+        const status = item.status || 'null';
+        acc[item.center][key][status] += 1;
+        acc[item.center].total[status] += 1;
+        return acc;
+      }, {});
+
+      return Object.values(temp);
+    } catch (error) {
+      alert(error.message)
+  }
+}
+
+export const get_activity = async(urlParams) => {
+  try {
+      const response = await fetch(`http://localhost:8000/alert_activity`,{method : "GET"});
+      if (!response.ok) {
+        throw new Error('Network response was not ok.');
+      }
+      const data = await response.json();
+      
+      return data;
+    } catch (error) {
+      alert(error.message)
+  }
+}
+
 export const get_summary = async(urlParams) => {
   try {
       const response = await fetch(`http://localhost:8000/alert/summary?${urlParams}`,{method : "GET"});
@@ -58,16 +97,15 @@ export const get_summary = async(urlParams) => {
 }
 
 
-export const post = async(payload) => {
-    console.log(payload)
+export const post = async(alert_id,status) => {
     try {
-        const response = await fetch(`http://localhost:8000/alert/`,{method : "POST", body: JSON.stringify(payload)});
+        const response = await fetch(`http://localhost:8000/alert_activity`,{method : "POST",headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({"alert_id":alert_id,"status":status})});
         if (!response.ok) {
           throw new Error('Network response was not ok.');
         }
-        const data = await response.json()['data'];
+        const data = await response.json();
         // return data
-        return [{ id: 1, name: 'NTA', code: 'Jon', address:"Lorem Ipsum", username: "nta_user", password: "nishant", instances: 8, active_exam:1, completed_exam: 3 }]
+        return data
       } catch (error) {
         alert(error.message)
     }

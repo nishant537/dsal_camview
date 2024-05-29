@@ -10,7 +10,7 @@ from fastapi.responses import JSONResponse
 from starlette.responses import PlainTextResponse, RedirectResponse
 from db.database import *
 # from module import user_module,service_site_module,specification_module,service_spec_module,node_data_module,blockchain_module,ip_lookup_module
-from router import exam_router, client_router, shift_router, instance_router, center_router, camera_router, feature_router, roi_router, alert_router
+from router import exam_router, client_router, shift_router, instance_router, center_router, camera_router, feature_router, roi_router, alert_router, ticket_router,ticket_activity_router, alert_activity_router
 import os
 import time
 # from whmcs_data_scheduler import updateDB
@@ -85,6 +85,9 @@ app.include_router(camera_router.router, prefix="/camera", tags=["Camera Data"])
 app.include_router(feature_router.router, prefix="/feature", tags=["Feature Data"])
 app.include_router(roi_router.router, prefix="/roi", tags=["Roi Data"])
 app.include_router(alert_router.router, prefix="/alert", tags=["Alert Data"])
+app.include_router(alert_activity_router.router, prefix="/alert_activity", tags=["Alert Activity Data"])
+app.include_router(ticket_router.router, prefix="/ticket", tags=["Ticket Data"])
+app.include_router(ticket_activity_router.router, prefix="/ticket_activity", tags=["Ticket Activity Data"])
 # app.include_router(blockchain_module.router, prefix="/blockchain", tags=["Blockchain Data"])
 # app.include_router(protocol_module.router, prefix="/protocol", tags=["Protocol Data"])
 # app.include_router(deployment_module.router, prefix="/deployment", tags=["Deployment Data"])

@@ -37,6 +37,22 @@ async def get(
     response = await alert_crud.get_summary(db,request)
     return response
 
+@router.get("/stats")
+async def get(
+        request: Request,
+        db: Session = Depends(get_db)
+    ):
+    response = await alert_crud.get_stats(db,request)
+    return response
+
+@router.get("/review")
+async def get(
+        request: Request,
+        db: Session = Depends(get_db)
+    ):
+    response = await alert_crud.get_review(db,request)
+    return response
+
 @router.post('/')
 async def post(server_data:AlertInSchema, db: Session = Depends(get_db)):
     response = await alert_crud.post(db,payload=server_data)

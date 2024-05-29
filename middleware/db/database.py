@@ -16,6 +16,7 @@ from sqlalchemy import (
     Time,
     JSON,
     create_engine,
+    text,
 )
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker
@@ -189,25 +190,56 @@ class Alert(Base):
     image_path = Column(Text, nullable=False)
     video_path = Column(Text, nullable=False)
 
-    review = relationship("AlertActivity", back_populates="alert")    
+    activity = relationship("AlertActivity", back_populates="alert")  
+    ticket = relationship("Ticket", back_populates="alert")  
 
 
-class AlertActivityTypeEnum(str, enum.Enum):
+class AlertActivityStatusEnum(str, enum.Enum):
     true = 'true'
     false = 'false'
 
 class AlertActivity(Base):
-    __tablename__ = "alert_review"
+    __tablename__ = "alert_activity"
 
     id = Column(Integer, primary_key=True, index=True)
     alert_id = Column(Integer, ForeignKey("alert.id"), nullable=False,)
     # to be done
     # user_id = Column(Integer, ForeignKey("user.id"), nullable=False,)
-    comment = Column(Text, nullable=False)
-    status = Column(Enum(AlertActivityTypeEnum), nullable=True)
-    last_updated = Column(DateTime, nullable=False, server_default=func.now(), server_onupdate=func.now())
+    comment = Column(Text, nullable=True)
+    status = Column(Enum(AlertActivityStatusEnum), nullable=True)
+    last_updated = Column(DateTime, nullable=True, server_default=func.now(), server_onupdate=func.now())
 
-    alert = relationship("Alert", back_populates="review")                            
+    alert = relationship("Alert", back_populates="activity")       
+
+class Ticket(Base):
+    __tablename__ = "ticket"
+
+    id = Column(Integer, primary_key=True, index=True)
+    alert_id = Column(Integer, ForeignKey("alert.id"), nullable=False,)
+    camera = Column(Text, nullable=False)
+    feature = Column(Text, nullable=False)
+    sublocation = Column(Text, nullable=False)
+
+    activity = relationship("TicketActivity", back_populates="ticket",order_by="desc(TicketActivity.id)")     
+    alert =   relationship("Alert", back_populates="ticket")
+
+class TicketActivityStatusEnum(str, enum.Enum):
+    new = 'new'
+    open = 'open'
+    resolved = 'resolved'
+
+class TicketActivity(Base):
+    __tablename__ = "ticket_activity"
+
+    id = Column(Integer, primary_key=True, index=True)
+    ticket_id = Column(Integer, ForeignKey("ticket.id"), nullable=False,)
+    # to be done
+    # user_id = Column(Integer, ForeignKey("user.id"), nullable=False,)
+    status = Column(Enum(TicketActivityStatusEnum), nullable=False,server_default=TicketActivityStatusEnum.new)
+    comment = Column(Text, nullable=True)
+    last_updated = Column(DateTime, nullable=True, server_default=func.now(), server_onupdate=func.now())    
+
+    ticket = relationship("Ticket", back_populates="activity")       
 
 Base.metadata.create_all(engine)
 

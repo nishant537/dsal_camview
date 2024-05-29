@@ -197,9 +197,9 @@ function Main(props) {
         setUrlParams(data.toString())
     }
 
-    const {register, handleSubmit} = useForm([])
-    const onSubmit = (data, e) => {post(data)};
-    const onError = (errors, e) => {post(errors)};
+    const {register, handleSubmit} = useForm()
+    const onSubmit = (data, e) => {console.log(data);post(data)};
+    const onError = (errors, e) => {console.log(errors);post(errors)};
 
     const socket = new WebSocket('ws://localhost:8000/client/ws');
     socket.onmessage = function(event) {

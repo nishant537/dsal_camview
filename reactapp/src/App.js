@@ -4,7 +4,7 @@ import ScrollableFeed from 'react-scrollable-feed'
 import PropTypes from 'prop-types';
 import {List, ListItemButton, ListItemIcon, ListItemText, ListItem, Button, Grid, AppBar, InputAdornment, TextField, Box, CssBaseline, Stack, Divider, Drawer, IconButton, Toolbar, Typography } from '@mui/material';
 // icon import
-import {AddAPhoto, Preview, Dashboard, ExpandLess, ExpandMore, NotificationsActive, Menu, Search, CloudDownloadOutlined, ManageAccounts, Psychology, LocationOn, LineWeight, LibraryBooks, Group, TableView, RateReview, Summarize} from '@mui/icons-material';
+import {AddAPhoto, Preview, Dashboard, ExpandLess, ExpandMore, NotificationsActive, Menu, Search, CloudDownloadOutlined, ManageAccounts, Psychology, LocationOn, LineWeight, LibraryBooks, Group, TableView, RateReview, Summarize, Analytics} from '@mui/icons-material';
 // main import
 import Client from './main/Client'
 import Exam from './main/Exam'
@@ -15,10 +15,13 @@ import Center from './main/Center'
 import Camera from './main/Camera'
 import Provisioning from './main/Provisioning'
 import Alert from './main/Alert'
+import AuditLogs from './main/AuditLogs'
 import User from './main/User'
 import ROISummary from './main/ROISummary'
 import ROIReview from './main/ROIReview'
-import AlertSummary from './main/AlertSummary'
+import AlertStats from './main/AlertStats'
+import Ticket from './main/Ticket'
+import TicketStats from './main/TicketStats'
 import TicketSummary from './main/TicketSummary'
 import TicketDashboard from './main/TicketDashboard'
 import CameraHealth from './main/CameraHealth'
@@ -199,6 +202,26 @@ function ResponsiveDrawer(props) {
               <ListItemText primary={<Typography variant="h3" component="span">Training Videos</Typography>}/>
             </ListItemButton>
           </ListItem>
+          
+          {/* FOR ALERT DASHBOARD PAGE */}
+          <ListItem key="Feature Table" disablePadding>
+            <ListItemButton  onClick={(e)=> {navigate('/alert');}}>
+              <ListItemIcon sx={{color:theme.palette.primary.contrastText}}>
+                <Analytics />
+              </ListItemIcon>
+              <ListItemText primary={<Typography variant="h3" component="span">Alert Dashboard</Typography>}/>
+            </ListItemButton>
+          </ListItem>
+          
+          {/* FOR TICKET DASHBOARD PAGE */}
+          <ListItem key="Feature Table" disablePadding>
+            <ListItemButton  onClick={(e)=> {navigate('/ticket_dashboard');}}>
+              <ListItemIcon sx={{color:theme.palette.primary.contrastText}}>
+                <Analytics />
+              </ListItemIcon>
+              <ListItemText primary={<Typography variant="h3" component="span">Ticket Dashboard</Typography>}/>
+            </ListItemButton>
+          </ListItem>
     </List>
   )
 
@@ -301,7 +324,7 @@ function ResponsiveDrawer(props) {
         </Box>
 
         {/* MAIN VIEW */}
-        {props.view=='Client' ? <Client/> : props.view=="Exam" ? <Exam/> : props.view=="CreateExam" ? <CreateExam/> : props.view=="Shift" ? <Shift/> : props.view=="FeatureTable" ? <FeatureTable/> : props.view=="Center" ? <Center/> : props.view=="Camera" ? <Camera/> : props.view=="Provisioning" ? <Provisioning/> : props.view=="User" ? <User/>  : props.view=="ROISummary" ? <ROISummary/> : props.view=="ROIReview" ? <ROIReview/> : props.view=="AlertSummary" ? <AlertSummary/> : props.view=="TicketSummary" ? <TicketSummary/> : props.view=="CameraHealth" ? <CameraHealth/> : props.view=="Alert" ? <Alert/>: props.view=="TrainingVideo" ? <TrainingVideo/> : null}
+        {props.view=='Client' ? <Client/> : props.view=="Exam" ? <Exam/> : props.view=="CreateExam" ? <CreateExam/> : props.view=="Shift" ? <Shift/> : props.view=="FeatureTable" ? <FeatureTable/> : props.view=="Center" ? <Center/> : props.view=="Camera" ? <Camera/> : props.view=="Provisioning" ? <Provisioning/> : props.view=="User" ? <User/>  : props.view=="ROISummary" ? <ROISummary/> : props.view=="ROIReview" ? <ROIReview/> : props.view=="AlertStats" ? <AlertStats/> : props.view=="Ticket" ? <Ticket/> : props.view=="TicketDashboard" ? <TicketDashboard/> : props.view=="TicketStats" ? <TicketStats/> : props.view=="TicketSummary" ? <TicketSummary/> : props.view=="CameraHealth" ? <CameraHealth/> : props.view=="Alert" ? <Alert/>: props.view=="AuditLogs" ? <AuditLogs/>: props.view=="TrainingVideo" ? <TrainingVideo/> : null}
 
       </Box>
     </ThemeProvider>

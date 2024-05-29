@@ -7,7 +7,7 @@ import {DataGridPro} from "@mui/x-data-grid-pro";
 import { LineChart } from '@mui/x-charts/LineChart';
 import { useNavigate } from 'react-router-dom';
 
-import {get, post, get_summary, get_group} from '../provider/alert_provider';
+import {get, post, get_activity, get_group} from '../provider/alert_provider';
 import { useForm } from 'react-hook-form'
 import dateFormat, { masks } from "dateformat";
 
@@ -59,14 +59,13 @@ function Main(props) {
         }
     }; 
     const [imgData, setimgData] = React.useState({"image_path":"NOT SAVED","video_path":"NOT SAVED",'Event Id':"?",'Center Name':"?",'Timestamp':"?",'Camera Name':"?",'Alert Type':"?",'Location':"?",'status':"?","comment":"?"})
-
+    const [reviewLogs, setReviewLogs] = React.useState([])
 
     React.useEffect(() => {
-        // using same variable for showing both card data and chart data
-        get_summary((urlParams)).then((value)=>{
+        get_activity((urlParams)).then((value)=>{
             if (value){
-                console.log(value)
-                setCardData(value)
+                console.log(JSON.stringify(value))
+                setReviewLogs(value)
             }
         })
         get_group((urlParams)).then((value)=>{
@@ -85,24 +84,28 @@ function Main(props) {
         type: "number",
         flex:1, 
         filterOperators: numeric_operators,
+        filterable:false
     },
     {
         field: 'camera',
         headerName: "NAME",
         flex:1,
         filterOperators: string_operators,
+        filterable:false
     },
     {
         field: 'location',
         headerName: "LOCATION",
         flex:1,
         filterOperators: string_operators,
+        filterable:false
     },
     {
         field: 'feature',
         headerName: "FEATURE",
         flex:1,
         filterOperators: string_operators,
+        filterable:false
     },
     {
         field: 'timestamp',
@@ -113,19 +116,19 @@ function Main(props) {
         valueGetter: (value) => value && new Date(value),
         filterable: false,
     },
-    {
-        field: 'group_count',
-        headerName: "PRIORITY",
-        flex:1,
-        renderCell: (params) => {
-            return (
-                <div style={{display:"flex",justifyContent:"center",height:"100%",alignItems:"center"}}>
-                    <div style={{width:"20px", height:"20px", background:params.value===0 ? "#39d56f" : params.value<=2 ? "#86ed62" : params.value < 5 ? "#ffcd29" : params.value < 10 ? "#ffa629" : "#ff7250" ,borderRadius:"3px"}}></div>
-                </div>
-            )
-        },
-        filterable: false,
-    },
+    // {
+    //     field: 'total_alert',
+    //     headerName: "PRIORITY",
+    //     flex:1,
+    //     renderCell: (params) => {
+    //         return (
+    //             <div style={{display:"flex",justifyContent:"center",height:"100%",alignItems:"center"}}>
+    //                 <div style={{width:"20px", height:"20px", background:params.value===0 ? "#39d56f" : params.value<=2 ? "#86ed62" : params.value < 5 ? "#ffcd29" : params.value < 10 ? "#ffa629" : "#ff7250" ,borderRadius:"3px"}}></div>
+    //             </div>
+    //         )
+    //     },
+    //     filterable: false,
+    // },
     ];
 
     const sub_columns = [
@@ -143,6 +146,7 @@ function Main(props) {
             flex:1,
             renderCell: (params) => {return (dateFormat(new Date(params.value), "yyyy-mm-dd hh:mm:ss")).toString()},
             valueGetter: (value) => value && new Date(value),
+            filterable:false
         },
         {
             field: 'image_path',
@@ -403,66 +407,6 @@ function Main(props) {
             >
                 <Toolbar />
 
-                <Stack id="analytics" direction="row">
-                    <Box minWidth="50%" p={1}>
-                        <Stack direction="column" alignItems="flex-end">
-                            {/* <ToggleButtonGroup
-                                sx={{paddingX:"20px"}}
-                                fullWidth
-                                color="primary"
-                                value={alignment}
-                                exclusive
-                                onChange={(e,newAlignment) => (setAlignment(newAlignment))}
-                                aria-label="Platform"
-                                >
-                                <ToggleButton value="1H">1H</ToggleButton>
-                                <ToggleButton value="4H">2H</ToggleButton>
-                                <ToggleButton value="6H">6H</ToggleButton>
-                                <ToggleButton value="12H">12H</ToggleButton>
-                            </ToggleButtonGroup> */}
-                            <LineChart
-                                xAxis={[{ data: Array.from({ length: 24 }, (_, index) => index) }]}
-                                series={chartSeries}
-                                height={300}
-                                margin={{ left: 30, right: 30, top: 30, bottom: 30 }}
-                                grid={{ vertical: true, horizontal: true }}
-                            />
-                        </Stack>
-                        
-                    </Box>
-
-                    <Box sx={{width:"100%"}}>
-                        <Grid container spacing={1} rowSpacing={1}>
-                            <Grid item xs={4}>
-                                <Paper>
-                                    <Stack direction="column" p={2}>
-                                        <Typography variant="h3" color={theme.palette.text.disabled}>Total Alerts:</Typography>
-                                        <Typography variant="h3" textAlign="right">1162</Typography>
-                                    </Stack>
-                                </Paper>
-                            </Grid>
-
-                            {Object.entries(cardData).map(([key, value]) => 
-                                <Grid item xs={4}>
-                                    <Paper>
-                                        <Stack direction="column" p={2}>
-                                            <Typography variant="h3" color={theme.palette.text.disabled}>{key}:</Typography>
-                                            <Typography variant="h3" textAlign="right">{Object.values(value).reduce((acc, currentValue) => acc + currentValue, 0)}</Typography>
-                                        </Stack>
-                                    </Paper>
-                                    
-                                </Grid>
-                            )}
-                            
-                        </Grid>
-                    </Box>
-                </Stack>
-
-                <div style={{position:"relative", margin:"20px 0 "}}>
-                    <Divider sx={{marginY:"10px"}}/>
-                    <ArrowCircleUp onClick={()=>{document.getElementById("analytics").style.display=="none" ? document.getElementById("analytics").style.display="flex" : document.getElementById("analytics").style.display="none"}} sx={{position:"absolute", left:"50%", top:"0%"}}/>
-                </div>
-
                 <Stack direction="row" gap={2} sx={{height:"100%"}}>
                     <div style={{minWidth:"60%"}}>
                         <DataGridPro
@@ -503,7 +447,7 @@ function Main(props) {
                             // }}
                             autoHeight={true}
                             slots={{
-                                toolbar: CustomToolbar,
+                                // toolbar: CustomToolbar,
                                 footer: CustomFooter,
                             }}
                             pageSizeOptions={[5]}
@@ -561,6 +505,12 @@ function Main(props) {
                     </Stack>
                 </Stack>
 
+                <Divider sx={{marginY:"30px"}}/>
+
+                <Typography variant="h2">Activity Logs</Typography>
+                {reviewLogs.map((value,index)=>
+                    <Typography variant="h2" color={theme.palette.text.disabled}>Alert #{value['id']} status updated to <u>{value['status'] ? value['status'] : "null"}</u> at <u>{value['last_updated'] ? (dateFormat(new Date(value['last_updated']), "hh:mm:ss TT yyyy-mm-dd")).toString() : ""}.</u></Typography>
+                )}
             </Box>
         </>
     );

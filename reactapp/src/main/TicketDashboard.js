@@ -6,8 +6,9 @@ import { useTheme } from '@mui/material/styles';
 import {DataGridPro} from "@mui/x-data-grid-pro";
 import { useNavigate } from 'react-router-dom';
 
-import {get, post, del} from '../provider/client_provider';
+import {get_group} from '../provider/ticket_provider';
 import { useForm } from 'react-hook-form'
+import dateFormat, { masks } from "dateformat";
 
 
 const drawerWidth = 280;
@@ -15,7 +16,7 @@ const drawerWidth = 280;
 function Main(props) {
     const theme = useTheme();
     const navigate = useNavigate();
-    const operator_to_string = {"=":"eq","!=":"not",">":"gt",">=":"gte","<":"lt","<=":"lte","contains":"like"};
+    const operator_to_string = {"=":"eq","!=":"not",">":"gt",">=":"gte","<":"lt","<=":"lte","contains":"like","is":"like"};
     const string_to_operator = Object.fromEntries(Object.entries(operator_to_string).map(a => a.reverse()));
     const numeric_operators = getGridNumericOperators().filter(
         (operator) => operator.value === '=' || operator.value === '>',
@@ -40,10 +41,12 @@ function Main(props) {
         return filterItems;
     })
     const [selectedRow, setSelectedRow] = React.useState([])
+    const [metaData,setMetaData] = React.useState({"total":0,"new":0,"open":0,"resolved":0})
 
     React.useEffect(() => {
-        get((urlParams)).then((value)=>{
+        get_group((urlParams)).then((value)=>{
             if (value){
+                console.log(value)
                 setRows(value)
             }
         })
@@ -59,59 +62,66 @@ function Main(props) {
         filterOperators: numeric_operators,
     },
     {
-        field: 'name',
-        headerName: 'CLIENT NAME',
+        field: 'status',
+        headerName: 'STATUS',
         flex:1,
         minWidth:150,
-        renderCell: (params) => {return <a href={`/exam?client_name__like=${params.value}`}>{params.value}</a>},
-        filterOperators: string_operators,
+        type:"singleSelect",
+        valueOptions:["new","open","resolved"],
+        filterable: false,
+        renderCell: (params) => {return <Button color="primary" variant="contained">{params.value}</Button>},
     },
     {
-        field: 'code',
-        headerName: 'CODE',
+        field: 'center',
+        headerName: 'CENTER',
         flex:1,
         minWidth:150,
-        filterOperators: string_operators,
+        // filterOperators: string_operators,
     },
     {
-        field: 'username',
-        headerName: 'USERNAME',
+        field: 'camera',
+        headerName: 'CAMERA',
         flex:1,
         minWidth:150,
-        filterOperators: string_operators,
+        // filterOperators: string_operators,
     },
     {
-        field: 'password',
-        headerName: 'PASSWORD',
+        field: 'feature',
+        headerName: 'ALERT TYPE',
         flex:1,
         minWidth:150,
-        filterOperators: string_operators,
+        // filterOperators: string_operators,
     },
     {
-        field: 'instances',
-        headerName: 'INSTANCES',
-        type: 'number',
+        field: 'sublocation',
+        headerName: 'SUBLOCATION',
         flex:1,
         minWidth:150,
+        // filterOperators: string_operators,
+    },
+    {
+        field: 'created_at',
+        headerName: 'CREATED AT',
+        flex:1,
+        minWidth:150,
+        renderCell: (params) => {return (dateFormat(new Date(params.value), "hh:mm:ss TT yyyy-mm-dd ")).toString()},
         filterable: false,
     },
     {
-        field: 'active_exam',
-        headerName: 'ACTIVE EXAMS',
-        type: 'number',
+        field: 'last_updated',
+        headerName: 'LAST UPDATED',
         flex:1,
         minWidth:150,
-        filterable: false,
-    },
-    {
-        field: 'completed_exam',
-        headerName: 'COMPLETED EXAMS',
-        type: 'number',
-        flex:1,
-        minWidth:150,
+        renderCell: (params) => {return (dateFormat(new Date(params.value), "hh:mm:ss TT yyyy-mm-dd ")).toString()},
         filterable: false,
     },
     ];
+
+    rows.map((value,index)=>{
+        const temp = metaData
+        temp['total']+=1
+        temp[value['status']]+=1
+    })
 
     function CustomToolbar() {
     return (
@@ -127,7 +137,7 @@ function Main(props) {
                         }
                     }}
                 />
-                <TextField sx={{width: "450px",my:2,mr:4, background:"#f4f2ff" }} id="contained-search" variant="outlined" placeholder='Seach Client' type="search" InputProps={{
+                <TextField sx={{width: "450px",my:2,mr:4, background:"#f4f2ff" }} id="contained-search" variant="outlined" placeholder='Seach Ticket' type="search" InputProps={{
                     startAdornment: (
                         <InputAdornment>
                             <IconButton>
@@ -141,30 +151,30 @@ function Main(props) {
                     <Grid container rowSpacing={1} columnSpacing={{ xs: 1, sm: 2, md: 3 }}>
                         <Grid item xs={6}>
                             <Stack alignItems="center" direction="row" gap={1}>
-                                <FilterAlt color={theme.palette.text.disabled}/>
-                                <Typography variant="h3" color={theme.palette.text.disabled}>Total Clients : </Typography>
-                                <Typography variant="h3">15</Typography>
-                            </Stack>
-                        </Grid>
-                        <Grid item xs={6}>
-                            <Stack alignItems="center" direction="row" gap={1}>
                                 <LibraryBooks color={theme.palette.text.disabled}/>
-                                <Typography variant="h3" color={theme.palette.text.disabled}>Active Exams : </Typography>
-                                <Typography variant="h3">3</Typography>
+                                <Typography variant="h3" color={theme.palette.text.disabled}>Total Tickets : </Typography>
+                                <Typography variant="h3">{metaData['total']}</Typography>
                             </Stack>
                         </Grid>
                         <Grid item xs={6}>
                             <Stack alignItems="center" direction="row" gap={1}>
                                 <Storage color={theme.palette.text.disabled}/>
-                                <Typography variant="h3" color={theme.palette.text.disabled}>Total Instances : </Typography>
-                                <Typography variant="h3">12</Typography>
+                                <Typography variant="h3" color={theme.palette.text.disabled}>New Tickets : </Typography>
+                                <Typography variant="h3">{metaData['new']}</Typography>
+                            </Stack>
+                        </Grid>
+                        <Grid item xs={6}>
+                            <Stack alignItems="center" direction="row" gap={1}>
+                                <Storage color={theme.palette.text.disabled}/>
+                                <Typography variant="h3" color={theme.palette.text.disabled}>Open Tickets : </Typography>
+                                <Typography variant="h3">{metaData['open']}</Typography>
                             </Stack>
                         </Grid>
                         <Grid item xs={6}>
                             <Stack alignItems="center" direction="row" gap={1}>
                                 <CheckBox color={theme.palette.text.disabled}/>
-                                <Typography variant="h3" color={theme.palette.text.disabled}>Completed Exams : </Typography>
-                                <Typography variant="h3">24</Typography>
+                                <Typography variant="h3" color={theme.palette.text.disabled}>Resolved Tickets : </Typography>
+                                <Typography variant="h3">{metaData['resolved']}</Typography>
                             </Stack>
                         </Grid>
                     </Grid>
@@ -197,70 +207,16 @@ function Main(props) {
         setUrlParams(data.toString())
     }
 
-    const {register, handleSubmit} = useForm([])
-    const onSubmit = (data, e) => {post(data)};
-    const onError = (errors, e) => {post(errors)};
     return(
         <>
 
-            <Modal
-                open={modalOpen}
-                onClose={() => {setModalOpen(false)}}
-                aria-labelledby="modal-modal-title"
-                aria-describedby="modal-modal-description"
-            >
-                <Box sx={{position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', bgcolor: 'background.paper', boxShadow: 24,}}>
-                    <Typography variant="h1" color="primary" component="div" sx={{borderBottom:"5px solid"}} textAlign="center">
-                        Client
-                    </Typography>
-                    <Box component="form" variant="outlined" onSubmit={handleSubmit(onSubmit, onError)}>
-                        <Paper style={{ padding: 16,}}>
-
-                            <Grid container alignItems="flex-start" spacing={2} p={3}>
-                                <Grid item xs={6}>
-                                    <Typography variant="h3">Name</Typography>
-                                    <TextField  {...register('Name', { required: true })} required defaultValue={selectedRow.length!==0 ? selectedRow[0]['name'] : null} placeholder="Enter Client Name"/>
-                                </Grid>
-                                <Grid item xs={6}>
-                                    <Typography variant="h3">Address</Typography>
-                                    <TextField  {...register('address', { required: true })} defaultValue={selectedRow.length!==0 ? selectedRow[0]['address'] : null} required placeholder="Enter Client Address"/>
-                                </Grid>
-                                <Grid item xs={12}>
-                                    {/* button functionality not working as of now */}
-                                    <Button variant="outlined" color="secondary" onClick="">Generate Code</Button>
-                                </Grid>
-                                <Grid item xs={12}>
-                                    <FormControl>
-                                        <Typography variant="h3">Code</Typography>
-                                        <TextField  {...register('code', { required: true })} defaultValue={selectedRow.length!==0 ? selectedRow[0]['code'] : null} required placeholder="Enter Client Code"/>
-                                    </FormControl>
-                                </Grid>
-                                <Grid item xs={6}>
-                                    <Typography variant="h3">Username</Typography>
-                                    <TextField  {...register('username', { required: true })} defaultValue={selectedRow.length!==0 ? selectedRow[0]['username'] : null} required placeholder="Enter Client Username"/>
-                                </Grid>
-                                <Grid item xs={6}>
-                                    <Typography variant="h3">Password</Typography>
-                                    <TextField  {...register('password', { required: true })} defaultValue={selectedRow.length!==0 ? selectedRow[0]['password'] : null} required placeholder="Enter Client Password"/>
-                                </Grid>
-                                <Grid item style={{ marginTop: 30 }}>
-                                    <Stack alignItems="center" direction="row" gap={3}>
-                                        <Button variant="outlined" color="secondary" onClick={(e) => {setModalOpen(false)}}>Cancel</Button>
-                                        <Button variant="contained" color="secondary" type="submit">Create Client</Button>
-                                    </Stack>
-                                </Grid>
-                            </Grid>
-                        </Paper>
-                    </Box>
-                </Box>
-            </Modal>
             <Box
                 component="main"
                 sx={{ display:"flex", flexFlow: "column", py: 2, px: 3, width: { sm: `calc(100% - ${drawerWidth}px)`,} }}
             >
                 <Toolbar />
 
-                <Typography variant="h1" noWrap component="div" textAlign="center" borderBottom={"5px solid"}>
+                <Typography variant="h1" noWrap component="div" textAlign="center" borderBottom={"5px solid"} mb={2}>
                     BPSC March 2024
                 </Typography>
 
@@ -327,6 +283,7 @@ function Main(props) {
                         );
                         setSelectedRow(selectedRowData);
                     }}
+                    onRowClick = {(ids) => {navigate(`/ticket/?camera__eq=${ids['row']['camera']}&feature__eq=${ids['row']['feature']}`);}}
                 />  
             </Box>
         </>

@@ -28,4 +28,3 @@ class AlertOutSchema(AlertBaseSchema):
     class Config:
         orm_mode = True
 
-
