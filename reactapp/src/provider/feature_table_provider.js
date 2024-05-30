@@ -2,7 +2,7 @@ import * as React from 'react';
 
 export const get_dropdown = async(urlParams) => {
     try {
-        const response = await fetch(`http://localhost:8000/exam/?${urlParams}`,{method : "GET"});
+        const response = await fetch(`http://${window.location.hostname}:${process.env.REACT_APP_PORT}/exam/?${urlParams}`,{method : "GET"});
         if (!response.ok) {
           throw new Error('Network response was not ok.');
         }
@@ -17,7 +17,7 @@ export const get_dropdown = async(urlParams) => {
 export const post = async(payload) => {
     console.log(payload)
     try {
-        const response = await fetch(`http://localhost:8000/shift/`,{method : "POST", body: JSON.stringify(payload)});
+        const response = await fetch(`http://${window.location.hostname}:${process.env.REACT_APP_PORT}/shift/`,{method : "POST", body: JSON.stringify(payload)});
         if (!response.ok) {
           throw new Error('Network response was not ok.');
         }
@@ -33,7 +33,7 @@ export const post = async(payload) => {
 
 export const del = async(row_id) => {
     try {
-        const response = await fetch(`http://localhost:8000/shift/`,{method : "POST", body: JSON.stringify({"id": row_id})});
+        const response = await fetch(`http://${window.location.hostname}:${process.env.REACT_APP_PORT}/shift/`,{method : "POST", body: JSON.stringify({"id": row_id})});
         if (!response.ok) {
           throw new Error('Network response was not ok.');
         }

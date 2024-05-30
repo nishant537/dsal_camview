@@ -2,7 +2,7 @@ import * as React from 'react';
 
 export const get = async(urlParams) => {
     try {
-        const response = await fetch(`http://localhost:8000/alert/?${urlParams}`,{method : "GET"});
+        const response = await fetch(`http://${window.location.hostname}:${process.env.REACT_APP_PORT}/alert/?${urlParams}`,{method : "GET"});
         if (!response.ok) {
           throw new Error('Network response was not ok.');
         }
@@ -21,7 +21,7 @@ export const get = async(urlParams) => {
 
 export const get_group = async(urlParams) => {
   try {
-      const response = await fetch(`http://localhost:8000/alert/group?${urlParams}`,{method : "GET"});
+      const response = await fetch(`http://${window.location.hostname}:${process.env.REACT_APP_PORT}/alert/group?${urlParams}`,{method : "GET"});
       if (!response.ok) {
         throw new Error('Network response was not ok.');
       }
@@ -40,7 +40,7 @@ export const get_group = async(urlParams) => {
 
 export const get_stats = async(urlParams) => {
   try {
-      const response = await fetch(`http://localhost:8000/alert/stats?${urlParams}`,{method : "GET"});
+      const response = await fetch(`http://${window.location.hostname}:${process.env.REACT_APP_PORT}/alert/stats?${urlParams}`,{method : "GET"});
       if (!response.ok) {
         throw new Error('Network response was not ok.');
       }
@@ -65,7 +65,7 @@ export const get_stats = async(urlParams) => {
 
 export const get_activity = async(urlParams) => {
   try {
-      const response = await fetch(`http://localhost:8000/alert_activity`,{method : "GET"});
+      const response = await fetch(`http://${window.location.hostname}:${process.env.REACT_APP_PORT}/alert_activity`,{method : "GET"});
       if (!response.ok) {
         throw new Error('Network response was not ok.');
       }
@@ -79,7 +79,7 @@ export const get_activity = async(urlParams) => {
 
 export const get_summary = async(urlParams) => {
   try {
-      const response = await fetch(`http://localhost:8000/alert/summary?${urlParams}`,{method : "GET"});
+      const response = await fetch(`http://${window.location.hostname}:${process.env.REACT_APP_PORT}/alert/summary?${urlParams}`,{method : "GET"});
       if (!response.ok) {
         throw new Error('Network response was not ok.');
       }
@@ -99,7 +99,7 @@ export const get_summary = async(urlParams) => {
 
 export const post = async(alert_id,status) => {
     try {
-        const response = await fetch(`http://localhost:8000/alert_activity`,{method : "POST",headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({"alert_id":alert_id,"status":status})});
+        const response = await fetch(`http://${window.location.hostname}:${process.env.REACT_APP_PORT}/alert_activity`,{method : "POST",headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({"alert_id":alert_id,"status":status})});
         if (!response.ok) {
           throw new Error('Network response was not ok.');
         }
@@ -113,7 +113,7 @@ export const post = async(alert_id,status) => {
 
 export const del = async(row_id) => {
     try {
-        const response = await fetch(`http://localhost:8000/alert/`,{method : "POST", body: JSON.stringify({"id": row_id})});
+        const response = await fetch(`http://${window.location.hostname}:${process.env.REACT_APP_PORT}/alert/`,{method : "POST", body: JSON.stringify({"id": row_id})});
         if (!response.ok) {
           throw new Error('Network response was not ok.');
         }

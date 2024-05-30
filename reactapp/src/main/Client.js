@@ -201,7 +201,7 @@ function Main(props) {
     const onSubmit = (data, e) => {console.log(data);post(data)};
     const onError = (errors, e) => {console.log(errors);post(errors)};
 
-    const socket = new WebSocket('ws://localhost:8000/client/ws');
+    const socket = new WebSocket('ws://${window.location.hostname}:${process.env.REACT_APP_PORT}/client/ws');
     socket.onmessage = function(event) {
         const message = event.data;
         const temp_rows = [...rows, JSON.parse(message)]

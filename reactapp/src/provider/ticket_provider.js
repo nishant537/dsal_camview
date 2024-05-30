@@ -2,7 +2,7 @@ import * as React from 'react';
 
 export const get = async(urlParams) => {
     try {
-        const response = await fetch(`http://localhost:8000/ticket/?${urlParams}`,{method : "GET"});
+        const response = await fetch(`http://${window.location.hostname}:${process.env.REACT_APP_PORT}/ticket/?${urlParams}`,{method : "GET"});
         if (!response.ok) {
           // intercepter to throw errors
           // timeout (api is down, refetch)
@@ -18,7 +18,7 @@ export const get = async(urlParams) => {
 
 export const get_group = async(urlParams) => {
   try {
-      const response = await fetch(`http://localhost:8000/ticket/group?${urlParams}`,{method : "GET"});
+      const response = await fetch(`http://${window.location.hostname}:${process.env.REACT_APP_PORT}/ticket/group?${urlParams}`,{method : "GET"});
       if (!response.ok) {
         // intercepter to throw errors
         // timeout (api is down, refetch)
@@ -39,7 +39,7 @@ export const get_group = async(urlParams) => {
 
 export const get_stats = async(urlParams) => {
   try {
-      const response = await fetch(`http://localhost:8000/ticket/stats?${urlParams}`,{method : "GET"});
+      const response = await fetch(`http://${window.location.hostname}:${process.env.REACT_APP_PORT}/ticket/stats?${urlParams}`,{method : "GET"});
       if (!response.ok) {
         throw new Error('Network response was not ok.');
       }
@@ -65,7 +65,7 @@ export const get_stats = async(urlParams) => {
 // not in use now, can delete
 // export const get_ticket = async(id) => {
 //     try {
-//         const response = await fetch(`http://localhost:8000/ticket/${id}`,{method : "GET"});
+//         const response = await fetch(`http://${window.location.hostname}:${process.env.REACT_APP_PORT}/ticket/${id}`,{method : "GET"});
 //         if (!response.ok) {
 //           // intercepter to throw errors
 //           // timeout (api is down, refetch)
@@ -80,7 +80,7 @@ export const get_stats = async(urlParams) => {
 
 export const post_activity = async(payload) => {
     try {
-        const response = await fetch(`http://localhost:8000/ticket_activity/`,{method : "POST", headers: {'Content-Type': 'application/json'},body: JSON.stringify(payload)});
+        const response = await fetch(`http://${window.location.hostname}:${process.env.REACT_APP_PORT}/ticket_activity/`,{method : "POST", headers: {'Content-Type': 'application/json'},body: JSON.stringify(payload)});
         if (!response.ok) {
           throw new Error('Network response was not ok.');
         }
@@ -93,7 +93,7 @@ export const post_activity = async(payload) => {
 
 export const del = async(row_id) => {
     try {
-        const response = await fetch(`http://localhost:8000/client/`,{method : "POST", body: JSON.stringify({"id": row_id})});
+        const response = await fetch(`http://${window.location.hostname}:${process.env.REACT_APP_PORT}/client/`,{method : "POST", body: JSON.stringify({"id": row_id})});
         if (!response.ok) {
           throw new Error('Network response was not ok.');
         }

@@ -2,7 +2,7 @@ import * as React from 'react';
 
 export const get = async(urlParams) => {
     try {
-        const response = await fetch(`http://localhost:8000/client/?${urlParams}`,{method : "GET"});
+        const response = await fetch(`http://${window.location.hostname}:${process.env.REACT_APP_PORT}/client/?${urlParams}`,{method : "GET"});
         if (!response.ok) {
           // intercepter to throw errors
           // timeout (api is down, refetch)
@@ -31,7 +31,7 @@ export const get = async(urlParams) => {
 export const post = async(payload) => {
     console.log(payload)
     try {
-        const response = await fetch(`http://localhost:8000/client/`,{method : "POST", body: JSON.stringify(payload)});
+        const response = await fetch(`http://${window.location.hostname}:${process.env.REACT_APP_PORT}/client/`,{method : "POST", body: JSON.stringify(payload)});
         if (!response.ok) {
           throw new Error('Network response was not ok.');
         }
@@ -45,7 +45,7 @@ export const post = async(payload) => {
 
 export const del = async(row_id) => {
     try {
-        const response = await fetch(`http://localhost:8000/client/`,{method : "POST", body: JSON.stringify({"id": row_id})});
+        const response = await fetch(`http://${window.location.hostname}:${process.env.REACT_APP_PORT}/client/`,{method : "POST", body: JSON.stringify({"id": row_id})});
         if (!response.ok) {
           throw new Error('Network response was not ok.');
         }

@@ -2,7 +2,7 @@ import * as React from 'react';
 
 export const get = async(urlParams) => {
     try {
-        const response = await fetch(`http://localhost:8000/camera/?${urlParams}`,{method : "GET"});
+        const response = await fetch(`http://${window.location.hostname}:${process.env.REACT_APP_PORT}/camera/?${urlParams}`,{method : "GET"});
         if (!response.ok) {
           throw new Error('Network response was not ok.');
         }
@@ -26,7 +26,7 @@ export const get = async(urlParams) => {
 
 export const get_camera = async(id) => {
   try {
-      const response = await fetch(`http://localhost:8000/camera/?id__eq=${id}`,{method : "GET"});
+      const response = await fetch(`http://${window.location.hostname}:${process.env.REACT_APP_PORT}/camera/?id__eq=${id}`,{method : "GET"});
       if (!response.ok) {
         throw new Error('Network response was not ok.');
       }
@@ -38,7 +38,7 @@ export const get_camera = async(id) => {
 }
 
 const fetchFrame = async() => {
-  const response = await fetch(`http://localhost:8000/get_frame`,{method : "POST", headers: {'Content-Type':'application/json'}, body: JSON.stringify({})});
+  const response = await fetch(`http://${window.location.hostname}:${process.env.REACT_APP_PORT}/get_frame`,{method : "POST", headers: {'Content-Type':'application/json'}, body: JSON.stringify({})});
   const imageBlob = await response.blob();
   const imageObjectURL = URL.createObjectURL(imageBlob);
   // if (rtsp!={} && (rtsp['rtsp']!="" || rtsp['dss_id']!="" || rtsp['dss_channel']!="")){
@@ -48,7 +48,7 @@ const fetchFrame = async() => {
 
 
 const deleteCamera = async() => {
-  const response = await fetch(`http://http://localhost:8000/delete_camera/${window.location.pathname.split("/")[2]}`, {
+  const response = await fetch(`http://http://${window.location.hostname}:${process.env.REACT_APP_PORT}/delete_camera/${window.location.pathname.split("/")[2]}`, {
       method:"POST",
       headers: {'Content-Type':'application/json'}
   })
@@ -64,7 +64,7 @@ const deleteCamera = async() => {
 export const post = async(payload) => {
     console.log(payload)
     try {
-        const response = await fetch(`http://localhost:8000/camera/`,{method : "POST", body: JSON.stringify(payload)});
+        const response = await fetch(`http://${window.location.hostname}:${process.env.REACT_APP_PORT}/camera/`,{method : "POST", body: JSON.stringify(payload)});
         if (!response.ok) {
           throw new Error('Network response was not ok.');
         }
@@ -80,7 +80,7 @@ export const post = async(payload) => {
 
 export const del = async(row_id) => {
     try {
-        const response = await fetch(`http://localhost:8000/camera/`,{method : "POST", body: JSON.stringify({"id": row_id})});
+        const response = await fetch(`http://${window.location.hostname}:${process.env.REACT_APP_PORT}/camera/`,{method : "POST", body: JSON.stringify({"id": row_id})});
         if (!response.ok) {
           throw new Error('Network response was not ok.');
         }
