@@ -29,7 +29,7 @@ function Main(props) {
         const data = new URLSearchParams(window.location.search)
         return data.toString()
     })
-    const [data, setData] = React.useState([])
+    const [data, setData] = React.useState([{"id":1}])
     const [ticketDetails, setTicketDetails] = React.useState({"activity":[{}],"alert":{}})
 
     React.useEffect(() => {
@@ -37,7 +37,7 @@ function Main(props) {
             if (value){
                 console.log(value)
                 setData(value)
-                setTicketDetails(value[value.length - 1])
+                setTicketDetails(value[0])
             }
         })
       }, []);
@@ -66,7 +66,7 @@ function Main(props) {
                 <Toolbar />
 
                 <Typography variant="h1" noWrap component="div" textAlign="center" borderBottom={"5px solid"}>
-                    Ticket #{ticketDetails['id']}
+                    Ticket #{data[0]['id']}
                 </Typography>
 
                 <Box my={4}>
