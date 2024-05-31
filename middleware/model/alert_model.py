@@ -19,7 +19,6 @@ class AlertBaseSchema(BaseModel):
     # status: AlertTypeEnum | None = AlertTypeEnum['active']
     image_path: str | None = None
     video_path: str | None = None
-
 class AlertInSchema(AlertBaseSchema):
     pass
 

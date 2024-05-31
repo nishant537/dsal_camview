@@ -44,7 +44,6 @@ export const get_stats = async(urlParams) => {
         throw new Error('Network response was not ok.');
       }
       const data = await response.json();
-      
 
       const temp = data.reduce((acc, item) => {
         acc[item.center] = acc[item.center] || { id: item.id, center: item.center, total: { new: 0, open: 0, resolved: 0 } };

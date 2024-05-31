@@ -43,6 +43,11 @@ function Main(props) {
         return filterItems;
     })
     const [selectedRow, setSelectedRow] = React.useState([])
+    const [search, setSearch] = React.useState("")
+    const handleSearch = (event) =>{
+        setSearch(event.target.value)
+    }
+    const [metaData,setMetaData] = React.useState({"center":0,"total":0,"true":0,"false":0})
 
     const columns = []
     React.useEffect(() => {
@@ -122,6 +127,14 @@ function Main(props) {
         )
     })
     
+    rows.map((value,index)=>{
+        const temp = metaData
+        temp['center']+=1
+        temp['total']+=Object.values(value['total']).reduce((acc, val) => acc + val, 0);
+        temp['true']+=value['total']['true']
+        temp['false']+=value['total']['false']
+    })
+
     function CustomToolbar() {
         return (
             <GridToolbarContainer>
@@ -136,7 +149,7 @@ function Main(props) {
                             }
                         }}
                     />
-                    <TextField sx={{width: "450px",my:2,mr:4, background:"#f4f2ff" }} id="contained-search" variant="outlined" placeholder='Seach Client' type="search" InputProps={{
+                    <TextField sx={{width: "450px",my:2,mr:4, background:"#f4f2ff" }} id="contained-search" variant="outlined" value={search} onChange={handleSearch} placeholder='Search Center' type="search" InputProps={{
                         startAdornment: (
                             <InputAdornment>
                                 <IconButton>
@@ -152,28 +165,28 @@ function Main(props) {
                             <Stack alignItems="center" direction="row" gap={1}>
                                 <FilterAlt color={theme.palette.text.disabled}/>
                                 <Typography variant="h3" color={theme.palette.text.disabled}>Total Centers : </Typography>
-                                <Typography variant="h3">150</Typography>
+                                <Typography variant="h3">{metaData['center']}</Typography>
                             </Stack>
                         </Grid>
                         <Grid item xs={6}>
                             <Stack alignItems="center" direction="row" gap={1}>
                                 <LibraryBooks color={theme.palette.text.disabled}/>
                                 <Typography variant="h3" color={theme.palette.text.disabled}>Total Alerts: </Typography>
-                                <Typography variant="h3">2550</Typography>
+                                <Typography variant="h3">{metaData['total']}</Typography>
                             </Stack>
                         </Grid>
                         <Grid item xs={6}>
                             <Stack alignItems="center" direction="row" gap={1}>
                                 <Storage color={theme.palette.text.disabled}/>
-                                <Typography variant="h3" color={theme.palette.text.disabled}>Total Cameras : </Typography>
-                                <Typography variant="h3">1250</Typography>
+                                <Typography variant="h3" color={theme.palette.text.disabled}>Total True Alerts : </Typography>
+                                <Typography variant="h3">{metaData['true']}</Typography>
                             </Stack>
                         </Grid>
                         <Grid item xs={6}>
                             <Stack alignItems="center" direction="row" gap={1}>
                                 <CheckBox color={theme.palette.text.disabled}/>
-                                <Typography variant="h3" color={theme.palette.text.disabled}>Total True Alerts : </Typography>
-                                <Typography variant="h3">2700</Typography>
+                                <Typography variant="h3" color={theme.palette.text.disabled}>Total False Alerts : </Typography>
+                                <Typography variant="h3">{metaData['false']}</Typography>
                             </Stack>
                         </Grid>
                     </Grid>
@@ -220,73 +233,71 @@ function Main(props) {
                 </Typography>
                 
 
-                <div style={{height:"100%",width:"100%"}}>
-                    <DataGridPro
-                        sx={{
-                            height:"100%",
-                            [`& .${gridClasses.cell}:focus, & .${gridClasses.cell}:focus-within`]: {
+                <DataGridPro
+                    sx={{
+                        height:"100%",
+                        [`& .${gridClasses.cell}:focus, & .${gridClasses.cell}:focus-within`]: {
+                        outline: 'none',
+                        },
+                        [`& .${gridClasses.columnHeader}:focus, & .${gridClasses.columnHeader}:focus-within`]:
+                        {
                             outline: 'none',
-                            },
-                            [`& .${gridClasses.columnHeader}:focus, & .${gridClasses.columnHeader}:focus-within`]:
-                            {
-                                outline: 'none',
-                            },
-                            [`& .${gridClasses.columnHeader}`]:
-                            {
-                                fontFamily: "Poppins",
-                                fontSize: "1rem",
-                                lineHeight: "2rem",
-                                fontWeight:"500",
-                                backgroundColor: '#f4f2ff',
-                                color:"#8b83ba",
-                            },
-                            [`& .${gridClasses.cell}, & .${gridClasses.columnHeaderTitleContainer}`]: {
-                                borderBottom: '1px solid #e8e8e8',
-                                textAlign:"-webkit-center",
-                                justifyContent:"center"
-                            },
-                            
-                        }}
-                        rows={rows}
-                        columns={columns}
-                        disableMultipleRowSelection={true}
-                        columnGroupingModel={columnGroupingModel}
-                        // initialState={{
-                        // pagination: {
-                        //     paginationModel: {
-                        //     pageSize: 5,
-                        //     },
-                        // },
-                        // }}
-                        autoHeight={true}
-                        slots={{
-                            toolbar: CustomToolbar,
-                            footer: CustomFooter,
-                        }}
-                        pageSizeOptions={[5]}
-                        // pageSize={100}
-                        checkboxSelection
-                        disableRowSelectionOnClick
+                        },
+                        [`& .${gridClasses.columnHeader}`]:
+                        {
+                            fontFamily: "Poppins",
+                            fontSize: "1rem",
+                            lineHeight: "2rem",
+                            fontWeight:"500",
+                            backgroundColor: '#f4f2ff',
+                            color:"#8b83ba",
+                        },
+                        [`& .${gridClasses.cell}, & .${gridClasses.columnHeaderTitleContainer}`]: {
+                            borderBottom: '1px solid #e8e8e8',
+                            textAlign:"-webkit-center",
+                            justifyContent:"center"
+                        },
                         
-                        // this does not trigger model change, just shows on ui
-                        initialState={{
-                            filter: {
-                            filterModel: {
-                                items: filter,
-                            },
-                            },
-                        }}
-                        filterMode='server'
-                        onFilterModelChange={(newFilterModel) => onFilterModelChange(newFilterModel)}
-                        onRowSelectionModelChange={(ids) => {
-                            const selectedIDs = new Set(ids);
-                            const selectedRowData = rows.filter((row) =>
-                                (selectedIDs.has(row.id))
-                            );
-                            setSelectedRow(selectedRowData);
-                        }}
-                    />  
-                </div>
+                    }}
+                    rows={rows}
+                    columns={columns}
+                    disableMultipleRowSelection={true}
+                    columnGroupingModel={columnGroupingModel}
+                    // initialState={{
+                    // pagination: {
+                    //     paginationModel: {
+                    //     pageSize: 5,
+                    //     },
+                    // },
+                    // }}
+                    autoHeight={true}
+                    slots={{
+                        toolbar: CustomToolbar,
+                        footer: CustomFooter,
+                    }}
+                    pageSizeOptions={[5]}
+                    // pageSize={100}
+                    checkboxSelection
+                    disableRowSelectionOnClick
+                    
+                    // this does not trigger model change, just shows on ui
+                    initialState={{
+                        filter: {
+                        filterModel: {
+                            items: filter,
+                        },
+                        },
+                    }}
+                    filterMode='server'
+                    onFilterModelChange={(newFilterModel) => onFilterModelChange(newFilterModel)}
+                    onRowSelectionModelChange={(ids) => {
+                        const selectedIDs = new Set(ids);
+                        const selectedRowData = rows.filter((row) =>
+                            (selectedIDs.has(row.id))
+                        );
+                        setSelectedRow(selectedRowData);
+                    }}
+                />  
 
             </Box>
         </>

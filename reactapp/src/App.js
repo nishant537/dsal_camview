@@ -4,7 +4,7 @@ import ScrollableFeed from 'react-scrollable-feed'
 import PropTypes from 'prop-types';
 import {List, ListItemButton, ListItemIcon, ListItemText, ListItem, Button, Grid, AppBar, InputAdornment, TextField, Box, CssBaseline, Stack, Divider, Drawer, IconButton, Toolbar, Typography } from '@mui/material';
 // icon import
-import {AddAPhoto, Preview, Dashboard, ExpandLess, ExpandMore, NotificationsActive, Menu, Search, CloudDownloadOutlined, ManageAccounts, Psychology, LocationOn, LineWeight, LibraryBooks, Group, TableView, RateReview, Summarize, Analytics} from '@mui/icons-material';
+import {AddAPhoto, Preview, Dashboard, ExpandLess, ExpandMore, NotificationsActive, Menu, Search, CloudDownloadOutlined, ManageAccounts, Psychology, LocationOn, LineWeight, LibraryBooks, Group, TableView, RateReview, Summarize, Analytics, Article, QueryStats} from '@mui/icons-material';
 // main import
 import Client from './main/Client'
 import Exam from './main/Exam'
@@ -212,6 +212,26 @@ function ResponsiveDrawer(props) {
               <ListItemText primary={<Typography variant="h3" component="span">Alert Dashboard</Typography>}/>
             </ListItemButton>
           </ListItem>
+
+          {/* FOR AUDIT LOGS */}
+          <ListItem key="Feature Table" disablePadding>
+            <ListItemButton  onClick={(e)=> {navigate('/audit_logs');}}>
+              <ListItemIcon sx={{color:theme.palette.primary.contrastText}}>
+                <Article />
+              </ListItemIcon>
+              <ListItemText primary={<Typography variant="h3" component="span">Audit Logs</Typography>}/>
+            </ListItemButton>
+          </ListItem>
+
+          {/* FOR ALERT STATS */}
+          <ListItem key="Feature Table" disablePadding>
+            <ListItemButton  onClick={(e)=> {navigate('/alert_stats');}}>
+              <ListItemIcon sx={{color:theme.palette.primary.contrastText}}>
+                <QueryStats />
+              </ListItemIcon>
+              <ListItemText primary={<Typography variant="h3" component="span">Alert Stats</Typography>}/>
+            </ListItemButton>
+          </ListItem>
           
           {/* FOR TICKET DASHBOARD PAGE */}
           <ListItem key="Feature Table" disablePadding>
@@ -220,6 +240,16 @@ function ResponsiveDrawer(props) {
                 <Analytics />
               </ListItemIcon>
               <ListItemText primary={<Typography variant="h3" component="span">Ticket Dashboard</Typography>}/>
+            </ListItemButton>
+          </ListItem>
+
+          {/* FOR TICKET STATS */}
+          <ListItem key="Feature Table" disablePadding>
+            <ListItemButton  onClick={(e)=> {navigate('/ticket_stats');}}>
+              <ListItemIcon sx={{color:theme.palette.primary.contrastText}}>
+                <QueryStats />
+              </ListItemIcon>
+              <ListItemText primary={<Typography variant="h3" component="span">Ticket Stats</Typography>}/>
             </ListItemButton>
           </ListItem>
     </List>

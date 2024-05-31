@@ -4,7 +4,7 @@ from sqlalchemy import select, update, orm
 from db.database import *
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload, column_property
 from model.alert_model import *
 from html_response_codes import *
 from sqlalchemy.sql.expression import func
@@ -13,6 +13,7 @@ from crud.ticket_crud import post as post_ticket
 from model.ticket_model import *
 from crud.alert_activity_crud import post as post_activity
 from model.alert_activity_model import *
+
 
 async def get(
         db: Session,
@@ -35,15 +36,16 @@ async def get_group(
     # using joinedLoad instead of response_model to only fetch required data
     params = request.query_params
     # grouping on camera~feature so I only see unique places in alert page, this is same as camera~sublocation~feature as every camera at diff sublocation would have diff name
-    # data = db.query(Alert.id, Alert.camera,Alert.location,Alert.feature, Alert.image_path,Alert.video_path, func.count().label('group_count'),func.max(Alert.timestamp).label('timestamp')).options(joinedload(Alert.activity)).group_by(Alert.camera,Alert.feature).order_by(func.count().desc())
-    # cannot get count for priority and latest timestamp
-    data = db.query(Alert).options(joinedload(Alert.activity)).group_by(Alert.camera,Alert.feature).order_by(func.count().desc())
+
+    # fetching all activity and in js using latest, instead over here just get latest in query
+    latest_timestamp_count_subquery = db.query(Alert.camera,Alert.feature,func.max(Alert.timestamp).label('latest_timestamp'),func.count().label('group_count')).group_by(Alert.camera, Alert.feature).subquery()
+    data = db.query(Alert, latest_timestamp_count_subquery.c.group_count).join(latest_timestamp_count_subquery, (Alert.camera == latest_timestamp_count_subquery.c.camera) & (Alert.feature == latest_timestamp_count_subquery.c.feature)).filter(Alert.timestamp == latest_timestamp_count_subquery.c.latest_timestamp).options(joinedload(Alert.activity))
     # for instances, active_exams would need to iterate through results as filter by cannot filter
     for query in [x for x in params if params[x] is not None]:
         attr, operator = query.split('__') 
-        data = data.filter(get_sqlalchemy_operator(operator)(getattr(Alert,attr),params[query]))
+        data = data.filter(get_sqlalchemy_operator(operator)(getattr(Alert,attr),f"%{params[query]}%" if operator=="like" else params[query]))
 
-    return data.all()
+    return [{**row._asdict()['Alert'].__dict__,**{"group_count":row._asdict()['group_count']}} for row in data.all()]
 
 async def get_summary(
         db: Session,
@@ -51,7 +53,6 @@ async def get_summary(
     ):
     # using joinedLoad instead of response_model to only fetch required data
     params = request.query_params
-    print(params)
     # since now using particular day alerts, data to be hourly, when taken date range make it daily basis (use uncommented instead).
     # data = db.query(func.date(Alert.timestamp).label('daily'),Alert.feature,func.count().label('count')).group_by(func.date(Alert.timestamp), Alert.feature)
     data = db.query(func.concat(func.hour(Alert.timestamp), ':00').label('daily'),Alert.feature,func.count().label('count')).group_by('daily', 'feature')
@@ -61,7 +62,6 @@ async def get_summary(
 
     # select concat(hour(alert_timestamp),':00') as daily,feature_type, count(*) from all_alert group by daily,feature_type;
     # print(new.mappings().all())
-    print([row._asdict() for row in data.all()])
     d = {}
     for i in [row._asdict() for row in data.all()]:
         if i['feature'] not in d:
@@ -83,7 +83,6 @@ async def get_stats(
         attr, operator = query.split('__') 
         data = data.filter(get_sqlalchemy_operator(operator)(getattr(Alert,attr),params[query]))
 
-    print([row._asdict() for row in data.all()])
     return [row._asdict() for row in data.all()]
 
 async def get_review(
@@ -110,7 +109,7 @@ async def post(db: Session,payload: AlertInSchema):
     db.refresh(db_item)
 
     # add a ticket
-    ticket = await post_ticket(db, TicketInSchema(alert_id=db_item.id,camera=payload.camera,feature=payload.feature))
+    ticket = await post_ticket(db, TicketInSchema(alert_id=db_item.id,center=payload.center,camera=payload.camera,feature=payload.feature))
 
     # add a status
     activity = await post_activity(db, AlertActivityInSchema(alert_id=db_item.id))

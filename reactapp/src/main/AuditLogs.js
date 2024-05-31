@@ -169,7 +169,20 @@ function Main(props) {
                 )
             },
             filterable: false,
-        }
+        },
+        {
+            field: 'activity',
+            headerName: "STATUS",
+            flex:1,
+            renderCell: (params) => {
+                return (
+                    <div style={{display:"flex",justifyContent:"center",height:"100%",alignItems:"center"}}>
+                        <div style={{width:"10px", height:"10px",borderRadius:"50%", background:params.value[params.value.length-1]['status']==="true" ? "#39d56f" : params.value[params.value.length-1]['status']==="false" ? "red" : "grey"}}></div>
+                    </div>
+                )
+            },
+            filterable: false,
+        },
         ];
 
     function CustomToolbar() {

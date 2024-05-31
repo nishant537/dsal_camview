@@ -45,7 +45,6 @@ export const get_stats = async(urlParams) => {
         throw new Error('Network response was not ok.');
       }
       const data = await response.json();
-      
 
       const temp = data.reduce((acc, item) => {
         acc[item.center] = acc[item.center] || { id: item.id, center: item.center, total: { true: 0, false: 0, null: 0 } };
@@ -79,7 +78,7 @@ export const get_activity = async(urlParams) => {
 
 export const get_summary = async(urlParams) => {
   try {
-      const response = await fetch(`http://${window.location.hostname}:${process.env.REACT_APP_PORT}/alert/summary?${urlParams}`,{method : "GET"});
+      const response = await fetch(`http://${window.location.hostname}:${process.env.REACT_APP_PORT}/alert/summary`,{method : "GET"});
       if (!response.ok) {
         throw new Error('Network response was not ok.');
       }

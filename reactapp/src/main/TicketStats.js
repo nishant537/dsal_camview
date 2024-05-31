@@ -43,6 +43,11 @@ function Main(props) {
         return filterItems;
     })
     const [selectedRow, setSelectedRow] = React.useState([])
+    const [search, setSearch] = React.useState("")
+    const handleSearch = (event) =>{
+        setSearch(event.target.value)
+    }
+    const [metaData,setMetaData] = React.useState({"center":0,"total":0,"open":0,"resolved":0})
 
     const columns = []
     React.useEffect(() => {
@@ -61,8 +66,10 @@ function Main(props) {
             {
                 columns.push({
                     field: key,
+                    headerName: key.split("_")[key.split("_").length-1],
                     flex:0.6,
                     minWidth:200,
+                    filterable: false,
                     renderCell: (params) => {
                         return (
                             <div style={{display:"flex", flexDirection:"column", alignItems:"center" , transform:"scale(0.5)",transformOrigin: '50% 0% 0px'}}>
@@ -71,7 +78,7 @@ function Main(props) {
                                     {
                                         Object.entries(params.value).map(([key, value])=>(
                                             <div style={{"display":"flex", 'gap':"10px"}}>
-                                                <span style={{fontSize:"25px"}}>{value}</span> <TimelineDot sx={{ margin:0,placeSelf:"center",width: '5px',backgroundColor: key==="null" ? 'grey': key==="true" ? "green" : key==="false" ? "red" : null,}}/>
+                                                <span style={{fontSize:"25px"}}>{value}</span> <TimelineDot sx={{ margin:0,placeSelf:"center",width: '5px',backgroundColor: key==="new" ? 'grey': key==="resolved" ? "green" : key==="open" ? "red" : null,}}/>
                                             </div>
                                         ))
                                     }
@@ -88,6 +95,7 @@ function Main(props) {
                     // type: 'number',
                     flex:0.3,
                     minWidth:150, 
+                    filterable: false,
                     // filterOperators: numeric_operators,
                 })
             }
@@ -95,18 +103,38 @@ function Main(props) {
         })
     }
 
-    const columnGroupingModel = [
-        {
-          groupId: 'Zone Intrusion',
-          description: '',
-          children: [{ field: 'zi_main_gate' },{ field: 'zi_control_room' }],
-        },
-        {
-          groupId: 'Crowd Detection',
-          children: [{ field: 'cd_main_gate' }, { field: 'cd_control_room' }],
-        },
-    ];
+    const columnGroupingModel = [];
+    const t = {};
+    rows.map((value,index)=>{
+        Object.entries(value).map(([key, value])=>{
+            if (key.indexOf("_")>0){
+                if (key.split("_")[0] in t){
+                }else{
+                    t[key.split("_")[0]] = []
+                }
+                t[key.split("_")[0]].push(key)
+            }
+        })
+    })
+
+    Object.entries(t).map(([key,value])=>{
+        columnGroupingModel.push(
+            {
+                groupId: key,
+                description: '',
+                children: value.map(field => ({ field })),
+            }
+        )
+    })
     
+    rows.map((value,index)=>{
+        const temp = metaData
+        temp['center']+=1
+        temp['total']+=Object.values(value['total']).reduce((acc, val) => acc + val, 0);
+        temp['open']+=value['total']['open']
+        temp['resolved']+=value['total']['resolved']
+    })
+
     function CustomToolbar() {
         return (
             <GridToolbarContainer>
@@ -121,7 +149,7 @@ function Main(props) {
                             }
                         }}
                     />
-                    <TextField sx={{width: "450px",my:2,mr:4, background:"#f4f2ff" }} id="contained-search" variant="outlined" placeholder='Seach Client' type="search" InputProps={{
+                    <TextField sx={{width: "450px",my:2,mr:4, background:"#f4f2ff" }} id="contained-search" variant="outlined" placeholder='Seach Center' value={search} onChange={handleSearch} type="search" InputProps={{
                         startAdornment: (
                             <InputAdornment>
                                 <IconButton>
@@ -137,28 +165,28 @@ function Main(props) {
                             <Stack alignItems="center" direction="row" gap={1}>
                                 <FilterAlt color={theme.palette.text.disabled}/>
                                 <Typography variant="h3" color={theme.palette.text.disabled}>Total Centers : </Typography>
-                                <Typography variant="h3">150</Typography>
+                                <Typography variant="h3">{metaData['center']}</Typography>
                             </Stack>
                         </Grid>
                         <Grid item xs={6}>
                             <Stack alignItems="center" direction="row" gap={1}>
                                 <LibraryBooks color={theme.palette.text.disabled}/>
-                                <Typography variant="h3" color={theme.palette.text.disabled}>Total Alerts: </Typography>
-                                <Typography variant="h3">2550</Typography>
+                                <Typography variant="h3" color={theme.palette.text.disabled}>Total Tickets: </Typography>
+                                <Typography variant="h3">{metaData['total']}</Typography>
                             </Stack>
                         </Grid>
                         <Grid item xs={6}>
                             <Stack alignItems="center" direction="row" gap={1}>
                                 <Storage color={theme.palette.text.disabled}/>
-                                <Typography variant="h3" color={theme.palette.text.disabled}>Total Cameras : </Typography>
-                                <Typography variant="h3">1250</Typography>
+                                <Typography variant="h3" color={theme.palette.text.disabled}>Total Open Tickets : </Typography>
+                                <Typography variant="h3">{metaData['open']}</Typography>
                             </Stack>
                         </Grid>
                         <Grid item xs={6}>
                             <Stack alignItems="center" direction="row" gap={1}>
                                 <CheckBox color={theme.palette.text.disabled}/>
-                                <Typography variant="h3" color={theme.palette.text.disabled}>Total True Alerts : </Typography>
-                                <Typography variant="h3">2700</Typography>
+                                <Typography variant="h3" color={theme.palette.text.disabled}>Total Resolved Tickets : </Typography>
+                                <Typography variant="h3">{metaData['resolved']}</Typography>
                             </Stack>
                         </Grid>
                     </Grid>
@@ -205,73 +233,71 @@ function Main(props) {
                 </Typography>
                 
 
-                <div style={{height:"100%",width:"100%"}}>
-                    <DataGridPro
-                        sx={{
-                            height:"100%",
-                            [`& .${gridClasses.cell}:focus, & .${gridClasses.cell}:focus-within`]: {
+                <DataGridPro
+                    sx={{
+                        height:"100%",
+                        [`& .${gridClasses.cell}:focus, & .${gridClasses.cell}:focus-within`]: {
+                        outline: 'none',
+                        },
+                        [`& .${gridClasses.columnHeader}:focus, & .${gridClasses.columnHeader}:focus-within`]:
+                        {
                             outline: 'none',
-                            },
-                            [`& .${gridClasses.columnHeader}:focus, & .${gridClasses.columnHeader}:focus-within`]:
-                            {
-                                outline: 'none',
-                            },
-                            [`& .${gridClasses.columnHeader}`]:
-                            {
-                                fontFamily: "Poppins",
-                                fontSize: "1rem",
-                                lineHeight: "2rem",
-                                fontWeight:"500",
-                                backgroundColor: '#f4f2ff',
-                                color:"#8b83ba",
-                            },
-                            [`& .${gridClasses.cell}, & .${gridClasses.columnHeaderTitleContainer}`]: {
-                                borderBottom: '1px solid #e8e8e8',
-                                textAlign:"-webkit-center",
-                                justifyContent:"center"
-                            },
-                            
-                        }}
-                        rows={rows}
-                        columns={columns}
-                        disableMultipleRowSelection={true}
-                        columnGroupingModel={columnGroupingModel}
-                        // initialState={{
-                        // pagination: {
-                        //     paginationModel: {
-                        //     pageSize: 5,
-                        //     },
-                        // },
-                        // }}
-                        autoHeight={true}
-                        slots={{
-                            toolbar: CustomToolbar,
-                            footer: CustomFooter,
-                        }}
-                        pageSizeOptions={[5]}
-                        // pageSize={100}
-                        checkboxSelection
-                        disableRowSelectionOnClick
+                        },
+                        [`& .${gridClasses.columnHeader}`]:
+                        {
+                            fontFamily: "Poppins",
+                            fontSize: "1rem",
+                            lineHeight: "2rem",
+                            fontWeight:"500",
+                            backgroundColor: '#f4f2ff',
+                            color:"#8b83ba",
+                        },
+                        [`& .${gridClasses.cell}, & .${gridClasses.columnHeaderTitleContainer}`]: {
+                            borderBottom: '1px solid #e8e8e8',
+                            textAlign:"-webkit-center",
+                            justifyContent:"center"
+                        },
                         
-                        // this does not trigger model change, just shows on ui
-                        initialState={{
-                            filter: {
-                            filterModel: {
-                                items: filter,
-                            },
-                            },
-                        }}
-                        filterMode='server'
-                        onFilterModelChange={(newFilterModel) => onFilterModelChange(newFilterModel)}
-                        onRowSelectionModelChange={(ids) => {
-                            const selectedIDs = new Set(ids);
-                            const selectedRowData = rows.filter((row) =>
-                                (selectedIDs.has(row.id))
-                            );
-                            setSelectedRow(selectedRowData);
-                        }}
-                    />  
-                </div>
+                    }}
+                    rows={rows}
+                    columns={columns}
+                    disableMultipleRowSelection={true}
+                    columnGroupingModel={columnGroupingModel}
+                    // initialState={{
+                    // pagination: {
+                    //     paginationModel: {
+                    //     pageSize: 5,
+                    //     },
+                    // },
+                    // }}
+                    autoHeight={true}
+                    slots={{
+                        toolbar: CustomToolbar,
+                        footer: CustomFooter,
+                    }}
+                    pageSizeOptions={[5]}
+                    // pageSize={100}
+                    checkboxSelection
+                    disableRowSelectionOnClick
+                    
+                    // this does not trigger model change, just shows on ui
+                    initialState={{
+                        filter: {
+                        filterModel: {
+                            items: filter,
+                        },
+                        },
+                    }}
+                    filterMode='server'
+                    onFilterModelChange={(newFilterModel) => onFilterModelChange(newFilterModel)}
+                    onRowSelectionModelChange={(ids) => {
+                        const selectedIDs = new Set(ids);
+                        const selectedRowData = rows.filter((row) =>
+                            (selectedIDs.has(row.id))
+                        );
+                        setSelectedRow(selectedRowData);
+                    }}
+                />  
 
             </Box>
         </>

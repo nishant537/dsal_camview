@@ -24,7 +24,7 @@ from sqlalchemy_utils import database_exists, create_database
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.sql import func
 
-DATABASE_URL = "mysql+pymysql://root:hi@127.0.0.1:3306/trustview"
+DATABASE_URL = "mysql+pymysql://root:nishant@127.0.0.1:3306/trustview"
 
 engine = create_engine(DATABASE_URL, )
 
@@ -216,6 +216,7 @@ class Ticket(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     alert_id = Column(Integer, ForeignKey("alert.id"), nullable=False,)
+    center = Column(Text, nullable=False)
     camera = Column(Text, nullable=False)
     feature = Column(Text, nullable=False)
     sublocation = Column(Text, nullable=False)

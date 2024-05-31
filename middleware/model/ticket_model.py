@@ -10,6 +10,7 @@ class TicketStatusEnum(str, enum.Enum):
 
 class TicketBaseSchema(BaseModel):
     alert_id: int | None = None
+    center: str | None = None
     camera: str | None = None
     feature: str | None = None
 

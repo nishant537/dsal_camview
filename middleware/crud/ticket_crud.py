@@ -63,7 +63,7 @@ async def get_stats(
 
     latest_activity_subquery = (db.query(Ticket.camera,Ticket.feature,Ticket.sublocation,func.max(TicketActivity.id).label('latest_id')).join(TicketActivity, TicketActivity.ticket_id == Ticket.id).group_by(Ticket.camera, Ticket.feature, Ticket.sublocation).subquery())   
     main_query = (db.query(Ticket, TicketActivity.status).join(TicketActivity, TicketActivity.ticket_id == Ticket.id).join(latest_activity_subquery,(Ticket.camera == latest_activity_subquery.c.camera) &(Ticket.feature == latest_activity_subquery.c.feature) &(Ticket.sublocation == latest_activity_subquery.c.sublocation) &(TicketActivity.id == latest_activity_subquery.c.latest_id)))
-    data = (main_query.group_by(Ticket.feature,Ticket.sublocation,TicketActivity.status).with_entities(Ticket.feature,Ticket.sublocation,TicketActivity.status,func.count().label('count')))
+    data = (main_query.group_by(Ticket.feature,Ticket.sublocation,TicketActivity.status).with_entities(Ticket.id,Ticket.center,Ticket.feature,Ticket.sublocation,TicketActivity.status,func.count().label('count')))
     # for instances, active_exams would need to iterate through results as filter by cannot filter
     for query in [x for x in params if params[x] is not None]:
         attr, operator = query.split('__') 
