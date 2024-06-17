@@ -277,7 +277,7 @@ function Main(props) {
 
                 <DataGridPro
                     sx={{
-                        height:"100%",
+                        // height:"100%",
                         [`& .${gridClasses.cell}:focus, & .${gridClasses.cell}:focus-within`]: {
                         outline: 'none',
                         },
