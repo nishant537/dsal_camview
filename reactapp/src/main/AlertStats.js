@@ -50,13 +50,17 @@ function Main(props) {
     const [metaData,setMetaData] = React.useState({"center":0,"total":0,"true":0,"false":0})
 
     let dict_columns = {}
+
     React.useEffect(() => {
-        get_stats((urlParams)).then((value)=>{
-            if (value){
-                console.log(JSON.stringify(value))
-                setRows(value)
-            }
-        })
+        const interval = setInterval(() => {
+            get_stats((urlParams)).then((value)=>{
+                if (value){
+                    console.log(JSON.stringify(value))
+                    setRows(value)
+                }
+            })
+        }, 2000);
+        return () => clearInterval(interval);
     }, [urlParams]);
 
     if (rows.length>0){

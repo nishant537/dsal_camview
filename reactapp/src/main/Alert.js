@@ -71,17 +71,19 @@ function Main(props) {
                     setCardData(value)
                 }
             })
-            get_group((urlParams)).then((value)=>{
-                if (value){
-                    console.log(value)
-                    handleImgData({"row":value[0]})
-                    setRows(value)
-                }
-            })
+            if (!statusModal){
+                get_group((urlParams)).then((value)=>{
+                    if (value){
+                        console.log(value)
+                        handleImgData({"row":value[0]})
+                        setRows(value)
+                    }
+                })
+            }
         }, 2000);
         return () => clearInterval(interval);
         
-      }, [urlParams]);
+      }, [urlParams, statusModal]);
 
     
     const columns = [
@@ -274,7 +276,7 @@ function Main(props) {
         window.history.replaceState({}, '', `${window.location.pathname}?${data}`);
         setUrlParams(data.toString())
     }
-
+    
     const {register, handleSubmit} = useForm([])
     const onSubmit = (data, e) => {post(data)};
     const onError = (errors, e) => {post(errors)};

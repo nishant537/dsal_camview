@@ -39,7 +39,7 @@ async def get_group(
         if attr=="status":
             temp = []
             for row in data.all():
-                row = row.__dict__
+                row = {**row._asdict()['Ticket'].__dict__,**{"group_count":row._asdict()['row_count']}}
                 if row['activity'][0].__dict__['status'].value==params[query]:
                     temp.append(row)
             return temp

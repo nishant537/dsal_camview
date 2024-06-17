@@ -38,7 +38,7 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "env-cmd -f /root/common_files/.env react-scripts build",
+    "build": "env-cmd -f /root/common_files/.env_camview react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },

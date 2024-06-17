@@ -51,12 +51,15 @@ function Main(props) {
 
     let dict_columns = {}
     React.useEffect(() => {
-        get_stats((urlParams)).then((value)=>{
-            if (value){
-                console.log(value)
-                setRows(value)
-            }
-        })
+        const interval = setInterval(() => {
+            get_stats((urlParams)).then((value)=>{
+                if (value){
+                    console.log(value)
+                    setRows(value)
+                }
+            })
+        }, 2000);
+        return () => clearInterval(interval);
     }, [urlParams]);
 
     if (rows.length>0){

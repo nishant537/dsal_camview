@@ -44,12 +44,15 @@ function Main(props) {
     const [metaData,setMetaData] = React.useState({"total":0,"new":0,"open":0,"resolved":0})
 
     React.useEffect(() => {
-        get_group((urlParams)).then((value)=>{
-            if (value){
-                console.log(value)
-                setRows(value)
-            }
-        })
+        const interval = setInterval(() => {
+            get_group((urlParams)).then((value)=>{
+                if (value){
+                    console.log(value)
+                    setRows(value)
+                }
+            })
+        }, 2000);
+        return () => clearInterval(interval);
       }, [urlParams]);
 
     const columns = [

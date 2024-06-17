@@ -62,19 +62,25 @@ function Main(props) {
     const [reviewLogs, setReviewLogs] = React.useState([])
 
     React.useEffect(() => {
-        get_activity((urlParams)).then((value)=>{
-            if (value){
-                console.log(JSON.stringify(value))
-                setReviewLogs(value)
+        const interval = setInterval(() => {
+            get_activity((urlParams)).then((value)=>{
+                if (value){
+                    console.log(JSON.stringify(value))
+                    setReviewLogs(value)
+                }
+            })
+            if (!statusModal){
+                get_group((urlParams)).then((value)=>{
+                    if (value){
+                        console.log(value)
+                        handleImgData({"row":value[0]})
+                        setRows(value)
+                    }
+                })
             }
-        })
-        get_group((urlParams)).then((value)=>{
-            if (value){
-                console.log(JSON.stringify(value))
-                setRows(value)
-            }
-        })
-      }, [urlParams]);
+        }, 2000);
+        return () => clearInterval(interval);
+    }, [urlParams, statusModal]);
 
     
     const columns = [
@@ -155,17 +161,6 @@ function Main(props) {
             renderCell: (params) => {
                 return (
                     <a href='alert.png' target="_blank"><Image/></a>
-                )
-            },
-            filterable: false,
-        },
-        {
-            field: 'video_path',
-            headerName: "VIDEO",
-            flex:1,
-            renderCell: (params) => {
-                return (
-                    <a href='alert.png' target="_blank"><VideoCall/></a>
                 )
             },
             filterable: false,
