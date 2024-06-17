@@ -3,9 +3,9 @@ source $HOME/common_files/.env
 
 # installing python middleware
 # cd ..
-cd $HOME/react-GUI/reactapp
-cp $REACT_APP_LOGO_PATH /root/react-GUI/reactapp/public/deepsight_logo.png
-cp $REACT_APP_BACKGROUND_PATH /root/react-GUI/reactapp/public/background.jpg
+cd $HOME/camview/reactapp
+cp $REACT_APP_LOGO_PATH /root/camview/reactapp/public/deepsight_logo.png
+cp $REACT_APP_BACKGROUND_PATH /root/camview/reactapp/public/background.jpg
 npm install --force
 npm install pm2 -g
 npm run build
@@ -13,9 +13,9 @@ pm2 startup
 sudo env PATH=$PATH:$HOME/.nvm/versions/node/v18.9.1/bin $HOME/.nvm/versions/node/v18.9.1/lib/node_modules/pm2/bin/pm2 >pm2 delete reactapp
 pm2 --name "reactapp" serve --spa build 3000
 pm2 save
-echo "React-GUI Dashboard running on http://0.0.0.0:3000"
+echo "camview Dashboard running on http://0.0.0.0:3000"
 
-cd $HOME/react-GUI/middleware
+cd $HOME/camview/middleware
 sudo apt-get install -y python3-venv
 python3.7 -m venv env
 source env/bin/activate
@@ -30,7 +30,7 @@ gunicorn -k uvicorn.workers.UvicornWorker app:app -b 0.0.0.0:8000 --workers 17 -
 echo "FastAPI middleware running on http://0.0.0.0:8000"
 
 # SET CRONTAB FOR 2AM everyday.
-echo "*/2 * * * * /bin/bash /root/react-GUI/cron_gui.sh" >> mycron
+echo "*/2 * * * * /bin/bash /root/camview/cron_gui.sh" >> mycron
 #install new cron file
 crontab mycron
 rm mycron

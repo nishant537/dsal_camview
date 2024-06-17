@@ -1,5 +1,5 @@
 #!/bin/bash
-source $HOME/react-GUI/.conf
+source $HOME/camview/.conf
 
 frontend_status=$(ss -tulpn | grep :$REACT_PORT)
 middleware_status=$(ss -tulpn | grep :$API_PORT)
@@ -8,7 +8,7 @@ sleep 120
 if [[ -z $frontend_status ]] || [[ -z $middleware_status ]] || [[ ! -z $1 ]];
 then 
 	# Restarting Frontend
-	cd $HOME/react-GUI/reactapp
+	cd $HOME/camview/reactapp
 	PATH=$PATH:$HOME/.nvm/versions/node/v18.9.1/bin
 	rm -r build
  	npm run build
@@ -18,7 +18,7 @@ then
 	echo "React Frontend running on http://0.0.0.0:$REACT_PORT"
 
 	# Restarting Middleware
-	cd $HOME/react-GUI/middleware
+	cd $HOME/camview/middleware
 	source env/bin/activate
 	kill -9 $(lsof -t -i:$API_PORT)
 	gunicorn -k uvicorn.workers.UvicornWorker app:app -b 0.0.0.0:8000 --timeout 80 --daemon
