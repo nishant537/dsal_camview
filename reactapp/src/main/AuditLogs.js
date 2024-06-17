@@ -65,14 +65,12 @@ function Main(props) {
         const interval = setInterval(() => {
             get_activity((urlParams)).then((value)=>{
                 if (value){
-                    console.log(JSON.stringify(value))
                     setReviewLogs(value)
                 }
             })
             if (!statusModal){
                 get_group((urlParams)).then((value)=>{
                     if (value){
-                        console.log(value)
                         handleImgData({"row":value[0]})
                         setRows(value)
                     }
@@ -160,7 +158,7 @@ function Main(props) {
             flex:1,
             renderCell: (params) => {
                 return (
-                    <a href='alert.png' target="_blank"><Image/></a>
+                    <a href={params.value} target="_blank"><Image/></a>
                 )
             },
             filterable: false,
@@ -345,7 +343,7 @@ function Main(props) {
                             // }}
                             pageSizeOptions={[5]}
                             // pageSize={100}
-                            checkboxSelection
+                            // checkboxSelection
                             disableRowSelectionOnClick
                             
                             // this does not trigger model change, just shows on ui
@@ -460,7 +458,7 @@ function Main(props) {
                             }}
                             pageSizeOptions={[5]}
                             // pageSize={100}
-                            checkboxSelection
+                            // checkboxSelection
                             disableRowSelectionOnClick
                             
                             // this does not trigger model change, just shows on ui
@@ -519,7 +517,7 @@ function Main(props) {
                     <Typography variant="h2" component="div" borderBottom={"2px solid"} mb={2}>Activity Logs</Typography>
                     <div style={{height:"100%", overflowY:"scroll"}}>
                         {reviewLogs.map((value,index)=>
-                            <Typography variant="h2" color={theme.palette.text.disabled}>Alert #{value['id']} status updated to <u>{value['status'] ? value['status'] : "null"}</u> at <u>{value['last_updated'] ? (dateFormat(new Date(value['last_updated']), "hh:mm:ss TT yyyy-mm-dd")).toString() : ""}.</u></Typography>
+                            <Typography variant="h2" color={theme.palette.text.disabled}>Alert #{value['alert_id']} status updated to <u>{value['status'] ? value['status'] : "null"}</u> at <u>{value['last_updated'] ? (dateFormat(new Date(value['last_updated']), "hh:mm:ss TT yyyy-mm-dd")).toString() : ""}.</u></Typography>
                         )}
                     </div>
                 </div>

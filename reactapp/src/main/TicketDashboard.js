@@ -47,7 +47,12 @@ function Main(props) {
         const interval = setInterval(() => {
             get_group((urlParams)).then((value)=>{
                 if (value){
-                    console.log(value)
+                    const temp = {"total":0,"new":0,"open":0,"resolved":0}
+                    value.map((row,index)=>{
+                        temp['total']+=1
+                        temp[value['status']]+=1
+                    })
+                    setMetaData(temp)
                     setRows(value)
                 }
             })
@@ -133,11 +138,7 @@ function Main(props) {
     },
     ];
 
-    rows.map((value,index)=>{
-        const temp = metaData
-        temp['total']+=1
-        temp[value['status']]+=1
-    })
+    
 
     function CustomToolbar() {
     return (
@@ -153,7 +154,7 @@ function Main(props) {
                         }
                     }}
                 />
-                <TextField sx={{width: "450px",my:2,mr:4, background:"#f4f2ff" }} id="contained-search" variant="outlined" placeholder='Seach Ticket' type="search" InputProps={{
+                <TextField sx={{width: "450px",my:2,mr:4, background:"#f4f2ff" }} id="contained-search" disabled={true} variant="outlined" placeholder='Seach Ticket' type="search" InputProps={{
                     startAdornment: (
                         <InputAdornment>
                             <IconButton>

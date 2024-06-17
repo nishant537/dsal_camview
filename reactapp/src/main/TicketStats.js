@@ -54,7 +54,14 @@ function Main(props) {
         const interval = setInterval(() => {
             get_stats((urlParams)).then((value)=>{
                 if (value){
-                    console.log(value)
+                    const temp = {"center":0,"total":0,"open":0,"resolved":0}
+                    value.map((row,index)=>{
+                        temp['center']+=1
+                        temp['total']+=Object.values(row['total']).reduce((acc, val) => acc + val, 0);
+                        temp['open']+=row['total']['open']
+                        temp['resolved']+=row['total']['resolved']
+                    })
+                    setMetaData(temp)
                     setRows(value)
                 }
             })
@@ -157,6 +164,7 @@ function Main(props) {
         })
     })
 
+    console.log(t)
     Object.entries(t).map(([key,value])=>{
         columnGroupingModel.push(
             {
@@ -167,13 +175,7 @@ function Main(props) {
         )
     })
     
-    rows.map((value,index)=>{
-        const temp = metaData
-        temp['center']+=1
-        temp['total']+=Object.values(value['total']).reduce((acc, val) => acc + val, 0);
-        temp['open']+=value['total']['open']
-        temp['resolved']+=value['total']['resolved']
-    })
+
 
     function CustomToolbar() {
         return (
@@ -189,7 +191,7 @@ function Main(props) {
                             }
                         }}
                     />
-                    <TextField sx={{width: "450px",my:2,mr:4, background:"#f4f2ff" }} id="contained-search" variant="outlined" placeholder='Seach Center' value={search} onChange={handleSearch} type="search" InputProps={{
+                    <TextField sx={{width: "450px",my:2,mr:4, background:"#f4f2ff" }} id="contained-search" variant="outlined" disabled={true} placeholder='Seach Stats' value={search} onChange={handleSearch} type="search" InputProps={{
                         startAdornment: (
                             <InputAdornment>
                                 <IconButton>

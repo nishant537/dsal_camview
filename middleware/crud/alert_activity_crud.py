@@ -14,7 +14,7 @@ async def get(
         request # *******SETBACK******* = in documentation query parameters are not specified with this approach    
     ):
     params = request.query_params
-    data = db.query(AlertActivity).options(joinedload(AlertActivity.alert))
+    data = db.query(AlertActivity).options(joinedload(AlertActivity.alert)).order_by(AlertActivity.id.desc())
     # for instances, active_exams would need to iterate through results as filter by cannot filter
     for query in [x for x in params if params[x] is not None]:
         attr, operator = query.split('__') 

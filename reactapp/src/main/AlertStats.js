@@ -55,7 +55,14 @@ function Main(props) {
         const interval = setInterval(() => {
             get_stats((urlParams)).then((value)=>{
                 if (value){
-                    console.log(JSON.stringify(value))
+                    const temp = {"center":0,"total":0,"true":0,"false":0}
+                    value.map((row,index)=>{
+                        temp['center']+=1
+                        temp['total']+=Object.values(row['total']).reduce((acc, val) => acc + val, 0);
+                        temp['true']+=row['total']['true']
+                        temp['false']+=row['total']['false']
+                    })
+                    setMetaData(temp)
                     setRows(value)
                 }
             })
@@ -170,14 +177,6 @@ function Main(props) {
         )
     })
 
-    
-    rows.map((value,index)=>{
-        const temp = metaData
-        temp['center']+=1
-        temp['total']+=Object.values(value['total']).reduce((acc, val) => acc + val, 0);
-        temp['true']+=value['total']['true']
-        temp['false']+=value['total']['false']
-    })
 
     function CustomToolbar() {
         return (
@@ -193,7 +192,7 @@ function Main(props) {
                             }
                         }}
                     />
-                    <TextField sx={{width: "450px",my:2,mr:4, background:"#f4f2ff" }} id="contained-search" variant="outlined" value={search} onChange={handleSearch} placeholder='Search Center' type="search" InputProps={{
+                    <TextField sx={{width: "450px",my:2,mr:4, background:"#f4f2ff" }} id="contained-search" disabled={true} variant="outlined" value={search} onChange={handleSearch} placeholder='Search Stats' type="search" InputProps={{
                         startAdornment: (
                             <InputAdornment>
                                 <IconButton>

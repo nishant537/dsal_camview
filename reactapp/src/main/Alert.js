@@ -426,7 +426,7 @@ function Main(props) {
                         // }}
                         pageSizeOptions={[5]}
                         // pageSize={100}
-                        checkboxSelection
+                        // checkboxSelection
                         disableRowSelectionOnClick
                         
                         // this does not trigger model change, just shows on ui
@@ -606,7 +606,7 @@ function Main(props) {
                                 toolbar: CustomToolbar,
                                 // footer: CustomFooter,
                             }}
-                            checkboxSelection
+                            // checkboxSelection
                             disableRowSelectionOnClick
                             
                             // this does not trigger model change, just shows on ui
