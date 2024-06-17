@@ -312,7 +312,6 @@ function Main(props) {
                     //     },
                     // },
                     // }}
-                    autoHeight={true}
                     slots={{
                         toolbar: CustomToolbar,
                         footer: CustomFooter,
