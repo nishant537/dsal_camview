@@ -45,13 +45,11 @@ export const del = async(row_id) => {
 
 export const put = async(id, roi_data) => {
   try {
-    // put request not working
-    // issue with only sending changed parameter is pydantic model all fields would be kept null
-      const response = await fetch(`http://${window.location.hostname}:${process.env.REACT_APP_PORT}/roi/${id}`,{method : "PUT", body: JSON.stringify(roi_data)});
+      const response = await fetch(`http://${window.location.hostname}:${process.env.REACT_APP_PORT}/roi/${id}`,{method : "PUT", headers: {'Content-Type': 'application/json'}, body: JSON.stringify(roi_data)});
       if (!response.ok) {
         throw new Error('Network response was not ok.');
       }
-      const data = await response.json()['data'];
+      const data = await response.json();
       // return data
       return [{ id: 1, name: 'NTA', code: 'Jon', address:"Lorem Ipsum", username: "nta_user", password: "nishant", instances: 8, active_exam:1, completed_exam: 3 }]
     } catch (error) {

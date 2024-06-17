@@ -36,12 +36,12 @@ async def post(server_data:ClientInSchema, db: Session = Depends(get_db)):
     response = await client_crud.post(db,payload=server_data)
     return response
 
-@router.put("/")
+@router.put("/{id}")
 async def put(id:int ,server_data:ClientInSchema,db: Session = Depends(get_db)):
     response = await client_crud.put(db,id=id,payload=server_data)
     return response
 
-@router.delete("/")
+@router.delete("/{id}")
 async def delete(id:int, db: Session = Depends(get_db)):
     response = await client_crud.delete(db,id=id)
     return response
@@ -64,7 +64,10 @@ async def send_message(message: str):
     return True
 
 @event.listens_for(Client, 'after_insert')
+# @event.listens_for(Client, 'after_delete')
+# @event.listens_for(Client, 'after_update')
 def after_insert_listener(mapper, connection, target):
     target_json = {col: getattr(target, col) for col in target.__dict__ if not col.startswith('_')}
     message = json.dumps(target_json)  # Customize message as needed
     asyncio.create_task(send_message(message))
+    

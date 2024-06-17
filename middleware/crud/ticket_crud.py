@@ -31,25 +31,23 @@ async def get_group(
     ):
     # using joinedLoad instead of response_model to only fetch required data
     params = request.query_params
-    latest_subquery = db.query(func.max(Ticket.id).label('id')).group_by(Ticket.camera, Ticket.feature).subquery()
-    data = db.query(Ticket).options(joinedload(Ticket.activity), joinedload(Ticket.alert)).join(latest_subquery, Ticket.id == latest_subquery.c.id)
+    latest_subquery = db.query(func.max(Ticket.id).label('id'),func.count().label('row_count')).group_by(Ticket.camera, Ticket.feature).subquery()
+    data = db.query(Ticket, latest_subquery.c.row_count).options(joinedload(Ticket.activity), joinedload(Ticket.alert)).join(latest_subquery, Ticket.id == latest_subquery.c.id)
     # for instances, active_exams would need to iterate through results as filter by cannot filter
     for query in [x for x in params if params[x] is not None]:
         attr, operator = query.split('__') 
-        data = data.filter(get_sqlalchemy_operator(operator)(getattr(Alert,attr),params[query]))
+        if attr=="status":
+            temp = []
+            for row in data.all():
+                row = row.__dict__
+                if row['activity'][0].__dict__['status'].value==params[query]:
+                    temp.append(row)
+            return temp
+        else:
+            data = data.filter(get_sqlalchemy_operator(operator)(getattr(Alert,attr),f"%{params[query]}%" if operator=="like" else params[query]))
+    
+    return [{**row._asdict()['Ticket'].__dict__,**{"group_count":row._asdict()['row_count']}} for row in data.all()]
 
-    print([row.__dict__ for row in data.all()])
-    return data.all()
-
-# not in use now, can delete
-# async def get_one(
-#         db: Session,
-#         id
-#     ):
-#     data = db.query(Ticket).options(joinedload(Ticket.activity), joinedload(Ticket.alert)).filter(Ticket.id.__eq__(id))
-
-#     count_data = db.query(Ticket.id).filter(Ticket.feature.__eq__(data.first().feature),Ticket.camera.__eq__(data.first().camera))
-#     return {"ticket_data":data.first(),"count_data":[row._asdict()['id'] for row in count_data.all()]}
 
 async def get_stats(
         db: Session,
@@ -58,17 +56,15 @@ async def get_stats(
     # using joinedLoad instead of response_model to only fetch required data
     params = request.query_params
 
-    # further query is grouped to get this
-    # SELECT t.*, ta.status FROM ticket t INNER JOIN ticket_activity ta ON ta.ticket_id = t.id INNER JOIN (SELECT t.camera, t.feature, t.sublocation, MAX(ta.id) AS latest_id FROM ticket t INNER JOIN ticket_activity ta ON ta.ticket_id = t.id GROUP BY t.camera, t.feature, t.sublocation) AS latest_activity ON t.camera = latest_activity.camera AND t.feature = latest_activity.feature AND t.sublocation = latest_activity.sublocation AND ta.id = latest_activity.latest_id
+    # filtered on camera and feature
+    latest_activity_subquery = db.query(TicketActivity.ticket_id,func.max(TicketActivity.id).label("latest_activity_id")).group_by(TicketActivity.ticket_id).subquery()
+    data = db.query(Ticket.id,Ticket.center,Ticket.camera,Ticket.feature,Ticket.sublocation,TicketActivity.status,func.count().label("group_count")).join(latest_activity_subquery,Ticket.id == latest_activity_subquery.c.ticket_id).join(TicketActivity,(Ticket.id == TicketActivity.ticket_id)& (TicketActivity.id == latest_activity_subquery.c.latest_activity_id)).group_by(Ticket.camera,Ticket.feature,)
 
-    latest_activity_subquery = (db.query(Ticket.camera,Ticket.feature,Ticket.sublocation,func.max(TicketActivity.id).label('latest_id')).join(TicketActivity, TicketActivity.ticket_id == Ticket.id).group_by(Ticket.camera, Ticket.feature, Ticket.sublocation).subquery())   
-    main_query = (db.query(Ticket, TicketActivity.status).join(TicketActivity, TicketActivity.ticket_id == Ticket.id).join(latest_activity_subquery,(Ticket.camera == latest_activity_subquery.c.camera) &(Ticket.feature == latest_activity_subquery.c.feature) &(Ticket.sublocation == latest_activity_subquery.c.sublocation) &(TicketActivity.id == latest_activity_subquery.c.latest_id)))
-    data = (main_query.group_by(Ticket.feature,Ticket.sublocation,TicketActivity.status).with_entities(Ticket.id,Ticket.center,Ticket.feature,Ticket.sublocation,TicketActivity.status,func.count().label('count')))
-    # for instances, active_exams would need to iterate through results as filter by cannot filter
     for query in [x for x in params if params[x] is not None]:
         attr, operator = query.split('__') 
         data = data.filter(get_sqlalchemy_operator(operator)(getattr(Alert,attr),params[query]))
 
+    print([row._asdict() for row in data.all()])
     return [row._asdict() for row in data.all()]
 
 async def post(db: Session,payload: TicketInSchema):

@@ -15,7 +15,7 @@ const drawerWidth = 280;
 function Main(props) {
     const theme = useTheme();
     const navigate = useNavigate();
-    const operator_to_string = {"=":"eq","!=":"not",">":"gt",">=":"gte","<":"lt","<=":"lte","contains":"like"};
+    const operator_to_string = {"=":"eq","!=":"not",">":"gt",">=":"gte","<":"lt","<=":"lte","is":"like","contains":"like"};
     const string_to_operator = Object.fromEntries(Object.entries(operator_to_string).map(a => a.reverse()));
     const numeric_operators = getGridNumericOperators().filter(
         (operator) => operator.value === '=' || operator.value === '>',
@@ -27,6 +27,7 @@ function Main(props) {
     const [page, setPage] = React.useState(2);
     const [rowsPerPage, setRowsPerPage] = React.useState(10); 
     const [modalOpen, setModalOpen] = React.useState(false);    
+    const [imageModal, setImageModal] = React.useState(false);    
     const [rows,setRows] = React.useState([])
     const [urlParams, setUrlParams] = React.useState(()=>{
         const data = new URLSearchParams(window.location.search)
@@ -39,6 +40,12 @@ function Main(props) {
             filterItems.push({'field':p[0].split('__')[0], "operator":string_to_operator[p[0].split('__')[1]], "value":p[1]});
         }
         return filterItems;
+    })
+    const [selectedRow,setSelectedRow] = React.useState("")
+    const [metaData,setMetaData] = React.useState({"marked":0,"approved":0,"rejected":0})
+    rows.map((value,index)=>{
+        const temp = metaData
+        temp[value['status']]+=1
     })
 
     React.useEffect(() => {
@@ -57,64 +64,60 @@ function Main(props) {
             type: 'number',
             flex:0.3,
             minWidth:150, 
-            filterOperators: numeric_operators,
-        },
-        {
-            field: 'name',
-            headerName: 'CLIENT NAME',
-            flex:1,
-            minWidth:150,
-            renderCell: (params) => {return <a href={`/exam?client_name__like=${params.value}`}>{params.value}</a>},
-            filterOperators: string_operators,
-        },
-        {
-            field: 'code',
-            headerName: 'CODE',
-            flex:1,
-            minWidth:150,
-            filterOperators: string_operators,
-        },
-        {
-            field: 'username',
-            headerName: 'USERNAME',
-            flex:1,
-            minWidth:150,
-            filterOperators: string_operators,
-        },
-        {
-            field: 'password',
-            headerName: 'PASSWORD',
-            flex:1,
-            minWidth:150,
-            filterOperators: string_operators,
-        },
-        {
-            field: 'instances',
-            headerName: 'INSTANCES',
-            type: 'number',
-            flex:1,
-            minWidth:150,
             filterable: false,
         },
         {
-            field: 'active_exam',
-            headerName: 'ACTIVE EXAMS',
-            type: 'number',
+            field: 'feature_name',
+            headerName: 'FEATURE NAME',
             flex:1,
             minWidth:150,
-            filterable: false,
+            filterOperators: string_operators,
         },
         {
-            field: 'completed_exam',
-            headerName: 'COMPLETED EXAMS',
-            type: 'number',
+            field: 'status',
+            headerName: 'STATUS',
             flex:1,
             minWidth:150,
-            filterable: false,
+            type:"singleSelect",
+            valueOptions:["marked","approved","rejected"],
         },
     ];
     
     function CustomToolbar() {
+        const [searchValue, setSearchValue] = React.useState(()=>{
+            const data = new URLSearchParams(urlParams)
+            if (data.get("search")){
+                return data.get('search')
+            }else{
+                return ""
+            }
+        });
+        const searchInputRef = React.useRef(null);
+
+        React.useEffect(() => {
+        const delayDebounceFn = setTimeout(() => {
+            // Make API call with the final search value
+            if (searchValue!==""){
+                const data = new URLSearchParams()
+                data.append("search",searchValue)
+                window.history.replaceState({}, '', `${window.location.pathname}?${data}`);
+                setUrlParams(data.toString())
+                console.log(searchValue)
+            }else{
+                const data = new URLSearchParams(urlParams)
+                data.delete("search")
+                window.history.replaceState({}, '', `${window.location.pathname}?${data}`);
+                setUrlParams(data.toString())
+            }
+        }, 1000); // Adjust the debounce delay as needed
+
+        return () => clearTimeout(delayDebounceFn);
+        }, [searchValue]);
+
+        const handleSearchInputChange = (event) => {
+            const newValue = event.target.value;
+            setSearchValue(newValue);
+        };
         return (
             <GridToolbarContainer>
                 <Stack alignItems="center" direction="row" gap={1}>
@@ -128,7 +131,7 @@ function Main(props) {
                             }
                         }}
                     />
-                    <TextField sx={{width: "450px",my:2,mr:4, background:"#f4f2ff" }} id="contained-search" variant="outlined" placeholder='Seach Client' type="search" InputProps={{
+                    <TextField sx={{width: "450px",my:2,mr:4, background:"#f4f2ff" }} variant="outlined" placeholder='Seach Feature, Status' type="search" value={searchValue} onChange={handleSearchInputChange} inputRef={searchInputRef} InputProps={{
                         startAdornment: (
                             <InputAdornment>
                                 <IconButton>
@@ -140,32 +143,26 @@ function Main(props) {
     
                     <div>
                         <Grid container rowSpacing={1} columnSpacing={{ xs: 1, sm: 2, md: 3 }}>
-                            <Grid item xs={6}>
-                                <Stack alignItems="center" direction="row" gap={1}>
-                                    <FilterAlt color={theme.palette.text.disabled}/>
-                                    <Typography variant="h3" color={theme.palette.text.disabled}>Total Clients : </Typography>
-                                    <Typography variant="h3">15</Typography>
-                                </Stack>
-                            </Grid>
+
                             <Grid item xs={6}>
                                 <Stack alignItems="center" direction="row" gap={1}>
                                     <LibraryBooks color={theme.palette.text.disabled}/>
-                                    <Typography variant="h3" color={theme.palette.text.disabled}>Active Exams : </Typography>
-                                    <Typography variant="h3">3</Typography>
+                                    <Typography variant="h3" color={theme.palette.text.disabled}>ROIs Marked : </Typography>
+                                    <Typography variant="h3">{metaData['marked']}</Typography>
                                 </Stack>
                             </Grid>
                             <Grid item xs={6}>
                                 <Stack alignItems="center" direction="row" gap={1}>
                                     <Storage color={theme.palette.text.disabled}/>
-                                    <Typography variant="h3" color={theme.palette.text.disabled}>Total Instances : </Typography>
-                                    <Typography variant="h3">12</Typography>
+                                    <Typography variant="h3" color={theme.palette.text.disabled}>ROIs Approved : </Typography>
+                                    <Typography variant="h3">{metaData['approved']}</Typography>
                                 </Stack>
                             </Grid>
                             <Grid item xs={6}>
                                 <Stack alignItems="center" direction="row" gap={1}>
-                                    <CheckBox color={theme.palette.text.disabled}/>
-                                    <Typography variant="h3" color={theme.palette.text.disabled}>Completed Exams : </Typography>
-                                    <Typography variant="h3">24</Typography>
+                                    <Storage color={theme.palette.text.disabled}/>
+                                    <Typography variant="h3" color={theme.palette.text.disabled}>ROIs Rejected : </Typography>
+                                    <Typography variant="h3">{metaData['rejected']}</Typography>
                                 </Stack>
                             </Grid>
                         </Grid>
@@ -189,15 +186,32 @@ function Main(props) {
 
     const updateRoi = (id, data) => {
         put(id, data).then((value)=>{
-            alert("Roi updated")
+            window.location.reload()
         })
     }
 
-    const {register, handleSubmit} = useForm([])
-    const onSubmit = (data, e) => {alert('hi')};
-    const onError = (errors, e) => {alert('hi')};
+    const {register, handleSubmit} = useForm()
+    const onSubmit = (data, e) => {
+        updateRoi(rows[selectedRow]['id'],{status:"rejected",comment:data.comment})
+        setModalOpen(false)
+    };
+    const onError = (errors, e) => {console.log(errors)};
     return(
         <>  
+
+            {/* Image Enlarge */}
+            <Modal
+                open={imageModal}
+                onClose={() => {setImageModal(false)}}
+                aria-labelledby="modal-modal-title"
+                aria-describedby="modal-modal-description"
+            >
+                <Box sx={{width:"50%" ,position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', bgcolor: 'background.paper', boxShadow: 24,}}>
+                    <img src={"sample.png"} alt="Alert for Zone Intrusion" style={{width:"100%"}}/>
+                </Box>
+            </Modal>
+
+            {/* Rejection Modal */}
             <Modal
                 open={modalOpen}
                 onClose={() => {setModalOpen(false)}}
@@ -216,6 +230,7 @@ function Main(props) {
                     </Box>
                 </Box>
             </Modal>
+
             <Box
                 component="main"
                 sx={{ display:"flex", flexFlow: "column", py: 2, px: 3, width: { sm: `calc(100% - ${drawerWidth}px)`,'& .MuiDataGrid-columnHeaders': { backgroundColor: '#f4f2ff',fontSize:"1.2rem", fontWeight:800,color:"#8b83ba"},} }}
@@ -267,90 +282,20 @@ function Main(props) {
                                 {rows.map((value, index) => 
                                     <Grid item xs={3} sx={{backgroundColor:value.status==="marked" ? "#f5f5f5" : value.status==="approved" ? "#e5ffd6" : "#ffd6d6"}} p={1}>
                                         <Box sx={{display:"flex",flexDirection:"column",alignItems:"center"}}>
-                                            <img src="sample.png" class="custom-logo" alt="" style={{width:"50%"}} onClick={()=>{setModalOpen(true)}}></img>
+                                            <img src="sample.png" class="custom-logo" alt="" style={{width:"50%"}} onClick={()=>{setImageModal(true)}}></img>
                                             <div>
                                                 <Typography variant="h3"><Typography variant="span" color={theme.palette.text.disabled}>Camera Name</Typography> : {value['feature']['camera']['name']}</Typography>
                                                 <Typography variant="h3"><Typography variant="span" color={theme.palette.text.disabled}>Sub Location</Typography> : {value['feature']['camera']['sublocation']}</Typography>
                                                 <Typography variant="h3"><Typography variant="span" color={theme.palette.text.disabled}>Feature Type</Typography> : {value['feature']['name']}</Typography>
                                             </div>
                                             <Stack direction="row" justifyContent="space-around" sx={{width:"100%"}}>
-                                                <Button color="error" size="small" variant='contained' onClick={()=>{updateRoi(value.id,{status:"rejected"})}}>Reject</Button>
+                                                <Button color="error" size="small" variant='contained' onClick={()=>{setSelectedRow(index);setModalOpen(true)}}>Reject</Button>
                                                 <Button color="success" size="small" variant='contained' onClick={()=>{updateRoi(value.id,{status:"approved"})}}>Approve</Button>
                                             </Stack>
                                         </Box>
                                     </Grid>
                                 )}
 
-                                <Grid item xs={3} sx={{backgroundColor:"#e5ffd6"}} p={1}>
-                                    <Box sx={{display:"flex",flexDirection:"column",alignItems:"center"}}>
-                                        <img src="sample.png" class="custom-logo" alt="" style={{width:"50%"}} onClick={()=>{setModalOpen(true)}}></img>
-                                        <div>
-                                            <Typography variant="h3"><Typography variant="span" color={theme.palette.text.disabled}>Camera Name</Typography> : 1350_ABC</Typography>
-                                            <Typography variant="h3"><Typography variant="span" color={theme.palette.text.disabled}>Sub Location</Typography> : Server Room</Typography>
-                                            <Typography variant="h3"><Typography variant="span" color={theme.palette.text.disabled}>Feature Type</Typography> : Zone Intrusion</Typography>
-                                        </div>
-                                        <Stack direction="row" justifyContent="space-around" sx={{width:"100%"}}>
-                                            <Button color="error" size="small" variant='contained'>Reject</Button>
-                                            <Button color="success" size="small" variant='contained'>Approve</Button>
-                                        </Stack>
-                                    </Box>
-                                </Grid>
-                                <Grid item xs={3} sx={{backgroundColor:"#ffd6d6"}} p={1}>
-                                    <Box sx={{display:"flex",flexDirection:"column",alignItems:"center"}}>
-                                        <img src="sample.png" class="custom-logo" alt="" style={{width:"50%"}}></img>
-                                        <div>
-                                            <Typography variant="h3"><Typography variant="span" color={theme.palette.text.disabled}>Camera Name</Typography> : 1350_ABC</Typography>
-                                            <Typography variant="h3"><Typography variant="span" color={theme.palette.text.disabled}>Sub Location</Typography> : Server Room</Typography>
-                                            <Typography variant="h3"><Typography variant="span" color={theme.palette.text.disabled}>Feature Type</Typography> : Zone Intrusion</Typography>
-                                        </div>
-                                        <Stack direction="row" justifyContent="space-around" sx={{width:"100%"}}>
-                                            <Button color="error" size="small" variant='contained'>Reject</Button>
-                                            <Button color="success" size="small" variant='contained'>Approve</Button>
-                                        </Stack>
-                                    </Box>
-                                </Grid>
-                                <Grid item xs={3} sx={{backgroundColor:"#f5f5f5"}} p={1}>
-                                    <Box sx={{display:"flex",flexDirection:"column",alignItems:"center"}}>
-                                        <img src="sample.png" class="custom-logo" alt="" style={{width:"50%"}}></img>
-                                        <div>
-                                            <Typography variant="h3"><Typography variant="span" color={theme.palette.text.disabled}>Camera Name</Typography> : 1350_ABC</Typography>
-                                            <Typography variant="h3"><Typography variant="span" color={theme.palette.text.disabled}>Sub Location</Typography> : Server Room</Typography>
-                                            <Typography variant="h3"><Typography variant="span" color={theme.palette.text.disabled}>Feature Type</Typography> : Zone Intrusion</Typography>
-                                        </div>
-                                        <Stack direction="row" justifyContent="space-around" sx={{width:"100%"}}>
-                                            <Button color="error" size="small" variant='contained'>Reject</Button>
-                                            <Button color="success" size="small" variant='contained'>Approve</Button>
-                                        </Stack>
-                                    </Box>
-                                </Grid>
-                                <Grid item xs={3} sx={{backgroundColor:"#ffd6d6"}} p={1}>
-                                    <Box sx={{display:"flex",flexDirection:"column",alignItems:"center"}}>
-                                        <img src="sample.png" class="custom-logo" alt="" style={{width:"50%"}}></img>
-                                        <div>
-                                            <Typography variant="h3"><Typography variant="span" color={theme.palette.text.disabled}>Camera Name</Typography> : 1350_ABC</Typography>
-                                            <Typography variant="h3"><Typography variant="span" color={theme.palette.text.disabled}>Sub Location</Typography> : Server Room</Typography>
-                                            <Typography variant="h3"><Typography variant="span" color={theme.palette.text.disabled}>Feature Type</Typography> : Zone Intrusion</Typography>
-                                        </div>
-                                        <Stack direction="row" justifyContent="space-around" sx={{width:"100%"}}>
-                                            <Button color="error" size="small" variant='contained'>Reject</Button>
-                                            <Button color="success" size="small" variant='contained'>Approve</Button>
-                                        </Stack>
-                                    </Box>
-                                </Grid>
-                                <Grid item xs={3} sx={{backgroundColor:"#f5f5f5"}} p={1}>
-                                    <Box sx={{display:"flex",flexDirection:"column",alignItems:"center"}}>
-                                        <img src="sample.png" class="custom-logo" alt="" style={{width:"50%"}}></img>
-                                        <div>
-                                            <Typography variant="h3"><Typography variant="span" color={theme.palette.text.disabled}>Camera Name</Typography> : 1350_ABC</Typography>
-                                            <Typography variant="h3"><Typography variant="span" color={theme.palette.text.disabled}>Sub Location</Typography> : Server Room</Typography>
-                                            <Typography variant="h3"><Typography variant="span" color={theme.palette.text.disabled}>Feature Type</Typography> : Zone Intrusion</Typography>
-                                        </div>
-                                        <Stack direction="row" justifyContent="space-around" sx={{width:"100%"}}>
-                                            <Button color="error" size="small" variant='contained'>Reject</Button>
-                                            <Button color="success" size="small" variant='contained'>Approve</Button>
-                                        </Stack>
-                                    </Box>
-                                </Grid>
                             </Grid>
                             
                             <TablePagination

@@ -40,19 +40,26 @@ function Main(props) {
         return filterItems;
     })
     const [selectedRow, setSelectedRow] = React.useState([])    
-    const [featureSelected, setFeatureSelected] = React.useState(0);    
+    const [featureSelected, setFeatureSelected] = React.useState({"id":0,"index":0}); 
+    const [metaData,setMetaData] = React.useState({"cameras":0,"marked":0,"approved":0,"rejected":0})
+    rows.map((value,index)=>{
+        const temp = metaData
+        temp['cameras']+=1
+        temp['marked']+=value['status']['marked']
+        temp['approved']+=value['status']['approved']
+        temp['rejected']+=value['status']['rejected']
+    })   
 
     React.useEffect(() => {
         get((urlParams)).then((value)=>{
             if (value){
+                console.log(value)
                 setRows(value)
             }
         })
       }, [urlParams]);
 
-      console.log(JSON.parse(
-        '{"a":"b"}'
-      ))
+
     const columns = [
     { 
         field: 'id', 
@@ -78,8 +85,9 @@ function Main(props) {
         headerName: "FEATURES ACTIVE",
         flex:1,
         renderCell: (params) => {
+            const selectedIndex = params.row.id===featureSelected['id'] ? featureSelected['index'] : 0
             return (
-                <ToggleButtonGroup color="primary" value={featureSelected} exclusive onChange={(event, newAlignment) => {setFeatureSelected(newAlignment)}} aria-label="Features Active" fullWidth={true} style={{justifyContent:"center"}}>
+                <ToggleButtonGroup color="primary" value={selectedIndex} exclusive onChange={(event, newAlignment) => {setFeatureSelected({"id":params.row.id, "index":newAlignment})}} aria-label="Features Active" fullWidth={true} style={{justifyContent:"center"}}>
                     {params.row.features.map((value, index)=>(
                         <ToggleButton value={index}>{value['name']}</ToggleButton>
                     ))
@@ -93,7 +101,10 @@ function Main(props) {
         field: 'time',
         headerName: "ACTIVATED TIME",
         flex:1,
-        renderCell: (params) => {return `${JSON.parse(params.row.features[featureSelected]['json'])["start_time"]}-${JSON.parse(params.row.features[featureSelected]['json'])["end_time"]}`},
+        renderCell: (params) => {
+            const selectedIndex = params.row.id===featureSelected['id'] ? featureSelected['index'] : 0
+            return `${JSON.parse(params.row.features[selectedIndex]['json'])["start_time"]}-${JSON.parse(params.row.features[selectedIndex]['json'])["end_time"]}`
+        },
         filterable: false
     },
     {
@@ -106,7 +117,7 @@ function Main(props) {
                     {
                         Object.keys(params.row.status).map((value, index)=>(
                             <Stack direction="row" gap={0.2}>
-                                {params.row.status[value]} <TimelineDot sx={{ margin:0,placeSelf:"center",width: '5px',backgroundColor: value==="unmarked" ? 'grey': value==="marked" ? 'yellow': value==="approved" ? "green" : value==="rejected" ? "red" : null,}}/>
+                                {params.row.status[value]} <TimelineDot sx={{ margin:0,placeSelf:"center",width: '5px',backgroundColor: value==="pending" ? 'grey': value==="marked" ? 'yellow': value==="approved" ? "green" : value==="rejected" ? "red" : null,}}/>
                             </Stack>
                         ))
                     }
@@ -118,64 +129,98 @@ function Main(props) {
     ];
 
     function CustomToolbar() {
-    return (
-        <GridToolbarContainer>
-            <Stack alignItems="center" direction="row" gap={1}>
-                <GridToolbarFilterButton
-                    sx={{padding:"0 20px"}}
-                    componentsProps={{
-                        button: {
-                            startIcon: (
-                                <FilterAlt />
-                            )
-                        }
-                    }}
-                />
-                <TextField sx={{width: "450px",my:2,mr:4, background:"#f4f2ff" }} id="contained-search" variant="outlined" placeholder='Seach Client' type="search" InputProps={{
-                    startAdornment: (
-                        <InputAdornment>
-                            <IconButton>
-                                <Search />
-                            </IconButton>
-                        </InputAdornment>
-                    )
-                }}/>
+        const [searchValue, setSearchValue] = React.useState(()=>{
+            const data = new URLSearchParams(urlParams)
+            if (data.get("search")){
+                return data.get('search')
+            }else{
+                return ""
+            }
+        });
+        const searchInputRef = React.useRef(null);
 
-                <div>
-                    <Grid container rowSpacing={1} columnSpacing={{ xs: 1, sm: 2, md: 3 }}>
-                        <Grid item xs={6}>
-                            <Stack alignItems="center" direction="row" gap={1}>
-                                <FilterAlt color={theme.palette.text.disabled}/>
-                                <Typography variant="h3" color={theme.palette.text.disabled}>Total Cameras : </Typography>
-                                <Typography variant="h3">15</Typography>
-                            </Stack>
+        React.useEffect(() => {
+        const delayDebounceFn = setTimeout(() => {
+            // Make API call with the final search value
+            if (searchValue!==""){
+                const data = new URLSearchParams()
+                data.append("search",searchValue)
+                window.history.replaceState({}, '', `${window.location.pathname}?${data}`);
+                setUrlParams(data.toString())
+                console.log(searchValue)
+            }else{
+                const data = new URLSearchParams(urlParams)
+                data.delete("search")
+                window.history.replaceState({}, '', `${window.location.pathname}?${data}`);
+                setUrlParams(data.toString())
+            }
+        }, 1000); // Adjust the debounce delay as needed
+
+        return () => clearTimeout(delayDebounceFn);
+        }, [searchValue]);
+
+        const handleSearchInputChange = (event) => {
+            const newValue = event.target.value;
+            setSearchValue(newValue);
+        };
+        return (
+            <GridToolbarContainer>
+                <Stack alignItems="center" direction="row" gap={1}>
+                    <GridToolbarFilterButton
+                        sx={{padding:"0 20px"}}
+                        componentsProps={{
+                            button: {
+                                startIcon: (
+                                    <FilterAlt />
+                                )
+                            }
+                        }}
+                    />
+                    <TextField sx={{width: "450px",my:2,mr:4, background:"#f4f2ff" }} variant="outlined" placeholder='Seach Name, Sublocation' type="search" value={searchValue} onChange={handleSearchInputChange} inputRef={searchInputRef} InputProps={{
+                        startAdornment: (
+                            <InputAdornment>
+                                <IconButton>
+                                    <Search />
+                                </IconButton>
+                            </InputAdornment>
+                        )
+                    }}/>
+
+                    <div>
+                        <Grid container rowSpacing={1} columnSpacing={{ xs: 1, sm: 2, md: 3 }}>
+                            <Grid item xs={6}>
+                                <Stack alignItems="center" direction="row" gap={1}>
+                                    <FilterAlt color={theme.palette.text.disabled}/>
+                                    <Typography variant="h3" color={theme.palette.text.disabled}>Total Cameras : </Typography>
+                                    <Typography variant="h3">{metaData['cameras']}</Typography>
+                                </Stack>
+                            </Grid>
+                            <Grid item xs={6}>
+                                <Stack alignItems="center" direction="row" gap={1}>
+                                    <LibraryBooks color={theme.palette.text.disabled}/>
+                                    <Typography variant="h3" color={theme.palette.text.disabled}>ROIs Marked: </Typography>
+                                    <Typography variant="h3">{metaData['marked']}</Typography>
+                                </Stack>
+                            </Grid>
+                            <Grid item xs={6}>
+                                <Stack alignItems="center" direction="row" gap={1}>
+                                    <Cancel color={theme.palette.text.disabled}/>
+                                    <Typography variant="h3" color={theme.palette.text.disabled}>ROI Rejected : </Typography>
+                                    <Typography variant="h3">{metaData['rejected']}</Typography>
+                                </Stack>
+                            </Grid>
+                            <Grid item xs={6}>
+                                <Stack alignItems="center" direction="row" gap={1}>
+                                    <CheckBox color={theme.palette.text.disabled}/>
+                                    <Typography variant="h3" color={theme.palette.text.disabled}>ROIs approved : </Typography>
+                                    <Typography variant="h3">{metaData['approved']}</Typography>
+                                </Stack>
+                            </Grid>
                         </Grid>
-                        <Grid item xs={6}>
-                            <Stack alignItems="center" direction="row" gap={1}>
-                                <LibraryBooks color={theme.palette.text.disabled}/>
-                                <Typography variant="h3" color={theme.palette.text.disabled}>ROIs Marked: </Typography>
-                                <Typography variant="h3">22/28</Typography>
-                            </Stack>
-                        </Grid>
-                        <Grid item xs={6}>
-                            <Stack alignItems="center" direction="row" gap={1}>
-                                <Cancel color={theme.palette.text.disabled}/>
-                                <Typography variant="h3" color={theme.palette.text.disabled}>ROI Rejected : </Typography>
-                                <Typography variant="h3">1</Typography>
-                            </Stack>
-                        </Grid>
-                        <Grid item xs={6}>
-                            <Stack alignItems="center" direction="row" gap={1}>
-                                <CheckBox color={theme.palette.text.disabled}/>
-                                <Typography variant="h3" color={theme.palette.text.disabled}>ROIs approved : </Typography>
-                                <Typography variant="h3">20</Typography>
-                            </Stack>
-                        </Grid>
-                    </Grid>
-                </div>
-            </Stack>
-        </GridToolbarContainer>
-    );
+                    </div>
+                </Stack>
+            </GridToolbarContainer>
+        );
     }
     function CustomFooter () {
     return (

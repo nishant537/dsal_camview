@@ -1,6 +1,6 @@
 from json import JSONEncoder
 import logging
-from sqlalchemy import select
+from sqlalchemy import select, or_
 from db.database import *
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
@@ -17,10 +17,12 @@ async def get(
     data = db.query(Center).options(joinedload(Center.shift),joinedload(Center.cameras).subqueryload(Camera.features).subqueryload(Feature.roi))
     # for instances, active_exams would need to iterate through results as filter by cannot filter
     for query in [x for x in params if params[x] is not None]:
-        attr, operator = query.split('__') 
-        data = data.filter(get_sqlalchemy_operator(operator)(getattr(Center,attr),params[query]))
+        if query=="search":
+            data = data.filter(or_(Center.code.like(f"%{params[query]}%"),Center.name.like(f"%{params[query]}%"), Center.location.like(f"%{params[query]}%")))
+        else:
+            attr, operator = query.split('__') 
+            data = data.filter(get_sqlalchemy_operator(operator)(getattr(Center,attr),f"%{params[query]}%" if operator=="like" else params[query]))
 
-    print(data.all())
     return data.all()
 
 async def post(db: Session,payload: CenterInSchema):

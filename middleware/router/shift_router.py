@@ -27,8 +27,8 @@ async def get(
     return response
 
 @router.post('/')
-async def post(server_data:ShiftInSchema, db: Session = Depends(get_db)):
-    response = await shift_crud.post(db,payload=server_data)
+async def post(shifts:list[ShiftInSchema], db: Session = Depends(get_db)):
+    response = await shift_crud.post(db,shifts=shifts)
     return response
 
 # @router.get("/{id}")

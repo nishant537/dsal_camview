@@ -1,6 +1,6 @@
 from json import JSONEncoder
 import logging
-from sqlalchemy import select
+from sqlalchemy import select, or_
 from db.database import *
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
@@ -11,16 +11,19 @@ from html_response_codes import *
 
 async def get(
         db: Session,
-        request # *******SETBACK******* = in documentation query parameters are not specified with this approach    
+        request 
     ):
     params = request.query_params
     data = db.query(Camera).options(joinedload(Camera.features).subqueryload(Feature.roi))
-    # for instances, active_exams would need to iterate through results as filter by cannot filter
+    
+    # for filtering through features in exam, change data query to have feature_names attr in data objects
     for query in [x for x in params if params[x] is not None]:
-        attr, operator = query.split('__') 
-        data = data.filter(get_sqlalchemy_operator(operator)(getattr(Camera,attr),params[query]))
+        if query=="search":
+            data = data.filter(or_(Camera.name.like(f"%{params[query]}%"),Camera.sublocation.like(f"%{params[query]}%")))
+        else:
+            attr, operator = query.split('__') 
+            data = data.filter(get_sqlalchemy_operator(operator)(getattr(Camera,attr),f"%{params[query]}%" if operator=="like" else params[query]))
 
-    print(data.all())
     return data.all()
 
 async def post(db: Session,payload: CameraInSchema):

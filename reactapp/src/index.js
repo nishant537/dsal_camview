@@ -21,8 +21,10 @@ root.render(
       <Route exact path="/live_dashboard" element={<App view = "LiveDashboard"/>} />
       <Route exact path="/dashboard" element={<App view = "Dashboard"/>} /> */}
       <Route exact path="/" element={<App view = "Alert"/>} /> 
+      <Route exact path="/client" element={<App view = "Client"/>} /> 
       <Route exact path="/exam" element={<App view = "Exam"/>} /> 
       <Route exact path="/create_exam" element={<App view = "CreateExam"/>} /> 
+      <Route exact path="/create_exam/:id" element={<App view = "CreateExam"/>} /> 
       <Route exact path="/shift" element={<App view = "Shift"/>} /> 
       <Route exact path="/feature_table" element={<App view = "FeatureTable"/>} /> 
       <Route exact path="/center" element={<App view = "Center"/>} /> 

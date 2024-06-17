@@ -58,7 +58,7 @@ function Main(props) {
           setAlignment3(newAlignment);
         }
     }; 
-    const [imgData, setimgData] = React.useState({"image_path":"NOT SAVED","video_path":"NOT SAVED",'Event Id':"?",'Center Name':"?",'Timestamp':"?",'Camera Name':"?",'Alert Type':"?",'Location':"?",'status':"?","comment":"?"})
+    const [imgData, setimgData] = React.useState({"image_path":"","video_path":"",'Event Id':"?",'Center Name':"?",'Timestamp':"?",'Camera Name':"?",'Alert Type':"?",'Location':"?",'status':"?","comment":"?"})
     const [reviewLogs, setReviewLogs] = React.useState([])
 
     React.useEffect(() => {
@@ -304,7 +304,7 @@ function Main(props) {
                 aria-labelledby="modal-modal-title"
                 aria-describedby="modal-modal-description"
             >
-                <Box sx={{position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', bgcolor: 'background.paper', boxShadow: 24,}}>
+                <Box sx={{maxHeight:"80%",overflow:"scroll",position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', bgcolor: 'background.paper', boxShadow: 24,}}>
                 <DataGridPro
                             sx={{
                                 minHeight:"600px",
@@ -388,7 +388,7 @@ function Main(props) {
                             <ToggleButton value="image" id="alert_image">Image</ToggleButton>
                             <ToggleButton value="video" id="alert_video">Video</ToggleButton>
                         </ToggleButtonGroup>
-                        <img src="alert.png" alt="Alert for Zone Intrusion"/>
+                        <img src={imgData['image_path']==="" ? "noimage.jpeg" : imgData['image_path']} alt="Alert for Zone Intrusion" style={{width:"100%"}}/>
                         <Box container border={"1px solid #e8e8e8"} borderRadius={3} p={2}>
                             <Grid container rowSpacing={1} columnSpacing={{ xs: 1, sm: 2, md: 3 }}>
                                 {Object.entries(imgData).map(([key,value])=>
@@ -493,7 +493,7 @@ function Main(props) {
                             <ToggleButton value="image" id="alert_image">Image</ToggleButton>
                             <ToggleButton value="video" id="alert_video">Video</ToggleButton>
                         </ToggleButtonGroup>
-                        <img src="alert.png" alt="Alert for Zone Intrusion"/>
+                        <img src={imgData['image_path']==="" ? "noimage.jpeg" : imgData['image_path']} alt="Alert for Zone Intrusion" style={{width:"100%"}}/>
                         <Box container border={"1px solid #e8e8e8"} borderRadius={3} p={2}>
                             <Grid container rowSpacing={1} columnSpacing={{ xs: 1, sm: 2, md: 3 }}>
                                 {Object.entries(imgData).map(([key,value])=>
@@ -520,10 +520,15 @@ function Main(props) {
 
                 <Divider sx={{marginY:"30px"}}/>
 
-                <Typography variant="h2">Activity Logs</Typography>
-                {reviewLogs.map((value,index)=>
-                    <Typography variant="h2" color={theme.palette.text.disabled}>Alert #{value['id']} status updated to <u>{value['status'] ? value['status'] : "null"}</u> at <u>{value['last_updated'] ? (dateFormat(new Date(value['last_updated']), "hh:mm:ss TT yyyy-mm-dd")).toString() : ""}.</u></Typography>
-                )}
+                <div style={{height:"400px"}}>
+                    <Typography variant="h2" component="div" borderBottom={"2px solid"} mb={2}>Activity Logs</Typography>
+                    <div style={{height:"100%", overflowY:"scroll"}}>
+                        {reviewLogs.map((value,index)=>
+                            <Typography variant="h2" color={theme.palette.text.disabled}>Alert #{value['id']} status updated to <u>{value['status'] ? value['status'] : "null"}</u> at <u>{value['last_updated'] ? (dateFormat(new Date(value['last_updated']), "hh:mm:ss TT yyyy-mm-dd")).toString() : ""}.</u></Typography>
+                        )}
+                    </div>
+                </div>
+
             </Box>
         </>
     );

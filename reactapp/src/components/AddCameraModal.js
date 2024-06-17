@@ -6,6 +6,7 @@ import PCard from './FeatureCard';
 import { ReactDOM } from 'react';
 import ROI from './ROI'
 import LOF from './LOF'
+import {put, post, del} from '../provider/feature_provider';
 
 const style = {
   position: 'absolute',
@@ -38,7 +39,7 @@ export default function BasicModal(props) {
       return temp;
     }
   });
-
+  var [feature, setFeature] = React.useState('camera_fault');
 
   // setting roi points
   const [temp_points, setTempPoints] = React.useState(() => {
@@ -136,19 +137,9 @@ export default function BasicModal(props) {
   }  
 
 
-  // fetching features available in license. Only these features can be added onto a camera
-  const [loading, setLoading] = React.useState(true)
-  var [feature, setFeature] = React.useState(null);
-
-
-  if (props.featureData!=null && feature==null){
-      setLoading(!loading)
-      {props.data!=null ? setFeature(props.name) : setFeature("camera_fault")}
-  }
-
   const saveFeature = () => {
     if ("list" in props){
-      const new_data = Object.assign({},data)
+      const feature_json = Object.assign({},data)
       // concat email_addresses
       const concatEmail = [];
       emailList.map((key,value) => {
@@ -156,7 +147,7 @@ export default function BasicModal(props) {
           concatEmail.push(key['email'].trim())
         }
       })
-      new_data['email_list'] = concatEmail.join()
+      feature_json['email_list'] = concatEmail.join()
 
       // concat Phone numbers
       const concatSms = [];
@@ -165,17 +156,19 @@ export default function BasicModal(props) {
           concatSms.push(key['sms'].trim())
         }  
       })
-      new_data['sms_list'] = concatSms.join()
+      feature_json['sms_list'] = concatSms.join()
+      const new_data = {"name":feature,"camera_id":props.camera_id,"json":JSON.stringify(feature_json)}
 
-      // if (props.text=='Edit'){
-      //   alert('Feature Updated')
-      // } else if (feature in props.list){
-      //   alert('Current feature will be replaced!')
-      // } 
-
-        props.list[feature] = new_data
-        props.addCard(Object.assign({},props.list))
-
+      if (Object.keys(props.list).indexOf(feature)!==-1){
+        put(props.list[feature]['id'], new_data).then((value)=>{
+          console.log(value)
+        })
+      }else{
+        post(new_data).then((value)=>{
+          console.log(value)
+        })
+      }
+      
       // resetting feature data
       if (props.data!=null){
         const temp = []
@@ -190,6 +183,7 @@ export default function BasicModal(props) {
           temp_sms.push({"sms":value})
         })
         setSmsList(temp)
+        console.log(props.data)
         setData(props.data)
       }else{
         setEmailList([{"email":""}])
@@ -205,7 +199,8 @@ export default function BasicModal(props) {
     }else{
       alert('Some Error Occurred')
     }
-    setOpen(false);
+    window.location.reload()
+    // setOpen(false);
   }
 
   const handleChange = (event) => {
@@ -233,137 +228,78 @@ export default function BasicModal(props) {
     setData(new_data)
   }
 
-  const [position, setPosition] = React.useState(() => {
-    if ("obj_ref_line_position" in data){
-      return props.data.obj_ref_line_position;
-    }
-    return "left";
-  })
-  const handlePosition = (event) => {
-    const new_data = Object.assign({},data)
-    new_data["obj_ref_line_position"] = event.target.value
-    setPosition(event.target.value)
-    setData(new_data)
-  }
+  return (
+    <div>
+      <Button onClick={handleOpen} variant="outlined" color='primary'>+ {props.text} Feature</Button>
+      <Modal
+        open={open}
+        onClose={handleClose}
+        aria-labelledby="modal-modal-title"
+        aria-describedby="modal-modal-description"
+      >
+        <Box sx={style}>
+            <Box component="form" sx={{'& > :not(style)': { my: 1,width:'100%' }, }} autoComplete="off" onSubmit={saveFeature}>
+              <FormControl fullWidth>
+                <InputLabel id="demo-simple-select-label">Feature</InputLabel>
+                <Select labelId="demo-simple-select-label" id="demo-simple-select" value={feature} label="AIFeature" onChange={handleChange}>
 
-  const [cameraType, setCameraType] = React.useState(() => {
-    if ("camera_type" in data){
-      return props.data.camera_type;
-    }
-    return "Entry";
-  })
-  const handleCameraType = (event) => {
-    const new_data = Object.assign({},data)
-    new_data["camera_type"] = event.target.value
-    setCameraType(event.target.value)
-    setData(new_data)
-  }
-
-
-  const [personThresh,setPersonThresh] = React.useState(()=>{
-    if (props.data!=null){
-      if (props.data['person_intrusion']==1){
-        return true;
-      }else{
-        return false;
-      }
-    }
-    return true;
-  })
-  const [vehicleThresh,setVehicleThresh] = React.useState(()=>{
-    if (props.data!=null){
-      if (props.data['vehicle_intrusion']==1){
-        return true;
-      }else{
-        return false;
-      }
-    }
-    return false;
-  })
-
-  const handleCheck = (event) => {
-    if (event.target.id=="person_intrusion"){
-      setPersonThresh(event.target.checked)
-    }else{
-      setVehicleThresh(event.target.checked)
-    }
-  }
-
-
-  if (!loading){
-    return (
-      <div>
-        <Button onClick={handleOpen} variant="outlined" color='primary'>+ {props.text} Feature</Button>
-        <Modal
-          open={open}
-          onClose={handleClose}
-          aria-labelledby="modal-modal-title"
-          aria-describedby="modal-modal-description"
-        >
-          <Box sx={style}>
-              <Box component="form" sx={{'& > :not(style)': { my: 1,width:'100%' }, }} autoComplete="off" onSubmit={saveFeature}>
-                <FormControl fullWidth>
-                  <InputLabel id="demo-simple-select-label">Feature</InputLabel>
-                  <Select labelId="demo-simple-select-label" id="demo-simple-select" value={feature} label="AIFeature" onChange={handleChange}>
-
-                    {props.text=='Add' ? 
-                      props.featureData['features'].map((key,index) => 
-                          (JSON.parse(process.env.REACT_APP_FEATURE_JSON)[key]['display'] ? <MenuItem value={key}>{JSON.parse(process.env.REACT_APP_FEATURE_JSON)[key]['name']}</MenuItem> : null)
-                      )
-                    :
-                      <MenuItem value={props.name}>{JSON.parse(process.env.REACT_APP_FEATURE_JSON)[props.name]['name']}</MenuItem>
-                    }
-
-                  </Select>
-
-                  <Typography variant='h5' sx={{pt:3,pb:1}}>Set Paramaters</Typography>
-
-                  {feature != 'entryexit' ? null :
-                    <><LOF rtsp={props.rtsp_details} update_data = {setData} current_data = {data} points_data = {temp_lof_points} bodyimg={props.bodyimg}/></>
-                  }
-
-                  {Object.keys(data).includes("roi") ?
-                    Object.keys(data["roi"]).filter(k => k.startsWith("roi_")).map((e, i) => (
-                      <ROI id={e} rtsp={props.rtsp_details} update_data = {setData} current_data = {data} points_data = {temp_points} bodyimg={props.bodyimg} name={data['roi'][e]['name'] ? data['roi'][e]['name'] : null} refreshFrame={props.refreshFrame}/>
-                    ))
+                  {props.text=='Add' ? 
+                    props.featureData['features'].map((key,index) => 
+                        (JSON.parse(process.env.REACT_APP_FEATURE_JSON)[key]['display'] ? <MenuItem value={key}>{JSON.parse(process.env.REACT_APP_FEATURE_JSON)[key]['name']}</MenuItem> : null)
+                    )
                   :
-                  null
+                    <MenuItem value={props.name}>{JSON.parse(process.env.REACT_APP_FEATURE_JSON)[props.name]['name']}</MenuItem>
                   }
 
-                  {JSON.parse(process.env.REACT_APP_FEATURE_JSON)[feature]['json'].map((value,index) => 
-                    (value["type"]["type"]=="email" && value["display"]) ? 
+                </Select>
+
+                <Typography variant='h5' sx={{pt:3,pb:1}}>Set Paramaters</Typography>
+
+                {feature != 'entryexit' ? null :
+                  <><LOF update_data = {setData} current_data = {data} points_data = {temp_lof_points} bodyimg={props.bodyimg}/></>
+                }
+
+                {Object.keys(data).includes("roi") ?
+                  Object.keys(data["roi"]).filter(k => k.startsWith("roi_")).map((e, i) => (
+                    <ROI id={e} update_data = {setData} current_data = {data} points_data = {temp_points} bodyimg={props.bodyimg} name={data['roi'][e]['name'] ? data['roi'][e]['name'] : null} refreshFrame={props.refreshFrame}/>
+                  ))
+                :
+                null
+                }
+
+                {JSON.parse(process.env.REACT_APP_FEATURE_JSON)[feature]['json'].map((value,index) => 
+                  (value["type"]["type"]=="email" && value["display"]) ? 
+                  <>
+                    <div id="email_list" >
+                    {emailList.map((key, value) => 
+                      (key['email']!="" ? <TextField sx={{my:1, width:"100%"}} id={value} label="Email" variant="outlined" defaultValue={key['email']} onChange = {updateEmailList} type="email" errorText={'Please enter correct email'}/> : 
+                      <TextField sx={{my:1, width:"100%"}} id={value} label="Email" variant="outlined" onChange = {updateEmailList} type="email" errorText={'Please enter correct email'} />)
+                    )}
+                    </div>
+                    <Button color="primary" variant='outlined' onClick={addEmail}>{emailListButton} Email</Button>
+                  </>
+                  :
+                  (value["type"]["type"]=="checkbox" && value["display"]) ? <div style={{display:"flex"}}><Checkbox {...value['type']['name']} id={value['id']} defaultChecked = {props.data!=null ? props.data[value["id"]] : value['type']['default']} onClick = {(event)=>{updateData(event,value['id'])}}/><p>{value['type']['name']}</p></div> :
+                  (value["type"]["type"]=="slider" && value["display"]) ? <><Typography>{value["type"]["name"]}</Typography><Slider aria-label={value["type"]["name"]} id={value["id"]} defaultValue={props.data != null ? props.data[value["id"]] : value["type"]['default']} valueLabelDisplay="auto" min={value["type"]['min']} max={value["type"]['max']} step={value["type"]['step']} onChange = {(event)=>{updateData(event,value['id'])}} /></> :
+                  (value["type"]["type"]=="input_box" && value["display"]) ? <><label for={value["id"]} style={{margin:"10px 0"}}>{value['type']['name']}</label> <TextField id={value['id']} type={value['type']['input_type']} variant="outlined" defaultValue={props.data!=null ? props.data[value["id"]] : value['type']['default']}  onChange = {(event)=>{updateData(event,value['id'])}}/></> :
+                  (value["type"]["type"]=="radio" && value["display"]) ? 
                     <>
-                      <div id="email_list" >
-                      {emailList.map((key, value) => 
-                        (key['email']!="" ? <TextField sx={{my:1, width:"100%"}} id={value} label="Email" variant="outlined" defaultValue={key['email']} onChange = {updateEmailList} type="email" errorText={'Please enter correct email'}/> : 
-                        <TextField sx={{my:1, width:"100%"}} id={value} label="Email" variant="outlined" onChange = {updateEmailList} type="email" errorText={'Please enter correct email'} />)
-                      )}
-                      </div>
-                      <Button color="primary" variant='outlined' onClick={addEmail}>{emailListButton} Email</Button>
+                      <FormControl>
+                        <FormLabel id="demo">{value['type']['name']}</FormLabel>
+                        <RadioGroup aria-labelledby="demo" id={value["id"]} defaultValue={value['type']['default']} name="radio-buttons-group" onChange={(event)=>{updateData(event,value['id'])}}>
+                          {value['type']['values'].map((key,index) => <FormControlLabel value={key} control={<Radio />} label={key} />)}
+                        </RadioGroup>
+                      </FormControl>
                     </>
-                    :
-                    (value["type"]["type"]=="checkbox" && value["display"]) ? <div style={{display:"flex"}}><Checkbox {...value['type']['name']} id={value['id']} defaultChecked = {props.data!=null ? props.data[value["id"]] : value['type']['default']} onClick = {(event)=>{updateData(event,value['id'])}}/><p>{value['type']['name']}</p></div> :
-                    (value["type"]["type"]=="slider" && value["display"]) ? <><Typography>{value["type"]["name"]}</Typography><Slider aria-label={value["type"]["name"]} id={value["id"]} defaultValue={props.data != null ? props.data[value["id"]] : value["type"]['default']} valueLabelDisplay="auto" min={value["type"]['min']} max={value["type"]['max']} step={value["type"]['step']} onChange = {(event)=>{updateData(event,value['id'])}} /></> :
-                    (value["type"]["type"]=="input_box" && value["display"]) ? <><label for={value["id"]} style={{margin:"10px 0"}}>{value['type']['name']}</label> <TextField id={value['id']} type={value['type']['input_type']} variant="outlined" defaultValue={props.data!=null ? props.data[value["id"]] : value['type']['default']}  onChange = {(event)=>{updateData(event,value['id'])}}/></> :
-                    (value["type"]["type"]=="radio" && value["display"]) ? 
-                      <>
-                        <FormControl>
-                          <FormLabel id="demo">{value['type']['name']}</FormLabel>
-                          <RadioGroup aria-labelledby="demo" id={value["id"]} defaultValue={value['type']['default']} name="radio-buttons-group" onChange={(event)=>{updateData(event,value['id'])}}>
-                            {value['type']['values'].map((key,index) => <FormControlLabel value={key} control={<Radio />} label={key} />)}
-                          </RadioGroup>
-                        </FormControl>
-                      </>
-                    : null
-                  )}
-                  
-                  <Button variant='outlined' type='submit' sx={{mt:"20px"}}>{props.text=='Edit' ? "Save" : "Add"} Feature</Button>
-                </FormControl>
-              </Box>
-          </Box>
-        </Modal>
-      </div>
-    );
-  }
+                  : null
+                )}
+                
+                <Button variant='outlined' type='submit' sx={{mt:"20px"}}>{props.text=='Edit' ? "Save" : "Add"} Feature</Button>
+              </FormControl>
+            </Box>
+        </Box>
+      </Modal>
+    </div>
+  );
 
 }

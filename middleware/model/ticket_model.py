@@ -13,6 +13,7 @@ class TicketBaseSchema(BaseModel):
     center: str | None = None
     camera: str | None = None
     feature: str | None = None
+    sublocation: str | None = None
 
 class TicketInSchema(TicketBaseSchema):
     pass

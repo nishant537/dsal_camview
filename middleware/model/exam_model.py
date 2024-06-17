@@ -14,7 +14,7 @@ class ExamBaseSchema(BaseModel):
     name: str
     code: str
     post: str
-    type: ExamTypeEnum = ExamTypeEnum['live']
+    type: ExamTypeEnum | None = ExamTypeEnum['live']
     description: str | None = None
     class Config:
         orm_mode = True

@@ -9,16 +9,25 @@ export const get = async(urlParams) => {
           throw new Error('Network response was not ok.');
         }
         const data = await response.json();
-        
+        console.log(data)
+
         const returned_response = [];
         data.map((value,index)=>{
-          // const active = 0;
-          // value['exams'].map((value,index)=>{
-          //   value['shifts'].map((value,index)=>{
-
-          //   })
-          // })
-          const temp={ id: value.id, name: value.name, code: value.code, address:value.address, username: value.username, password: value.password, instances: value.exams.length!=0 ? value.exams[0].instances.length : 0, active_exam:value.exams.length!=0 ? value.exams[0].instances.length : 0, completed_exam: value.exams.length!=0 ? value.exams[0].instances.length : 0 };
+          let active = 0;
+          let complete = 0;
+          let instance = 0;
+          value['exams'].map((exam,index)=>{
+            let flag = false
+            exam['shifts'].map((shift,index)=>{
+                if ((new Date(`${shift['date']} ${shift['start_time']}`)  < new Date()) && (new Date() < new Date(`${shift['date']} ${shift['end_time']}`))){
+                  active+=1
+                  flag = true
+                }
+            })
+            if (!(flag)){complete+=1}
+            instance+=exam.instances.length
+          })
+          const temp={ id: value.id, name: value.name, code: value.code, address:value.address, username: value.username, password: value.password, instances: instance, active_exam: active , completed_exam: complete };
           returned_response.push(temp)
         })
         return returned_response;
@@ -29,23 +38,37 @@ export const get = async(urlParams) => {
 
 
 export const post = async(payload) => {
-    console.log(payload)
     try {
-        const response = await fetch(`http://${window.location.hostname}:${process.env.REACT_APP_PORT}/client/`,{method : "POST", body: JSON.stringify(payload)});
+        const response = await fetch(`http://${window.location.hostname}:${process.env.REACT_APP_PORT}/client/`,{method : "POST",headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload)});
         if (!response.ok) {
           throw new Error('Network response was not ok.');
         }
-        const data = await response.json()['data'];
+        const data = await response.json();
         // return data
-      return [{ id: 1, center_name: '1350_ABC', location: 'Noida, Delhi', feature_type: 'Zone Intrusion', timestamp: "09:42:00 AM", total_alert:4},]
+        return data
       } catch (error) {
         alert(error.message)
     }
 }
 
+export const put = async(id, payload) => {
+  console.log(payload)
+  try {
+      const response = await fetch(`http://${window.location.hostname}:${process.env.REACT_APP_PORT}/client/${id}`,{method : "PUT",headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload)});
+      if (!response.ok) {
+        throw new Error('Network response was not ok.');
+      }
+      const data = await response.json();
+      // return data
+      return data
+    } catch (error) {
+      alert(error.message)
+  }
+}
+
 export const del = async(row_id) => {
     try {
-        const response = await fetch(`http://${window.location.hostname}:${process.env.REACT_APP_PORT}/client/`,{method : "POST", body: JSON.stringify({"id": row_id})});
+        const response = await fetch(`http://${window.location.hostname}:${process.env.REACT_APP_PORT}/client/${row_id}`,{method : "DELETE"});
         if (!response.ok) {
           throw new Error('Network response was not ok.');
         }

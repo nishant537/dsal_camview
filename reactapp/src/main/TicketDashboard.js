@@ -68,8 +68,21 @@ function Main(props) {
         minWidth:150,
         type:"singleSelect",
         valueOptions:["new","open","resolved"],
-        filterable: false,
+        // filterable: false,
         renderCell: (params) => {return <Button color="primary" variant="contained">{params.value}</Button>},
+    },
+    {
+        field: 'group_count',
+        headerName: 'PRIORITY',
+        flex:1,
+        minWidth:150,
+        renderCell: (params) => {
+            const priority = params.value===0 ? "Insignificant" : params.value<=2 ? "Minor" : params.value < 5 ? "Moderate" : params.value < 10 ? "Major" : "Critical"
+            return (
+                <Button variant="contained" sx={{background:params.value===0 ? "#39d56f" : params.value<=2 ? "#86ed62" : params.value < 5 ? "#ffcd29" : params.value < 10 ? "#ffa629" : "#ff7250"}}>{priority}</Button>
+            )
+        },
+        filterable: false,
     },
     {
         field: 'center',
@@ -249,6 +262,8 @@ function Main(props) {
                     rows={rows}
                     columns={columns}
                     disableMultipleRowSelection={true}
+                    pageSize={100}
+                    rowsPerPageOptions={[100]}
                     // initialState={{
                     // pagination: {
                     //     paginationModel: {
@@ -256,10 +271,9 @@ function Main(props) {
                     //     },
                     // },
                     // }}
-                    autoHeight={true}
                     slots={{
                         toolbar: CustomToolbar,
-                        footer: CustomFooter,
+                        // footer: CustomFooter,
                     }}
                     pageSizeOptions={[5]}
                     // pageSize={100}

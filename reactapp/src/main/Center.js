@@ -40,10 +40,19 @@ function Main(props) {
         return filterItems;
     })
     const [selectedRow, setSelectedRow] = React.useState([])
+    const [metaData,setMetaData] = React.useState({"centers":0,"marked":0,"cameras":0,"approved":0})
+    rows.map((value,index)=>{
+        const temp = metaData
+        temp['centers']+=1
+        temp['marked']+= value['marked']
+        temp['cameras']+= value['cameras']
+        temp['approved']+= value['approved']
+    })
 
     React.useEffect(() => {
         get((urlParams)).then((value)=>{
             if (value){
+                console.log(value)
                 setRows(value)
             }
         })
@@ -99,7 +108,8 @@ function Main(props) {
         field: 'shift',
         headerName: "FIRST NAME",
         flex:1,
-        filterOperators: string_operators,
+        filterable:false,
+        // filterOperators: string_operators,
     },
     {
         field: 'status',
@@ -143,64 +153,98 @@ function Main(props) {
     ];
 
     function CustomToolbar() {
-    return (
-        <GridToolbarContainer>
-            <Stack alignItems="center" direction="row" gap={1}>
-                <GridToolbarFilterButton
-                    sx={{padding:"0 20px"}}
-                    componentsProps={{
-                        button: {
-                            startIcon: (
-                                <FilterAlt />
-                            )
-                        }
-                    }}
-                />
-                <TextField sx={{width: "450px",my:2,mr:4, background:"#f4f2ff" }} id="contained-search" variant="outlined" placeholder='Seach Center by Code, Name, Location' type="search" InputProps={{
-                    startAdornment: (
-                        <InputAdornment>
-                            <IconButton>
-                                <Search />
-                            </IconButton>
-                        </InputAdornment>
-                    )
-                }}/>
+        const [searchValue, setSearchValue] = React.useState(()=>{
+            const data = new URLSearchParams(urlParams)
+            if (data.get("search")){
+                return data.get('search')
+            }else{
+                return ""
+            }
+        });
+        const searchInputRef = React.useRef(null);
 
-                <div>
-                    <Grid container rowSpacing={1} columnSpacing={{ xs: 1, sm: 2, md: 3 }}>
-                        <Grid item xs={6}>
-                            <Stack alignItems="center" direction="row" gap={1}>
-                                <FilterAlt color={theme.palette.text.disabled}/>
-                                <Typography variant="h3" color={theme.palette.text.disabled}>Total Clients : </Typography>
-                                <Typography variant="h3">15</Typography>
-                            </Stack>
+        React.useEffect(() => {
+        const delayDebounceFn = setTimeout(() => {
+            // Make API call with the final search value
+            if (searchValue!==""){
+                const data = new URLSearchParams()
+                data.append("search",searchValue)
+                window.history.replaceState({}, '', `${window.location.pathname}?${data}`);
+                setUrlParams(data.toString())
+                console.log(searchValue)
+            }else{
+                const data = new URLSearchParams(urlParams)
+                data.delete("search")
+                window.history.replaceState({}, '', `${window.location.pathname}?${data}`);
+                setUrlParams(data.toString())
+            }
+        }, 1000); // Adjust the debounce delay as needed
+
+        return () => clearTimeout(delayDebounceFn);
+        }, [searchValue]);
+
+        const handleSearchInputChange = (event) => {
+            const newValue = event.target.value;
+            setSearchValue(newValue);
+        };
+        return (
+            <GridToolbarContainer>
+                <Stack alignItems="center" direction="row" gap={1}>
+                    <GridToolbarFilterButton
+                        sx={{padding:"0 20px"}}
+                        componentsProps={{
+                            button: {
+                                startIcon: (
+                                    <FilterAlt />
+                                )
+                            }
+                        }}
+                    />
+                    <TextField sx={{width: "450px",my:2,mr:4, background:"#f4f2ff" }} variant="outlined" placeholder='Seach Code, Center Name, Location' type="search" value={searchValue} onChange={handleSearchInputChange} inputRef={searchInputRef} InputProps={{
+                        startAdornment: (
+                            <InputAdornment>
+                                <IconButton>
+                                    <Search />
+                                </IconButton>
+                            </InputAdornment>
+                        )
+                    }}/>
+
+                    <div>
+                        <Grid container rowSpacing={1} columnSpacing={{ xs: 1, sm: 2, md: 3 }}>
+                            <Grid item xs={6}>
+                                <Stack alignItems="center" direction="row" gap={1}>
+                                    <FilterAlt color={theme.palette.text.disabled}/>
+                                    <Typography variant="h3" color={theme.palette.text.disabled}>Total Centers : </Typography>
+                                    <Typography variant="h3">{metaData['centers']}</Typography>
+                                </Stack>
+                            </Grid>
+                            <Grid item xs={6}>
+                                <Stack alignItems="center" direction="row" gap={1}>
+                                    <LibraryBooks color={theme.palette.text.disabled}/>
+                                    <Typography variant="h3" color={theme.palette.text.disabled}>ROIs Marked: </Typography>
+                                    <Typography variant="h3">{metaData['marked']}</Typography>
+                                </Stack>
+                            </Grid>
+                            <Grid item xs={6}>
+                                <Stack alignItems="center" direction="row" gap={1}>
+                                    <Storage color={theme.palette.text.disabled}/>
+                                    <Typography variant="h3" color={theme.palette.text.disabled}>Total Cameras : </Typography>
+                                    <Typography variant="h3">{metaData['cameras']}</Typography>
+                                </Stack>
+                            </Grid>
+                            <Grid item xs={6}>
+                                <Stack alignItems="center" direction="row" gap={1}>
+                                    <CheckBox color={theme.palette.text.disabled}/>
+                                    <Typography variant="h3" color={theme.palette.text.disabled}>ROIs approved : </Typography>
+                                    <Typography variant="h3">{metaData['approved']}</Typography>
+                                </Stack>
+                            </Grid>
                         </Grid>
-                        <Grid item xs={6}>
-                            <Stack alignItems="center" direction="row" gap={1}>
-                                <LibraryBooks color={theme.palette.text.disabled}/>
-                                <Typography variant="h3" color={theme.palette.text.disabled}>ROIs Marked: </Typography>
-                                <Typography variant="h3">2550/2700</Typography>
-                            </Stack>
-                        </Grid>
-                        <Grid item xs={6}>
-                            <Stack alignItems="center" direction="row" gap={1}>
-                                <Storage color={theme.palette.text.disabled}/>
-                                <Typography variant="h3" color={theme.palette.text.disabled}>Total Cameras : </Typography>
-                                <Typography variant="h3">1250</Typography>
-                            </Stack>
-                        </Grid>
-                        <Grid item xs={6}>
-                            <Stack alignItems="center" direction="row" gap={1}>
-                                <CheckBox color={theme.palette.text.disabled}/>
-                                <Typography variant="h3" color={theme.palette.text.disabled}>ROIs approved : </Typography>
-                                <Typography variant="h3">2400</Typography>
-                            </Stack>
-                        </Grid>
-                    </Grid>
-                </div>
-            </Stack>
-        </GridToolbarContainer>
-    );
+                    </div>
+                </Stack>
+            </GridToolbarContainer>
+        );
     }
     function CustomFooter () {
     return (

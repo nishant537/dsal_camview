@@ -9,7 +9,6 @@ import Button from "@mui/material/Button";
 import {del} from '../provider/feature_provider';
 
 export default function PCard(props){
-
     const [alignment, setAlignment] = React.useState('web');
 
     const handleChange = (event, newAlignment) => {
@@ -24,12 +23,11 @@ export default function PCard(props){
 
     const deleteFeature = () => {
         del(props.id).then((value)=>{
-            // need to refresh for state change as pageData state is directly affected for it to auto refresh
+            console.log(value)
             window.location.reload()
         })
     }
 
-    console.log(props.properties)
 
     return(
         <div style={{maxWidth:"350px",border:"1px solid #e8e8e8",boxShadow:"5px 5px 5px whitesmoke",padding:"0px 15px 15px 15px",marginTop:"15px",display:"flex",flexDirection:'column'}}>
@@ -38,8 +36,7 @@ export default function PCard(props){
                     {props.name}
                 </Typography>
                 <div style={{display:"flex",alignItems:"center",justifyContent:"flex-end"}}>
-                    {/* {props.fixed ? <AddCameraModal list={props.list} addCard = {props.addCard} data = {props.properties} name = {props.name} text = "Edit"/> : null} */}
-                    {props.fixed ? <Button color="primary" onClick={deleteFeature}><DeleteIcon style={{cursor:"pointer"}}/></Button> : null}
+                    <Button color="primary" onClick={deleteFeature}><DeleteIcon style={{cursor:"pointer"}}/></Button>
                 </div>
             </div>
             <Divider/>
@@ -53,8 +50,7 @@ export default function PCard(props){
                     )}
                 </div>
                 <div style={{display:"flex",alignItems:"center",justifyContent:"flex-end"}}>
-                    {/* edit feature to be enabled */}
-                    {/* {props.fixed ? <AddCameraModal rtsp_details={props.rtsp} list={props.list} addCard = {props.addCard} data = {props.properties} name = {props.name} text = "Edit" bodyimg={props.bodyimg} featureData={props.featureData}/> : null} */}
+                    <AddCameraModal text = "Edit" camera_id={props.camera_id} list={props.list} addCard = {props.addCard} bodyimg={props.bodyimg} featureData={props.featureData} id ={props.id} name = {props.name} data = {props.properties}/>
                 </div>
             </Box>
         </div>

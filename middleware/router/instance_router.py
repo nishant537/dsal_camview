@@ -18,8 +18,8 @@ async def get(db: Session = Depends(get_db)):
     return response
 
 @router.post('/')
-async def post(server_data:InstanceInSchema, db: Session = Depends(get_db)):
-    response = await instance_crud.post(db,payload=server_data)
+async def post(instances:list[InstanceInSchema], db: Session = Depends(get_db)):
+    response = await instance_crud.post(db,instances=instances)
     return response
 
 # @router.get("/{id}")

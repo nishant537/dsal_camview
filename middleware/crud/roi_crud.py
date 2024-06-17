@@ -1,6 +1,6 @@
 from json import JSONEncoder
 import logging
-from sqlalchemy import select
+from sqlalchemy import select, or_
 from db.database import *
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
@@ -17,8 +17,11 @@ async def get(
     data = db.query(Roi).options(joinedload(Roi.feature).subqueryload(Feature.camera))
     # for instances, active_exams would need to iterate through results as filter by cannot filter
     for query in [x for x in params if params[x] is not None]:
-        attr, operator = query.split('__') 
-        data = data.filter(get_sqlalchemy_operator(operator)(getattr(Roi,attr),params[query]))
+        if query=="search":
+            data = data.filter(or_(Roi.status.like(f"%{params[query]}%")))
+        else:
+            attr, operator = query.split('__') 
+            data = data.filter(get_sqlalchemy_operator(operator)(getattr(Roi,attr),f"%{params[query]}%" if operator=="like" else params[query]))
 
     return data.all()
 

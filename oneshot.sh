@@ -35,3 +35,6 @@ echo "*/2 * * * * /bin/bash /root/react-GUI/cron_gui.sh" >> mycron
 crontab mycron
 rm mycron
 echo "Crontab is set to restart dashboard at 2:00AM everyday"
+host = db-1.cjow24sk8hd5.ap-south-1.rds.amazonaws.com
+password =  rpw0OL7Xn0emWbFWjChI
+user = admin

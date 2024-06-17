@@ -56,7 +56,7 @@ export const get_stats = async(urlParams) => {
         return acc;
       }, {});
 
-      return Object.values(temp);
+      return Object.values(temp)
     } catch (error) {
       alert(error.message)
   }

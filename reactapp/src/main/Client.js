@@ -6,7 +6,7 @@ import { useTheme } from '@mui/material/styles';
 import {DataGridPro} from "@mui/x-data-grid-pro";
 import { useNavigate } from 'react-router-dom';
 
-import {get, post, del} from '../provider/client_provider';
+import {get, post, put, del} from '../provider/client_provider';
 import { useForm } from 'react-hook-form'
 
 
@@ -44,6 +44,7 @@ function Main(props) {
     React.useEffect(() => {
         get((urlParams)).then((value)=>{
             if (value){
+                console.log(value)
                 setRows(value)
             }
         })
@@ -114,6 +115,40 @@ function Main(props) {
     ];
 
     function CustomToolbar() {
+    const [searchValue, setSearchValue] = React.useState(()=>{
+        const data = new URLSearchParams(urlParams)
+        if (data.get("search")){
+            return data.get('search')
+        }else{
+            return ""
+        }
+    });
+    const searchInputRef = React.useRef(null);
+
+    React.useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+        // Make API call with the final search value
+        if (searchValue!==""){
+            const data = new URLSearchParams()
+            data.append("search",searchValue)
+            window.history.replaceState({}, '', `${window.location.pathname}?${data}`);
+            setUrlParams(data.toString())
+            console.log(searchValue)
+        }else{
+            const data = new URLSearchParams(urlParams)
+            data.delete("search")
+            window.history.replaceState({}, '', `${window.location.pathname}?${data}`);
+            setUrlParams(data.toString())
+        }
+    }, 1000); // Adjust the debounce delay as needed
+
+    return () => clearTimeout(delayDebounceFn);
+    }, [searchValue]);
+
+    const handleSearchInputChange = (event) => {
+        const newValue = event.target.value;
+        setSearchValue(newValue);
+    };
     return (
         <GridToolbarContainer>
             <Stack alignItems="center" direction="row" gap={1}>
@@ -127,7 +162,7 @@ function Main(props) {
                         }
                     }}
                 />
-                <TextField sx={{width: "450px",my:2,mr:4, background:"#f4f2ff" }} id="contained-search" variant="outlined" placeholder='Seach Client' type="search" InputProps={{
+                <TextField sx={{width: "450px",my:2,mr:4, background:"#f4f2ff" }} variant="outlined" placeholder='Seach Name, Code, Username, Password' type="search" value={searchValue} onChange={handleSearchInputChange} inputRef={searchInputRef} InputProps={{
                     startAdornment: (
                         <InputAdornment>
                             <IconButton>
@@ -198,11 +233,25 @@ function Main(props) {
     }
 
     const {register, handleSubmit} = useForm()
-    const onSubmit = (data, e) => {console.log(data);post(data)};
-    const onError = (errors, e) => {console.log(errors);post(errors)};
+    const onSubmit = (data, e) => {
+        if (selectedRow.length > 0){
+            put(selectedRow[0]['id'],data).then((value)=>{
+                setModalOpen(false)
+                window.location.reload()
+            })
+        }else{
+            post(data).then((value)=>{
+                setModalOpen(false)
+            })
+        }
+    };
+    const onError = (errors, e) => {
+        alert(errors)
+    };
 
-    const socket = new WebSocket('ws://${window.location.hostname}:${process.env.REACT_APP_PORT}/client/ws');
+    const socket = new WebSocket(`ws://${window.location.hostname}:${process.env.REACT_APP_PORT}/client/ws`);
     socket.onmessage = function(event) {
+        console.log(event)
         const message = event.data;
         const temp_rows = [...rows, JSON.parse(message)]
         setRows(temp_rows)
@@ -210,6 +259,7 @@ function Main(props) {
     return(
         <>
 
+            {/* ADD CLIENT MODAL */}
             <Modal
                 open={modalOpen}
                 onClose={() => {setModalOpen(false)}}
@@ -226,29 +276,28 @@ function Main(props) {
                             <Grid container alignItems="flex-start" spacing={2} p={3}>
                                 <Grid item xs={6}>
                                     <Typography variant="h3">Name</Typography>
-                                    <TextField  {...register('Name', { required: true })} required defaultValue={selectedRow.length!==0 ? selectedRow[0]['name'] : null} placeholder="Enter Client Name"/>
+                                    <TextField  {...register('name', { required: true })} required defaultValue={selectedRow.length!==0 ? selectedRow[0]['name'] : null} placeholder="Enter Client Name"/>
                                 </Grid>
                                 <Grid item xs={6}>
                                     <Typography variant="h3">Address</Typography>
-                                    <TextField  {...register('address', { required: true })} defaultValue={selectedRow.length!==0 ? selectedRow[0]['address'] : null} required placeholder="Enter Client Address"/>
-                                </Grid>
-                                <Grid item xs={12}>
-                                    {/* button functionality not working as of now */}
-                                    <Button variant="outlined" color="secondary" onClick="">Generate Code</Button>
+                                    <TextField  {...register('address')} defaultValue={selectedRow.length!==0 ? selectedRow[0]['address'] : null} placeholder="Enter Client Address"/>
                                 </Grid>
                                 <Grid item xs={12}>
                                     <FormControl>
                                         <Typography variant="h3">Code</Typography>
-                                        <TextField  {...register('code', { required: true })} defaultValue={selectedRow.length!==0 ? selectedRow[0]['code'] : null} required placeholder="Enter Client Code"/>
+                                        <Stack direction="row" gap={1}>
+                                            <TextField id={"client_code"} {...register('code', { required: true })} required defaultValue={selectedRow.length!==0 ? selectedRow[0]['code'] : null} placeholder="Enter Client Code"/>
+                                            <Button variant="outlined" color="secondary" onClick={()=>{document.getElementById("client_code").value = Math.random().toString(36).slice(8);document.getElementById("client_code").focus()}}>Generate Code</Button>
+                                        </Stack>
                                     </FormControl>
                                 </Grid>
                                 <Grid item xs={6}>
                                     <Typography variant="h3">Username</Typography>
-                                    <TextField  {...register('username', { required: true })} defaultValue={selectedRow.length!==0 ? selectedRow[0]['username'] : null} required placeholder="Enter Client Username"/>
+                                    <TextField  {...register('username', { required: true })} required defaultValue={selectedRow.length!==0 ? selectedRow[0]['username'] : null} placeholder="Enter Client Username"/>
                                 </Grid>
                                 <Grid item xs={6}>
                                     <Typography variant="h3">Password</Typography>
-                                    <TextField  {...register('password', { required: true })} defaultValue={selectedRow.length!==0 ? selectedRow[0]['password'] : null} required placeholder="Enter Client Password"/>
+                                    <TextField  {...register('password', { required: true })} required defaultValue={selectedRow.length!==0 ? selectedRow[0]['password'] : null} placeholder="Enter Client Password"/>
                                 </Grid>
                                 <Grid item style={{ marginTop: 30 }}>
                                     <Stack alignItems="center" direction="row" gap={3}>
@@ -272,9 +321,9 @@ function Main(props) {
                 </Typography>
 
                 <Box sx={{display:"flex",width:"50%",gap:"50px"}} p={3} >
-                    <Button color="secondary" size="medium" variant='outlined' onClick={()=>{setModalOpen(true)}}>Edit Client</Button>
                     <Button color='secondary' size="medium" variant='outlined'  onClick={()=>{setModalOpen(true)}}>Add Client</Button>
-                    <Button color='secondary' size="medium" variant='outlined' disabled={selectedRow.length===0 ? true : false} onClick={()=>{del(selectedRow[0]['id'])}}>Delete Client</Button>
+                    <Button color="secondary" size="medium" variant='outlined' disabled={selectedRow.length===0 ? true : false} onClick={()=>{setModalOpen(true)}}>Edit Client</Button>
+                    <Button color='secondary' size="medium" variant='outlined' disabled={selectedRow.length===0 ? true : false} onClick={()=>{del(selectedRow[0]['id']).then((value)=>{window.location.reload()})}}>Delete Client</Button>
                 </Box>
 
                 <DataGridPro

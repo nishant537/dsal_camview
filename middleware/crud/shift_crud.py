@@ -1,6 +1,6 @@
 from json import JSONEncoder
 import logging
-from sqlalchemy import select
+from sqlalchemy import select, or_
 from db.database import *
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
@@ -17,21 +17,31 @@ async def get(
     data = db.query(Shift).options(joinedload(Shift.exam),joinedload(Shift.centers).subqueryload(Center.cameras))
     # for instances, active_exams would need to iterate through results as filter by cannot filter
     for query in [x for x in params if params[x] is not None]:
-        attr, operator = query.split('__') 
-        print(attr, operator)
-        data = data.filter(get_sqlalchemy_operator(operator)(getattr(Shift,attr),params[query]))
+        if query=="search":
+            data = data.filter(or_(Shift.code.like(f"%{params[query]}%"),Shift.exam_name.like(f"%{params[query]}%"), Shift.date.like(f"%{params[query]}%")))
+        else:
+            attr, operator = query.split('__') 
+            data = data.filter(get_sqlalchemy_operator(operator)(getattr(Shift,attr),f"%{params[query]}%" if operator=="like" else params[query]))
 
     return data.all()
 
-async def post(db: Session,payload: ShiftInSchema):
+async def post(db: Session,shifts: list[ShiftInSchema]):
     # db_object = db.query(Exam).filter(Site.id.in_(payload.sites)).all()
     # payload.sites = db_object
+    created_items = []
+    db_items = []
+    for shift in shifts:
+        db_item = Shift(**shift.dict())
+        db_items.append(db_item)
+        db.add(db_item)
 
-    db_item = Shift(**payload.dict())
-    db.add(db_item)
     db.commit()
-    db.refresh(db_item)
-    return db_item
+
+    for db_item in db_items:
+        db.refresh(db_item)
+        created_items.append(db_item)
+
+    return created_items
 
 # async def put(db, create_body, server_id):
 #     db_object = db.query(Site).filter(Site.id.in_(create_body.sites)).all()

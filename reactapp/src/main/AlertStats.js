@@ -49,59 +49,96 @@ function Main(props) {
     }
     const [metaData,setMetaData] = React.useState({"center":0,"total":0,"true":0,"false":0})
 
-    const columns = []
+    let dict_columns = {}
     React.useEffect(() => {
         get_stats((urlParams)).then((value)=>{
             if (value){
-                console.log(value)
+                console.log(JSON.stringify(value))
                 setRows(value)
             }
         })
     }, [urlParams]);
 
     if (rows.length>0){
-        Object.entries(rows[0]).map(([key,value])=>{
+        rows.map((row, index) => 
+            Object.entries(row).map(([key,value])=>{
+                if (Object.keys(dict_columns).includes(key)===false){
+                    if (key.indexOf("_") > -1)
+                    {
+                        if (!(key.split("_")[0] in dict_columns)){
+                            dict_columns[key.split("_")[0]] = {}
+                        }
+                        dict_columns[key.split("_")[0]][key] = {
+                            field: key,
+                            headerName: key.split("_")[key.split("_").length-1],
+                            flex:0.6,
+                            minWidth:200,
+                            filterable: false,
+                            renderCell: (params) => {
+                                return (
+                                    <div style={{display:"flex", flexDirection:"column", alignItems:"center" , transform:"scale(0.5)",transformOrigin: '50% 0% 0px'}}>
+                                        <span style={{fontSize:"25px"}}>{params.value===undefined ? 0 : Object.values(params.value).reduce((acc, val) => acc + val, 0)}</span>
+                                        <Stack direction="row" gap={1} sx={{background:"whitesmoke",padding:"0 20px", borderRadius:"30px"}}>
+                                            {   
+                                                Object.entries(params.value===undefined ? {"true":0,"false":0,"null":0} : params.value).map(([key, value])=>(
+                                                    <div style={{"display":"flex", 'gap':"10px"}}>
+                                                        <span style={{fontSize:"25px"}}>{value}</span> <TimelineDot sx={{ margin:0,placeSelf:"center",width: '5px',backgroundColor: key==="null" ? 'grey': key==="true" ? "green" : key==="false" ? "red" : null,}}/>
+                                                    </div>
+                                                ))
+                                            }
+                                        </Stack>
+                                    </div>
+                                )
+                                
+                            },
+                        }
+                    }else if (key==="total"){
+                        dict_columns[key] = {
+                            field: key,
+                            headerName: key.split("_")[key.split("_").length-1],
+                            flex:0.6,
+                            minWidth:200,
+                            filterable: false,
+                            renderCell: (params) => {
+                                return (
+                                    <div style={{display:"flex", flexDirection:"column", alignItems:"center" , transform:"scale(0.5)",transformOrigin: '50% 0% 0px'}}>
+                                        <span style={{fontSize:"25px"}}>{params.value===undefined ? 0 : Object.values(params.value).reduce((acc, val) => acc + val, 0)}</span>
+                                        <Stack direction="row" gap={1} sx={{background:"whitesmoke",padding:"0 20px", borderRadius:"30px"}}>
+                                            {   
+                                                Object.entries(params.value===undefined ? {"true":0,"false":0,"null":0} : params.value).map(([key, value])=>(
+                                                    <div style={{"display":"flex", 'gap':"10px"}}>
+                                                        <span style={{fontSize:"25px"}}>{value}</span> <TimelineDot sx={{ margin:0,placeSelf:"center",width: '5px',backgroundColor: key==="null" ? 'grey': key==="true" ? "green" : key==="false" ? "red" : null,}}/>
+                                                    </div>
+                                                ))
+                                            }
+                                        </Stack>
+                                    </div>
+                                )
+                                
+                            },
+                        }
+                    }
+                    else{
+                        dict_columns[key] = {
+                            field: key,
+                            headerName: key,
+                            // type: 'number',
+                            flex:0.3,
+                            minWidth:150,
+                            filterable: false,
+                            renderCell: (params) => {return  key==='center' ? <a href={`/alert?center__like=${params.value}`}>{params.value}</a> : <span>{params.value}</span>},
+                            // filterOperators: string_operators,
+                        }
+                    }
+                }
+            })
+        )
         
-            if (key==="total" || (key.indexOf("_") > -1))
-            {
-                columns.push({
-                    field: key,
-                    headerName: key.split("_")[key.split("_").length-1],
-                    flex:0.6,
-                    minWidth:200,
-                    filterable: false,
-                    renderCell: (params) => {
-                        return (
-                            <div style={{display:"flex", flexDirection:"column", alignItems:"center" , transform:"scale(0.5)",transformOrigin: '50% 0% 0px'}}>
-                                <span style={{fontSize:"25px"}}>{Object.values(params.value).reduce((acc, val) => acc + val, 0)}</span>
-                                <Stack direction="row" gap={1} sx={{background:"whitesmoke",padding:"0 20px", borderRadius:"30px"}}>
-                                    {
-                                        Object.entries(params.value).map(([key, value])=>(
-                                            <div style={{"display":"flex", 'gap':"10px"}}>
-                                                <span style={{fontSize:"25px"}}>{value}</span> <TimelineDot sx={{ margin:0,placeSelf:"center",width: '5px',backgroundColor: key==="null" ? 'grey': key==="true" ? "green" : key==="false" ? "red" : null,}}/>
-                                            </div>
-                                        ))
-                                    }
-                                </Stack>
-                            </div>
-                        )
-                        
-                    },
-                })
-            }else{
-                columns.push({
-                    field: key, 
-                    headerName: key,  
-                    // type: 'number',
-                    flex:0.3,
-                    minWidth:150, 
-                    filterable: false,
-                    // filterOperators: numeric_operators,
-                })
-            }
-                
-        })
     }
+    
+    // function for flattening the json
+    const getAllObjects = obj => Object.values(obj).flatMap(value => typeof value === 'object' ? [value, ...getAllObjects(value)] : []);
+    const columns = getAllObjects(dict_columns)
 
     const columnGroupingModel = [];
     const t = {};
@@ -112,7 +149,9 @@ function Main(props) {
                 }else{
                     t[key.split("_")[0]] = []
                 }
-                t[key.split("_")[0]].push(key)
+                if (t[key.split("_")[0]].includes(key)===false){
+                    t[key.split("_")[0]].push(key)
+                } 
             }
         })
     })
@@ -126,6 +165,7 @@ function Main(props) {
             }
         )
     })
+
     
     rows.map((value,index)=>{
         const temp = metaData
@@ -235,7 +275,7 @@ function Main(props) {
 
                 <DataGridPro
                     sx={{
-                        height:"100%",
+                        // height:"100%",
                         [`& .${gridClasses.cell}:focus, & .${gridClasses.cell}:focus-within`]: {
                         outline: 'none',
                         },
@@ -270,7 +310,6 @@ function Main(props) {
                     //     },
                     // },
                     // }}
-                    autoHeight={true}
                     slots={{
                         toolbar: CustomToolbar,
                         footer: CustomFooter,

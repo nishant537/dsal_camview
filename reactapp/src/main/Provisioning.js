@@ -1,8 +1,7 @@
 import * as React from 'react';
 import {Divider, Toolbar, Typography, Grid, TextField, Button, Box, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, MenuItem, Slider, Select, Paper, Stack} from '@mui/material';
 // component import
-import PCard from '../components/FeatureCard';
-import CFeed from '../components/CameraFeed';
+import FeatureCard from '../components/FeatureCard';
 import AddCameraModal from "../components/AddCameraModal"
 // import { useState } from "react";
 import {get_camera, post, del} from '../provider/camera_provider';
@@ -22,11 +21,16 @@ export default function Provisioning(props){
     const [featureData, setFeatureData] = React.useState(null);
     const [bodyimg,setBodyImg] = React.useState(null)
     const [rtsp, setRTSP] = React.useState({"rtsp":"","dss_id":"","dss_channel":""})
+    const [cardData, setCardData] = React.useState({})
 
 
     React.useEffect(() => {
         get_camera(window.location.pathname.split("/")[2]).then((value)=>{
-            console.log(value)
+            let object_alerts = {}
+            value.features.map((feature,index)=>{
+                object_alerts[feature['name']] = feature
+            })
+            setCardData(object_alerts)
             setPageData(value)
         })
     },[])
@@ -45,19 +49,6 @@ export default function Provisioning(props){
     }
 
 
-    const object_alerts = {}
-    const [cardData, setCardData] = React.useState({})
-
-    if (!loading && time){
-        Object.entries(pageData.object_alerts).map(([key,value]) => {
-            object_alerts[key] = value
-            // object_alerts.push(Object.assign({}, {'name': key}, value))
-        });
-        setCardData(object_alerts)
-        setTime(false)
-    }
-
-
     const updateRTSP = (event) => {
         const temp = Object.assign({},rtsp)
         temp[event.target.id] = event.target.value
@@ -68,6 +59,8 @@ export default function Provisioning(props){
     const {register, handleSubmit} = useForm([])
     const onSubmit = (data, e) => {console.log(data)};
     const onError = (errors, e) => {console.log(errors)};
+
+    console.log(cardData)
     return(
         <>
 
@@ -104,16 +97,18 @@ export default function Provisioning(props){
 
                 <Divider/>
                 
-                <Typography variant="h2" noWrap component="div" textAlign={'center'} padding={2} overflow={"visible"}>
-                    Features Activated
-                    {/* Add new feature pending */}
-                    {/* {edit?<AddCameraModal list={cardData} text = "Add" addCard = {setCardData} rtsp_details = {rtsp} bodyimg={bodyimg} featureData={featureData} refreshFrame={refreshFrame}/>:null} */}
-                </Typography>
+                <Stack direction="row" alignItems="center" gap={2}>
+                    <Typography variant="h2" noWrap component="div" padding={2} overflow={"visible"}>
+                        Features Activated
+                    </Typography>
+                    <AddCameraModal text = "Add" camera_id={window.location.pathname.split("/")[2]} list={cardData} addCard = {setCardData} bodyimg={bodyimg} featureData={{"features":["intrusion","camera_fault","multiple_person"]}} refreshFrame={refreshFrame}/>
+                </Stack>
+
 
                 <div style={{display:"flex"}}>
                     <div id="cards" style={{display:"flex",flexWrap: "wrap",width:"100%",justifyContent: "space-between",borderRight:"1px solid #e8e8e8"}} >
-                        {Object.keys(pageData).length>0 && pageData['features'].length>0 && pageData['features'].map((value, index) =>
-                            <PCard id={value['id']} name = {value['name']} properties = {JSON.parse(value['json'])} fixed = {true} rtsp = {rtsp} bodyimg={""}/>
+                        {Object.keys(cardData).length>0 && Object.values(cardData).map((value, index) =>
+                            <FeatureCard id={value['id']} camera_id={window.location.pathname.split("/")[2]} list={cardData} addCard = {setCardData} featureData={{"features":["intrusion","camera_fault","multiple_person"]}} bodyimg={bodyimg} refreshFrame={refreshFrame}  name = {value['name']} properties = {JSON.parse(value['json'])}/>
                         )}
 
                         <div style={{width:"350px"}}></div>

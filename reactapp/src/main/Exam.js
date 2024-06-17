@@ -58,8 +58,8 @@ function Main(props) {
         field: 'client_name',
         headerName: "CLIENT NAME",
         flex:1,
-        filterable: false,
-        renderCell: (params) => {return <a href={`/exam?client_name__like=${params.value}`}>{params.value}</a>},
+        filterOperators: string_operators,
+        renderCell: (params) => {return <a href={`/client?name__like=${params.value}`}>{params.value}</a>},
     },
     {
         field: 'name',
@@ -105,35 +105,70 @@ function Main(props) {
     ];
 
     function CustomToolbar() {
-    return (
-        <GridToolbarContainer>
-            <GridToolbarFilterButton
-                componentsProps={{
-                    button: {
-                        startIcon: (
-                            <FilterAlt />
-                        )
-                    }
-                }}
-            />
-            <TextField sx={{width: "450px",my:2,mr:4, background:"#f4f2ff" }} id="contained-search" variant="outlined" placeholder='Seach Center by Code, Name, Location' type="search" InputProps={{
-                startAdornment: (
-                    <InputAdornment>
-                        <IconButton>
-                            <Search />
-                        </IconButton>
-                    </InputAdornment>
-                )
-            }}/>
+        const [searchValue, setSearchValue] = React.useState(()=>{
+            const data = new URLSearchParams(urlParams)
+            if (data.get("search")){
+                return data.get('search')
+            }else{
+                return ""
+            }
+        });
+        const searchInputRef = React.useRef(null);
 
-            <Box sx={{display:"flex",justifyContent:"space-between",width:"400px"}}>
-                <Button color="secondary" size="medium" variant='outlined'>Edit Exam</Button>
-                <Button color='secondary' size="medium" variant='outlined' onClick={()=>{navigate('/create_exam')}}>Add Exam</Button>
-                <Button color='secondary' size="medium" variant='outlined'disabled={selectedRow.length===0 ? true : false} onClick={()=>{del(selectedRow[0]['id'])}}>Delete Exam</Button>
-            </Box>
-        </GridToolbarContainer>
-    );
+        React.useEffect(() => {
+        const delayDebounceFn = setTimeout(() => {
+            // Make API call with the final search value
+            if (searchValue!==""){
+                const data = new URLSearchParams()
+                data.append("search",searchValue)
+                window.history.replaceState({}, '', `${window.location.pathname}?${data}`);
+                setUrlParams(data.toString())
+                console.log(searchValue)
+            }else{
+                const data = new URLSearchParams(urlParams)
+                data.delete("search")
+                window.history.replaceState({}, '', `${window.location.pathname}?${data}`);
+                setUrlParams(data.toString())
+            }
+        }, 1000); // Adjust the debounce delay as needed
+
+        return () => clearTimeout(delayDebounceFn);
+        }, [searchValue]);
+
+        const handleSearchInputChange = (event) => {
+            const newValue = event.target.value;
+            setSearchValue(newValue);
+        };
+        return (
+            <GridToolbarContainer>
+                <GridToolbarFilterButton
+                    componentsProps={{
+                        button: {
+                            startIcon: (
+                                <FilterAlt />
+                            )
+                        }
+                    }}
+                />
+                <TextField sx={{width: "450px",my:2,mr:4, background:"#f4f2ff" }} variant="outlined" placeholder='Seach Exam Name, Client Name, Code' type="search" value={searchValue} onChange={handleSearchInputChange} inputRef={searchInputRef} InputProps={{
+                    startAdornment: (
+                        <InputAdornment>
+                            <IconButton>
+                                <Search />
+                            </IconButton>
+                        </InputAdornment>
+                    )
+                }}/>
+
+                <Box sx={{display:"flex",justifyContent:"space-between",width:"400px"}}>
+                    <Button color='secondary' size="medium" variant='outlined' onClick={()=>{navigate('/create_exam')}}>Add Exam</Button>
+                    <Button color="secondary" size="medium" variant='outlined' disabled={selectedRow.length===0 ? true : false} onClick={()=>{navigate(`/create_exam/${selectedRow[0]['id']}`)}}>Edit Exam</Button>
+                    <Button color='secondary' size="medium" variant='outlined'disabled={selectedRow.length===0 ? true : false} onClick={()=>{del(selectedRow[0]['id'])}}>Delete Exam</Button>
+                </Box>
+            </GridToolbarContainer>
+        );
     }
+
     function CustomFooter () {
     return (
         <GridFooterContainer sx={{backgroundColor:"#f4f2ff"}}>

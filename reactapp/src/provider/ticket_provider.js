@@ -28,7 +28,7 @@ export const get_group = async(urlParams) => {
       console.log(data)
       const returned_response = [];
       data.map((value,index)=>{
-        const temp={ id: value.id, status: value.activity[0].status, center: value.alert.center,camera: value.camera, feature:value.feature, sublocation: value.alert.sublocation, created_at: value.activity[value.activity.length-1].last_updated, last_updated: value.activity[0].last_updated};
+        const temp={ id: value.id, status: value.activity[0].status,group_count: value.group_count, center: value.alert.center,camera: value.camera, feature:value.feature, sublocation: value.alert.sublocation, created_at: value.activity[value.activity.length-1].last_updated, last_updated: value.activity[0].last_updated};
         returned_response.push(temp)
       })
       return returned_response;

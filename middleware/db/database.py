@@ -19,10 +19,11 @@ from sqlalchemy import (
     text,
 )
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship, sessionmaker
+from sqlalchemy.orm import relationship, sessionmaker, composite
 from sqlalchemy_utils import database_exists, create_database
 from sqlalchemy.ext.associationproxy import association_proxy
-from sqlalchemy.sql import func
+from sqlalchemy.sql import func, select
+from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
 
 DATABASE_URL = "mysql+pymysql://root:nishant@127.0.0.1:3306/trustview"
 
@@ -169,6 +170,7 @@ class Roi(Base):
     last_updated = Column(DateTime, nullable=False, server_default=func.now(), server_onupdate=func.now())
 
     feature = relationship("Feature", back_populates="roi")     
+    feature_name = association_proxy("feature","name")
 
 # class AlertTypeEnum(str, enum.Enum):
 #     supressed = '0'
@@ -190,7 +192,7 @@ class Alert(Base):
     image_path = Column(Text, nullable=False)
     video_path = Column(Text, nullable=False)
 
-    activity = relationship("AlertActivity", back_populates="alert")  
+    activity = relationship("AlertActivity", back_populates="alert",cascade="delete-orphan")  
     ticket = relationship("Ticket", back_populates="alert")  
 
 

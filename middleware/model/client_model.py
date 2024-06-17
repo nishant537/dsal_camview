@@ -4,9 +4,9 @@ from typing import Optional
 
 
 class ClientBaseSchema(BaseModel):
-    code: str
     name: str
-    address: str
+    address: str | None = None
+    code: str
     username: str
     password: str
 

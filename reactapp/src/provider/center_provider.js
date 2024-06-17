@@ -7,16 +7,22 @@ export const get = async(urlParams) => {
           throw new Error('Network response was not ok.');
         }
         const data = await response.json();
+        console.log(data)
         // return data
         const returned_response = [];
         data.map((value,index)=>{
-          // const active = 0;
-          // value['exams'].map((value,index)=>{
-          //   value['shifts'].map((value,index)=>{
-
-          //   })
-          // })
-          const temp={ id: value.id, code: value.code, name: value.name, location:value.location, cameras: value.cameras.length, shift: value.shift.code, rois:value.cameras[0].features.length, marked: 1, approved: 0 };
+          let roi = 0;
+          let marked = 0;
+          let approved = 0;
+          value.cameras.map((camera,index)=>{
+            camera.features.map((feature,index)=>{
+              if (feature.roi.length>0){
+                roi+=1
+                if (feature.roi[0]['status']=="marked"){marked+=1}else if(feature.roi[0]['status']=="approved"){approved+=1}
+              } 
+            })
+          })
+          const temp={ id: value.id, code: value.code, name: value.name, location:value.location, cameras: value.cameras.length, shift: value.shift.code, rois:roi, marked: marked, approved: approved };
           returned_response.push(temp)
         })
         return returned_response;

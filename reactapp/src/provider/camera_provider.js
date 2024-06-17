@@ -9,13 +9,15 @@ export const get = async(urlParams) => {
         const data = await response.json();
         const returned_response = [];
         data.map((value,index)=>{
-          // const active = 0;
-          // value['exams'].map((value,index)=>{
-          //   value['shifts'].map((value,index)=>{
-
-          //   })
-          // })
-          const temp={ id: value.id, name: value.name, sublocation: value.sublocation, features:value.features, status:{"unmarked":2,"marked":1,"approved":1,"rejected":1}};
+          let roi_status = {"pending":0,"marked":0,"approved":0,"rejected":0}
+          value.features.map((feature,index)=>{
+            if (feature.roi.length===0){
+              roi_status['pending']+=1
+            }else{
+              roi_status[feature.roi[0]['status']]+=1
+            }
+          })
+          const temp={ id: value.id, name: value.name, sublocation: value.sublocation, features:value.features, status:roi_status};
           returned_response.push(temp)
         })
         return returned_response;

@@ -39,10 +39,18 @@ function Main(props) {
         return filterItems;
     })
     const [selectedRow, setSelectedRow] = React.useState([])
+    const [metaData,setMetaData] = React.useState({"range":'2024-04-22 - 2024-06-22',"cameras":0,"shifts":0,"centers":0})
+    rows.map((value,index)=>{
+        const temp = metaData
+        temp['shifts']+=1
+        temp['centers']+= value['centers']
+        temp['cameras']+= value['cameras']
+    })
 
     React.useEffect(() => {
         get((urlParams)).then((value)=>{
             if (value){
+                console.log(value)
                 setRows(value)
             }
         })
@@ -120,67 +128,102 @@ function Main(props) {
     ];
 
     function CustomToolbar() {
-    return (
-        <GridToolbarContainer>
-            <Stack alignItems="center" direction="row" gap={1}>
-                <GridToolbarFilterButton
-                    sx={{padding:"0 20px"}}
-                    componentsProps={{
-                        button: {
-                            startIcon: (
-                                <FilterAlt />
-                            )
-                        }
-                    }}
-                />
-                <TextField sx={{width: "450px",my:2,mr:4, background:"#f4f2ff" }} id="contained-search" variant="outlined" placeholder='Seach Centre by Code, Name, Location' type="search" InputProps={{
-                    startAdornment: (
-                        <InputAdornment>
-                            <IconButton>
-                                <Search />
-                            </IconButton>
-                        </InputAdornment>
-                    )
-                }}/>
+        const [searchValue, setSearchValue] = React.useState(()=>{
+            const data = new URLSearchParams(urlParams)
+            if (data.get("search")){
+                return data.get('search')
+            }else{
+                return ""
+            }
+        });
+        const searchInputRef = React.useRef(null);
 
-                <div>
-                    <Grid container rowSpacing={1} columnSpacing={{ xs: 1, sm: 2, md: 3 }}>
-                        <Grid container alignItems="flex-start">
-                            <Grid item xs={6}>
-                                <Stack direction={"row"} gap={1}>
-                                    <CalendarMonth/>
-                                    <Typography variant="h3" color={theme.palette.text.disabled}>Date Range : </Typography>
-                                    <Typography variant="h3">17/03/24 - 19/03/24</Typography>
-                                </Stack>
+        React.useEffect(() => {
+        const delayDebounceFn = setTimeout(() => {
+            // Make API call with the final search value
+            if (searchValue!==""){
+                const data = new URLSearchParams()
+                data.append("search",searchValue)
+                window.history.replaceState({}, '', `${window.location.pathname}?${data}`);
+                setUrlParams(data.toString())
+                console.log(searchValue)
+            }else{
+                const data = new URLSearchParams(urlParams)
+                data.delete("search")
+                window.history.replaceState({}, '', `${window.location.pathname}?${data}`);
+                setUrlParams(data.toString())
+            }
+        }, 1000); // Adjust the debounce delay as needed
+
+        return () => clearTimeout(delayDebounceFn);
+        }, [searchValue]);
+
+        const handleSearchInputChange = (event) => {
+            const newValue = event.target.value;
+            setSearchValue(newValue);
+        };
+        return (
+            <GridToolbarContainer>
+                <Stack alignItems="center" direction="row" gap={1}>
+                    <GridToolbarFilterButton
+                        sx={{padding:"0 20px"}}
+                        componentsProps={{
+                            button: {
+                                startIcon: (
+                                    <FilterAlt />
+                                )
+                            }
+                        }}
+                    />
+                    <TextField sx={{width: "450px",my:2,mr:4, background:"#f4f2ff" }} variant="outlined" placeholder='Seach Code, Exam Name, Date' type="search" value={searchValue} onChange={handleSearchInputChange} inputRef={searchInputRef} InputProps={{
+                        startAdornment: (
+                            <InputAdornment>
+                                <IconButton>
+                                    <Search />
+                                </IconButton>
+                            </InputAdornment>
+                        )
+                    }}/>
+
+                    <div>
+                        <Grid container rowSpacing={1} columnSpacing={{ xs: 1, sm: 2, md: 3 }}>
+                            <Grid container alignItems="flex-start">
+                                <Grid item xs={6}>
+                                    <Stack direction={"row"} gap={1}>
+                                        <CalendarMonth/>
+                                        <Typography variant="h3" color={theme.palette.text.disabled}>Date Range : </Typography>
+                                        <Typography variant="h3">{metaData['range']}</Typography>
+                                    </Stack>
+                                </Grid>
+                                <Grid item xs={6}>
+                                    <Stack direction={"row"} gap={1}>
+                                        <CameraAlt/>
+                                        <Typography variant="h3" color={theme.palette.text.disabled}>Total Cameras : </Typography>
+                                        <Typography variant="h3">{metaData['cameras']}</Typography>
+                                    </Stack>
+                                </Grid>                            
+                                <Grid item xs={6}>
+                                    <Stack direction={"row"} gap={1}>
+                                        <WatchLater/>
+                                        <Typography variant="h3" color={theme.palette.text.disabled}>Total Shifts : </Typography>
+                                        <Typography variant="h3">{metaData['shifts']}</Typography>
+                                    </Stack>
+                                </Grid>
+                                <Grid item xs={6}>
+                                    <Stack direction={"row"} gap={1}>
+                                        <Apartment/>
+                                        <Typography variant="h3" color={theme.palette.text.disabled}>Total Centres : </Typography>
+                                        <Typography variant="h3">{metaData['centers']}</Typography>
+                                    </Stack>
+                                </Grid>                            
                             </Grid>
-                            <Grid item xs={6}>
-                                <Stack direction={"row"} gap={1}>
-                                    <CameraAlt/>
-                                    <Typography variant="h3" color={theme.palette.text.disabled}>Total Cameras : </Typography>
-                                    <Typography variant="h3">1250</Typography>
-                                </Stack>
-                            </Grid>                            
-                            <Grid item xs={6}>
-                                <Stack direction={"row"} gap={1}>
-                                    <WatchLater/>
-                                    <Typography variant="h3" color={theme.palette.text.disabled}>Total Shifts : </Typography>
-                                    <Typography variant="h3">8</Typography>
-                                </Stack>
-                            </Grid>
-                            <Grid item xs={6}>
-                                <Stack direction={"row"} gap={1}>
-                                    <Apartment/>
-                                    <Typography variant="h3" color={theme.palette.text.disabled}>Total Centres : </Typography>
-                                    <Typography variant="h3">150</Typography>
-                                </Stack>
-                            </Grid>                            
                         </Grid>
-                    </Grid>
-                </div>
-            </Stack>
-        </GridToolbarContainer>
-    );
+                    </div>
+                </Stack>
+            </GridToolbarContainer>
+        );
     }
+
     function CustomFooter () {
     return (
         <GridFooterContainer sx={{backgroundColor:"#f4f2ff"}}>

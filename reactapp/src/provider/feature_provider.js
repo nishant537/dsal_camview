@@ -29,26 +29,38 @@ export const get = async(urlParams) => {
 export const post = async(payload) => {
     console.log(payload)
     try {
-        const response = await fetch(`http://${window.location.hostname}:${process.env.REACT_APP_PORT}/client/`,{method : "POST", body: JSON.stringify(payload)});
+        const response = await fetch(`http://${window.location.hostname}:${process.env.REACT_APP_PORT}/feature/`,{method : "POST", headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload)});
         if (!response.ok) {
           throw new Error('Network response was not ok.');
         }
-        const data = await response.json()['data'];
-        // return data
-        return [{ id: 1, name: 'NTA', code: 'Jon', address:"Lorem Ipsum", username: "nta_user", password: "nishant", instances: 8, active_exam:1, completed_exam: 3 }]
+        const data = await response.json();
+        return data
       } catch (error) {
         alert(error.message)
     }
 }
 
+
+export const put = async(id, feature_data) => {
+  try {
+      const response = await fetch(`http://${window.location.hostname}:${process.env.REACT_APP_PORT}/feature/${id}`,{method : "PUT", headers: {'Content-Type': 'application/json'}, body: JSON.stringify(feature_data)});
+      if (!response.ok) {
+        throw new Error('Network response was not ok.');
+      }
+      const data = await response.json();
+      return data
+    } catch (error) {
+      alert(error.message)
+  }
+}
+
 export const del = async(id) => {
     try {
-        const response = await fetch(`http://${window.location.hostname}:${process.env.REACT_APP_PORT}/feature/?id=${id}`,{method : "DELETE"});
+        const response = await fetch(`http://${window.location.hostname}:${process.env.REACT_APP_PORT}/feature/${id}`,{method : "DELETE"});
         if (!response.ok) {
           throw new Error('Network response was not ok.');
         }
         const data = await response.json();
-        console.log(data)
         return data
       } catch (error) {
         alert(error.message)

@@ -81,7 +81,7 @@ function Main(props) {
 
                                 <Stack direction="row" spacing={3} py={2}>
                                     <Button color="primary" variant="outlined" startIcon={<Edit/>} onClick={()=>{setEdit(!edit)}}>Edit</Button>
-                                    <Button color="primary" variant="contained" type="submit">Submit</Button>
+                                    {edit ? <Button color="primary" variant="contained" type="submit">Submit</Button> : null}
                                 </Stack>
                             </Stack>
                             
@@ -126,7 +126,7 @@ function Main(props) {
                                 </Stack>
                                 <Stack direction="row" spacing={2} alignItems="center">
                                     <Typography variant="h2" color={theme.palette.text.disabled}>Description :</Typography>
-                                    <Typography variant="h2">Alert Detected at {ticketDetails['alert']['center']} by {ticketDetails['alert']['camera']}</Typography>
+                                    <Typography variant="h2">Alert Detected at {ticketDetails['alert']['center']} on {ticketDetails['alert']['camera']}</Typography>
                                 </Stack>
                                 <Stack direction="row" spacing={2} alignItems="center">
                                     <Typography variant="h2" color={theme.palette.text.disabled}>Comment :</Typography>
@@ -140,7 +140,7 @@ function Main(props) {
                                             placeholder="Enter Description for Ticket"
                                         />
                                     :
-                                        <Typography variant="h2">{ticketDetails['activity'][0]['comment']}</Typography>
+                                        <Typography variant="h2">{ticketDetails['activity'][0]['comment']===null ? "-" : ticketDetails['activity'][0]['comment']}</Typography>
                                     }
                                 </Stack>
                             </div>
@@ -156,10 +156,11 @@ function Main(props) {
                 </Box>
 
                 <Typography variant="h2">Activity</Typography>
-                
-                {ticketDetails['activity'].map((key,value)=>
-                    <Typography variant="h2" color={theme.palette.text.disabled}>Ticket #{key['id']} status updated to <u>{key['status']}</u> at <u>{key['last_updated'] ? (dateFormat(new Date(key['last_updated']), "hh:mm:ss TT yyyy-mm-dd")).toString() : ""}.</u></Typography>
-                )}
+                <div style={{overflowY:"scroll"}}>
+                    {ticketDetails['activity'].map((key,value)=>
+                        <Typography variant="h2" color={theme.palette.text.disabled}>Ticket #{key['id']} status updated to <u>{key['status']}</u> at <u>{key['last_updated'] ? (dateFormat(new Date(key['last_updated']), "hh:mm:ss TT yyyy-mm-dd")).toString() : ""}.</u></Typography>
+                    )}
+                </div>
             </Box>
         </>
     );

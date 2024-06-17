@@ -28,6 +28,14 @@ async def post(db: Session,payload: FeatureInSchema):
     db.refresh(db_item)
     return db_item
 
+async def put(db: Session, id, payload):
+    print(payload)
+    db_item = db.query(Feature).where(Feature.id==id)
+    update_data = payload.dict(exclude_unset=True)
+    db_item.update(update_data)
+    db.commit()
+    # db.refresh(db_item)
+    return db_item.one()
 
 async def delete(db, id):
     data = db.get(Feature, id)

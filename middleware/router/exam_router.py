@@ -2,7 +2,7 @@ from distutils.log import debug
 from email import message
 from telnetlib import STATUS
 from urllib import response
-from fastapi import APIRouter, Depends, Query, Request 
+from fastapi import APIRouter, Depends, Query, Request, UploadFile, File
 from sqlalchemy.orm import Session
 from db.database import *
 from model.exam_model import *
@@ -11,6 +11,11 @@ import auth
 from typing import Optional, Annotated, List
 
 router = APIRouter()
+
+@router.get("/{id}")
+async def get_exam(id: int, db: Session = Depends(get_db)):
+    response = await exam_crud.get_exam(id, db)
+    return response
 
 @router.get("/")
 async def get(
@@ -31,6 +36,18 @@ async def get(
 @router.post('/')
 async def post(server_data:ExamInSchema, db: Session = Depends(get_db)):
     response = await exam_crud.post(db,payload=server_data)
+    return response
+
+@router.post('/upload_center')
+async def upload_center(file: UploadFile = File(...), db: Session = Depends(get_db)):
+    print(file)
+    response = await exam_crud.upload_center(db,file)
+    return response
+
+@router.post('/upload_camera')
+async def upload_camera(file: UploadFile = File(...), db: Session = Depends(get_db)):
+    print(file)
+    response = await exam_crud.upload_camera(db,file)
     return response
 
 # @router.get("/{id}")

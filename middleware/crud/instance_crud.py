@@ -18,15 +18,22 @@ async def get(db: Session):
     # data = data.options(joinedload(Server.types))
     return data.all()
 
-async def post(db: Session,payload: InstanceInSchema):
+async def post(db: Session,instances: list[InstanceInSchema]):
     # db_object = db.query(Exam).filter(Site.id.in_(payload.sites)).all()
     # payload.sites = db_object
+    created_items = []
+    db_items = []
+    for instance in instances:
+        db_item = Instance(**instance.dict())
+        db_items.append(db_item)
+        db.add(db_item)
 
-    db_item = Instance(**payload.dict())
-    db.add(db_item)
     db.commit()
-    db.refresh(db_item)
-    return db_item
+
+    for db_item in db_items:
+        db.refresh(db_item)
+        created_items.append(db_item)
+    return created_items
 
 # async def put(db, create_body, server_id):
 #     db_object = db.query(Site).filter(Site.id.in_(create_body.sites)).all()
