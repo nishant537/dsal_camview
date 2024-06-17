@@ -157,9 +157,9 @@ function Main(props) {
             if (key.indexOf("_")>0){
                 if (key.split("_")[0] in t){
                 }else{
-                    t[key.split("_")[0]] = []
+                    t[key.split("_")[0]] = new Set()
                 }
-                t[key.split("_")[0]].push(key)
+                t[key.split("_")[0]].add(key)
             }
         })
     })
@@ -170,7 +170,7 @@ function Main(props) {
             {
                 groupId: key,
                 description: '',
-                children: value.map(field => ({ field })),
+                children: Array.from(value).map(field => ({ field })),
             }
         )
     })
