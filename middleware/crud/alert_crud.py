@@ -21,7 +21,7 @@ async def get(
     ):
     # using joinedLoad instead of response_model to only fetch required data
     params = request.query_params
-    data = db.query(Alert).options(joinedload(Alert.activity))
+    data = db.query(Alert).options(joinedload(Alert.activity)).order_by(Alert.id.desc())
 
     # for instances, active_exams would need to iterate through results as filter by cannot filter
     for query in [x for x in params if params[x] is not None]:
@@ -45,7 +45,7 @@ async def get_group(
     # for instances, active_exams would need to iterate through results as filter by cannot filter
     for query in [x for x in params if params[x] is not None]:
         if query=="search":
-            data = data.filter(or_(Alert.center.like(f"%{params[query]}%"),Alert.camera.like(f"%{params[query]}%"), Alert.location.like(f"%{params[query]}%"), Alert.sublocation.like(f"%{params[query]}%"), Alert.feature.like(f"%{params[query]}%")))
+            data = data.filter(or_(Alert.id.like(params[query]),Alert.center.like(f"%{params[query]}%"),Alert.camera.like(f"%{params[query]}%"), Alert.location.like(f"%{params[query]}%"), Alert.sublocation.like(f"%{params[query]}%"), Alert.feature.like(f"%{params[query]}%")))
         else:
             attr, operator = query.split('__')
             data = data.filter(get_sqlalchemy_operator(operator)(getattr(Alert,attr),f"%{params[query]}%" if operator=="like" else params[query]))

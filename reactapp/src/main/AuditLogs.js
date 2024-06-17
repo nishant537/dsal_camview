@@ -386,9 +386,9 @@ function Main(props) {
                             <Grid container rowSpacing={1} columnSpacing={{ xs: 1, sm: 2, md: 3 }}>
                                 {Object.entries(imgData).map(([key,value])=>
                                     key!=="image_path" && key!=="video_path" ? 
-                                    <Grid item xs={6}>
-                                        <Stack direction="row" gap={1}>
-                                            <Typography variant="h3" color={theme.palette.text.disabled}>{key} : </Typography>
+                                    <Grid item xs={12}>
+                                        <Stack direction="row" gap={1} sx={{overflowWrap:"anywhere"}}>
+                                            <Typography variant="h3" color={theme.palette.text.disabled} sx={{textWrap:"nowrap"}}>{key} : </Typography>
                                             <Typography variant="h3">{value}</Typography>
                                         </Stack>
                                     </Grid>
@@ -481,7 +481,7 @@ function Main(props) {
                             onRowClick = {(ids) => {handleImgData(ids);openGroup(ids)}}
                         />  
                     </div>
-                    <Stack direction="column" gap={1}>
+                    <Stack direction="column" gap={1} sx={{width:'40%'}}>
                         <ToggleButtonGroup color="secondary" value={alignment2} fullWidth exclusive onChange={handleToggleChange2} aria-label="Platform" style={{width:"100%"}}>
                             <ToggleButton value="image" id="alert_image">Image</ToggleButton>
                             <ToggleButton value="video" id="alert_video">Video</ToggleButton>
@@ -491,9 +491,9 @@ function Main(props) {
                             <Grid container rowSpacing={1} columnSpacing={{ xs: 1, sm: 2, md: 3 }}>
                                 {Object.entries(imgData).map(([key,value])=>
                                     key!=="image_path" && key!=="video_path" && key!=="status" && key!=="comment" ? 
-                                    <Grid item xs={6}>
-                                        <Stack direction="row" gap={1}>
-                                            <Typography variant="h3" color={theme.palette.text.disabled}>{key} : </Typography>
+                                    <Grid item xs={12}>
+                                        <Stack direction="row" gap={1} sx={{overflowWrap:"anywhere"}}>
+                                            <Typography variant="h3" color={theme.palette.text.disabled} sx={{textWrap:"nowrap"}}>{key} : </Typography>
                                             <Typography variant="h3">{value}</Typography>
                                         </Stack>
                                     </Grid>

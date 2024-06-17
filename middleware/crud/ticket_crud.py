@@ -31,6 +31,7 @@ async def get_group(
     ):
     # using joinedLoad instead of response_model to only fetch required data
     params = request.query_params
+    print(params)
     latest_subquery = db.query(func.max(Ticket.id).label('id'),func.count().label('row_count')).group_by(Ticket.camera, Ticket.feature).subquery()
     data = db.query(Ticket, latest_subquery.c.row_count).options(joinedload(Ticket.activity), joinedload(Ticket.alert)).join(latest_subquery, Ticket.id == latest_subquery.c.id)
     # for instances, active_exams would need to iterate through results as filter by cannot filter
@@ -44,7 +45,7 @@ async def get_group(
                     temp.append(row)
             return temp
         else:
-            data = data.filter(get_sqlalchemy_operator(operator)(getattr(Alert,attr),f"%{params[query]}%" if operator=="like" else params[query]))
+            data = data.filter(get_sqlalchemy_operator(operator)(getattr(Ticket,attr),f"%{params[query]}%" if operator=="like" else params[query]))
     
     return [{**row._asdict()['Ticket'].__dict__,**{"group_count":row._asdict()['row_count']}} for row in data.all()]
 
