@@ -42,8 +42,6 @@ async def get_group(
     latest_timestamp_count_subquery = db.query(Alert.camera,Alert.feature,func.max(Alert.timestamp).label('latest_timestamp'),func.count().label('group_count')).group_by(Alert.camera, Alert.feature).subquery()
     data = db.query(Alert, latest_timestamp_count_subquery.c.group_count).join(latest_timestamp_count_subquery, (Alert.camera == latest_timestamp_count_subquery.c.camera) & (Alert.feature == latest_timestamp_count_subquery.c.feature)).filter(Alert.timestamp == latest_timestamp_count_subquery.c.latest_timestamp).options(joinedload(Alert.activity)).order_by(Alert.timestamp.desc())
     
-    # filter query
-    data = data.filter(Alert.center=="center")
     # for instances, active_exams would need to iterate through results as filter by cannot filter
     for query in [x for x in params if params[x] is not None]:
         if query=="search":
