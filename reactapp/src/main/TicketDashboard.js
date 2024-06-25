@@ -44,20 +44,34 @@ function Main(props) {
     const [metaData,setMetaData] = React.useState({"total":0,"new":0,"open":0,"resolved":0})
 
     React.useEffect(() => {
-        const interval = setInterval(() => {
-            get_group((urlParams)).then((value)=>{
-                if (value){
-                    const temp = {"total":0,"new":0,"open":0,"resolved":0}
-                    value.map((row,index)=>{
-                        temp['total']+=1
-                        temp[value['status']]+=1
-                    })
-                    setMetaData(temp)
-                    setRows(value)
-                }
-            })
-        }, 2000);
-        return () => clearInterval(interval);
+        // const interval = setInterval(() => {
+        //     get_group((urlParams)).then((value)=>{
+        //         if (value){
+        //             console.log(value)
+        //             const temp = {"total":0,"new":0,"open":0,"resolved":0}
+        //             value.map((row,index)=>{
+        //                 temp['total']+=1
+        //                 temp[value['status']]+=1
+        //             })
+        //             setMetaData(temp)
+        //             setRows(value)
+        //         }
+        //     })
+        // }, 2000);
+        // return () => clearInterval(interval);
+
+        get_group((urlParams)).then((value)=>{
+            if (value){
+                console.log(value)
+                const temp = {"total":0,"new":0,"open":0,"resolved":0}
+                value.map((row,index)=>{
+                    temp['total']+=1
+                    temp[value['status']]+=1
+                })
+                setMetaData(temp)
+                setRows(value)
+            }
+        })
       }, [urlParams]);
 
     const columns = [
@@ -84,13 +98,14 @@ function Main(props) {
         headerName: 'PRIORITY',
         flex:1,
         minWidth:150,
+        type:"singleSelect",
+        valueOptions:["insignificant","minor","moderate","major","critical"],
         renderCell: (params) => {
-            const priority = params.value===0 ? "Insignificant" : params.value<=2 ? "Minor" : params.value < 5 ? "Moderate" : params.value < 10 ? "Major" : "Critical"
+            const priority = params.value===0 ? "Insignificant" : params.value<=2 ? "Minor" : params.value <= 5 ? "Moderate" : params.value <= 10 ? "Major" : "Critical"
             return (
-                <Button variant="contained" sx={{background:params.value===0 ? "#39d56f" : params.value<=2 ? "#86ed62" : params.value < 5 ? "#ffcd29" : params.value < 10 ? "#ffa629" : "#ff7250"}}>{priority}</Button>
+                <Button variant="contained" sx={{background:params.value===0 ? "#39d56f" : params.value<=2 ? "#86ed62" : params.value <= 5 ? "#ffcd29" : params.value <= 10 ? "#ffa629" : "#ff7250"}}>{priority}</Button>
             )
         },
-        filterable: false,
     },
     {
         field: 'center',
@@ -140,65 +155,49 @@ function Main(props) {
 
     
 
-    function CustomToolbar() {
-    return (
-        <GridToolbarContainer>
-            <Stack alignItems="center" direction="row" gap={1}>
-                <GridToolbarFilterButton
-                    sx={{padding:"0 20px"}}
-                    componentsProps={{
-                        button: {
-                            startIcon: (
-                                <FilterAlt />
-                            )
-                        }
-                    }}
-                />
-                <TextField sx={{width: "450px",my:2,mr:4, background:"#f4f2ff" }} id="contained-search" disabled={true} variant="outlined" placeholder='Seach Ticket' type="search" InputProps={{
-                    startAdornment: (
-                        <InputAdornment>
-                            <IconButton>
-                                <Search />
-                            </IconButton>
-                        </InputAdornment>
-                    )
-                }}/>
+    // searchbar -------------------------------------
+    const [searchValue, setSearchValue] = React.useState(()=>{
+        const data = new URLSearchParams(urlParams)
+        if (data.get("search")){
+            return data.get('search')
+        }else{
+            return ""
+        }
+    });
 
-                <div>
-                    <Grid container rowSpacing={1} columnSpacing={{ xs: 1, sm: 2, md: 3 }}>
-                        <Grid item xs={6}>
-                            <Stack alignItems="center" direction="row" gap={1}>
-                                <LibraryBooks color={theme.palette.text.disabled}/>
-                                <Typography variant="h3" color={theme.palette.text.disabled}>Total Tickets : </Typography>
-                                <Typography variant="h3">{metaData['total']}</Typography>
-                            </Stack>
-                        </Grid>
-                        <Grid item xs={6}>
-                            <Stack alignItems="center" direction="row" gap={1}>
-                                <Storage color={theme.palette.text.disabled}/>
-                                <Typography variant="h3" color={theme.palette.text.disabled}>New Tickets : </Typography>
-                                <Typography variant="h3">{metaData['new']}</Typography>
-                            </Stack>
-                        </Grid>
-                        <Grid item xs={6}>
-                            <Stack alignItems="center" direction="row" gap={1}>
-                                <Storage color={theme.palette.text.disabled}/>
-                                <Typography variant="h3" color={theme.palette.text.disabled}>Open Tickets : </Typography>
-                                <Typography variant="h3">{metaData['open']}</Typography>
-                            </Stack>
-                        </Grid>
-                        <Grid item xs={6}>
-                            <Stack alignItems="center" direction="row" gap={1}>
-                                <CheckBox color={theme.palette.text.disabled}/>
-                                <Typography variant="h3" color={theme.palette.text.disabled}>Resolved Tickets : </Typography>
-                                <Typography variant="h3">{metaData['resolved']}</Typography>
-                            </Stack>
-                        </Grid>
-                    </Grid>
-                </div>
-            </Stack>
-        </GridToolbarContainer>
-    );
+    const searchInputRef = React.useRef(null);
+    React.useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+        // Make API call with the final search value
+        if (searchValue!==""){
+            const data = new URLSearchParams()
+            data.append("search",searchValue)
+            window.history.replaceState({}, '', `${window.location.pathname}?${data}`);
+            setUrlParams(data.toString())
+            console.log(searchValue)
+        }else{
+            const data = new URLSearchParams(urlParams)
+            data.delete("search")
+            window.history.replaceState({}, '', `${window.location.pathname}?${data}`);
+            setUrlParams(data.toString())
+        }
+    }, 1000);
+
+    return () => clearTimeout(delayDebounceFn);
+    }, [searchValue]);
+
+    const handleSearchInputChange = (event) => {
+        const newValue = event.target.value;
+        setSearchValue(newValue);
+    };
+    // -----------------------------------------------------------
+
+    function CustomToolbar() {
+        return (
+            <GridToolbarContainer>
+                <GridToolbarFilterButton/>
+            </GridToolbarContainer>
+        );
     }
     function CustomFooter () {
     return (
@@ -236,6 +235,52 @@ function Main(props) {
                 <Typography variant="h1" noWrap component="div" textAlign="center" borderBottom={"5px solid"} mb={2}>
                     BPSC March 2024
                 </Typography>
+
+                <Stack alignItems="center" direction="row" gap={1} sx={{width:"100%"}} justifyContent={"space-between"}>
+                    <TextField sx={{width: "450px",mb:2,mr:4, background:"#f4f2ff" }} variant="outlined" placeholder='Seach Id, Camera, Center, Feature, Sub-Location' type="search" value={searchValue} onChange={handleSearchInputChange} inputRef={searchInputRef} InputProps={{
+                        startAdornment: (
+                            <InputAdornment>
+                                <IconButton>
+                                    <Search />
+                                </IconButton>
+                            </InputAdornment>
+                        )
+                    }}/>
+
+                    <div>
+                        <Grid container rowSpacing={1} columnSpacing={{ xs: 1, sm: 2, md: 3 }}>
+                            <Grid item xs={6}>
+                                <Stack alignItems="center" direction="row" gap={1}>
+                                    <LibraryBooks color={theme.palette.text.disabled}/>
+                                    <Typography variant="h3" color={theme.palette.text.disabled}>Total Tickets : </Typography>
+                                    <Typography variant="h3">{metaData['total']}</Typography>
+                                </Stack>
+                            </Grid>
+                            <Grid item xs={6}>
+                                <Stack alignItems="center" direction="row" gap={1}>
+                                    <Storage color={theme.palette.text.disabled}/>
+                                    <Typography variant="h3" color={theme.palette.text.disabled}>New Tickets : </Typography>
+                                    <Typography variant="h3">{metaData['new']}</Typography>
+                                </Stack>
+                            </Grid>
+                            <Grid item xs={6}>
+                                <Stack alignItems="center" direction="row" gap={1}>
+                                    <Storage color={theme.palette.text.disabled}/>
+                                    <Typography variant="h3" color={theme.palette.text.disabled}>Open Tickets : </Typography>
+                                    <Typography variant="h3">{metaData['open']}</Typography>
+                                </Stack>
+                            </Grid>
+                            <Grid item xs={6}>
+                                <Stack alignItems="center" direction="row" gap={1}>
+                                    <CheckBox color={theme.palette.text.disabled}/>
+                                    <Typography variant="h3" color={theme.palette.text.disabled}>Resolved Tickets : </Typography>
+                                    <Typography variant="h3">{metaData['resolved']}</Typography>
+                                </Stack>
+                            </Grid>
+                        </Grid>
+                    </div>
+                </Stack>
+                
 
                 <DataGridPro
                     sx={{

@@ -48,6 +48,14 @@ async def get(
     response = await alert_crud.get_stats(db,request)
     return response
 
+@router.get("/export")
+async def export(
+        request: Request,
+        db: Session = Depends(get_db)
+    ):
+    response = await alert_crud.export(db,request)
+    return response
+
 @router.get("/review")
 async def get(
         request: Request,
@@ -70,6 +78,7 @@ async def put(id:int ,server_data:AlertInSchema,db: Session = Depends(get_db)):
 async def delete(id:int, db: Session = Depends(get_db)):
     response = await alert_crud.delete(db,id=id)
     return response
+
 
 # @router.post('/')
 # async def add_service(service_data:ServiceSchema,db: Session = Depends(get_db)):

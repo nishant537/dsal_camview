@@ -56,6 +56,7 @@ function Main(props) {
     const onError = (errors, e) => {
         alert(errors)
     };
+
     return(
         <>
 
@@ -89,7 +90,7 @@ function Main(props) {
                         <Divider/>
                         <div style={{display:"flex",alignItems:"center"}}>
                             <div style={{width:"70%",display:"flex",flexDirection:"column", gap:"20px", padding:"20px 0 "}}>
-                                <Stack direction="row" spacing={2} alignItems="center">
+                                <Stack direction="row" spacing={2}>
                                     <Typography variant="h2" color={theme.palette.text.disabled}>Status :</Typography>
                                     
                                     {edit ? 
@@ -104,32 +105,24 @@ function Main(props) {
                                     }
 
                                 </Stack>
-                                {/* <Stack direction="row" spacing={2} alignItems="center">
-                                    <Typography variant="h2" color={theme.palette.text.disabled}>Priority :</Typography>
-                                    <Typography variant="h2">Medium</Typography>
-                                </Stack> */}
-                                {/* <Stack direction="row" spacing={2} alignItems="center">
-                                    <Typography variant="h2" color={theme.palette.text.disabled}>Assignee :</Typography>
-                                    <Typography variant="h2">User 12</Typography>
-                                </Stack> */}
-                                <Stack direction="row" spacing={2} alignItems="center">
+                                <Stack direction="row" spacing={2}>
                                     <Typography variant="h2" color={theme.palette.text.disabled}>Category :</Typography>
                                     <Typography variant="h2">{ticketDetails['feature']}</Typography>
                                 </Stack>
-                                <Stack direction="row" spacing={2} alignItems="center">
+                                <Stack direction="row" spacing={2}>
                                     <Typography variant="h2" color={theme.palette.text.disabled}>Timestamp :</Typography>
                                     <Typography variant="h2">{ticketDetails['activity'][0]['last_updated'] ? (dateFormat(new Date(ticketDetails['activity'][0]['last_updated']), "hh:mm:ss TT yyyy-mm-dd")).toString() : ""}</Typography>
                                 </Stack>
-                                <Stack direction="row" spacing={2} alignItems="center">
+                                <Stack direction="row" spacing={2}>
                                     <Typography variant="h2" color={theme.palette.text.disabled}>Priority :</Typography>
                                     <Typography variant="h2">{data.length<=2 ? "Minor" : data.length<=5 ? "Moderate" : data.length<=10 ? "Major" : "Critical"}</Typography>
                                 </Stack>
-                                <Stack direction="row" spacing={2} alignItems="center">
-                                    <Typography variant="h2" color={theme.palette.text.disabled}>Description :</Typography>
+                                <Stack direction="row" spacing={2} sx={{overflowWrap:"anywhere"}}>
+                                    <Typography variant="h2" color={theme.palette.text.disabled} sx={{textWrap:"nowrap"}}>Description :</Typography>
                                     <Typography variant="h2">Alert Detected at {ticketDetails['alert']['center']} on {ticketDetails['alert']['camera']}</Typography>
                                 </Stack>
-                                <Stack direction="row" spacing={2} alignItems="center">
-                                    <Typography variant="h2" color={theme.palette.text.disabled}>Comment :</Typography>
+                                <Stack direction="row" spacing={2} sx={{overflowWrap:"anywhere"}}>
+                                    <Typography variant="h2" color={theme.palette.text.disabled} sx={{textWrap:"nowrap"}}>Comment :</Typography>
                                     {edit ? 
                                         <TextField
                                             {...register('comment')}
@@ -144,12 +137,13 @@ function Main(props) {
                                     }
                                 </Stack>
                             </div>
-                            <Stack direction="column" gap={1}>
+                            <Stack direction="column" gap={1} sx={{width:"30%"}}>
                                 <ToggleButtonGroup color="secondary" value={alignment2} fullWidth exclusive onChange={handleToggleChange2} aria-label="Platform" style={{width:"100%"}}>
                                     <ToggleButton value="image" id="alert_image">Image</ToggleButton>
-                                    <ToggleButton value="video" id="alert_video">Video</ToggleButton>
                                 </ToggleButtonGroup>
-                                <img src="/alert.png" alt="Alert for Zone Intrusion"/>
+                                <div style={{height:'250px',position:"relative",alignContent:"center",textAlign:"center"}}>
+                                    <img src={ticketDetails['alert']['image_path']} alt="Ticket view" style={{maxWidth:"100%",maxHeight:"100%",height:"auto",width:"auto"}} />
+                                </div>
                             </Stack>
                         </div>
                     </Paper>

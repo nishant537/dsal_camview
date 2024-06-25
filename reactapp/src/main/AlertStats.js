@@ -22,7 +22,7 @@ function Main(props) {
     const operator_to_string = {"=":"eq","!=":"not",">":"gt",">=":"gte","<":"lt","<=":"lte","contains":"like"};
     const string_to_operator = Object.fromEntries(Object.entries(operator_to_string).map(a => a.reverse()));
     const numeric_operators = getGridNumericOperators().filter(
-        (operator) => operator.value === '=' || operator.value === '>',
+        (operator) => operator.value === '=',
     )
     const string_operators = getGridStringOperators().filter(
         (operator) => operator.value === 'contains',
@@ -52,22 +52,36 @@ function Main(props) {
     let dict_columns = {}
 
     React.useEffect(() => {
-        const interval = setInterval(() => {
-            get_stats((urlParams)).then((value)=>{
-                if (value){
-                    const temp = {"center":0,"total":0,"true":0,"false":0}
-                    value.map((row,index)=>{
-                        temp['center']+=1
-                        temp['total']+=Object.values(row['total']).reduce((acc, val) => acc + val, 0);
-                        temp['true']+=row['total']['true']
-                        temp['false']+=row['total']['false']
-                    })
-                    setMetaData(temp)
-                    setRows(value)
-                }
-            })
-        }, 2000);
-        return () => clearInterval(interval);
+        // const interval = setInterval(() => {
+        //     get_stats((urlParams)).then((value)=>{
+        //         if (value){
+        //             const temp = {"center":0,"total":0,"true":0,"false":0}
+        //             value.map((row,index)=>{
+        //                 temp['center']+=1
+        //                 temp['total']+=Object.values(row['total']).reduce((acc, val) => acc + val, 0);
+        //                 temp['true']+=row['total']['true']
+        //                 temp['false']+=row['total']['false']
+        //             })
+        //             setMetaData(temp)
+        //             setRows(value)
+        //         }
+        //     })
+        // }, 2000);
+        // return () => clearInterval(interval);
+
+        get_stats((urlParams)).then((value)=>{
+            if (value){
+                const temp = {"center":0,"total":0,"true":0,"false":0}
+                value.map((row,index)=>{
+                    temp['center']+=1
+                    temp['total']+=Object.values(row['total']).reduce((acc, val) => acc + val, 0);
+                    temp['true']+=row['total']['true']
+                    temp['false']+=row['total']['false']
+                })
+                setMetaData(temp)
+                setRows(value)
+            }
+        })
     }, [urlParams]);
 
     if (rows.length>0){
@@ -129,16 +143,24 @@ function Main(props) {
                             },
                         }
                     }
-                    else{
-                        dict_columns[key] = {
+                    else if (key==="center"){
+                        dict_columns["center"] = {
                             field: key,
                             headerName: key,
-                            // type: 'number',
                             flex:0.3,
                             minWidth:150,
-                            filterable: false,
-                            renderCell: (params) => {return  key==='center' ? <a href={`/alert?center__like=${params.value}`}>{params.value}</a> : <span>{params.value}</span>},
-                            // filterOperators: string_operators,
+                            renderCell: (params) => {return  <a href={`/alert?center__like=${params.value}`}>{params.value}</a>},
+                            filterOperators: string_operators,
+                        }
+                    }else if (key==="id"){
+                        dict_columns["id"] = {
+                            field: key,
+                            headerName: key,
+                            type: "number",
+                            flex:0.3,
+                            minWidth:150,
+                            renderCell: (params) => {return <span>{params.value}</span>},
+                            filterOperators: numeric_operators,
                         }
                     }
                 }
@@ -146,10 +168,33 @@ function Main(props) {
         )
         
     }
-    
+
+
     // function for flattening the json
-    const getAllObjects = obj => Object.values(obj).flatMap(value => typeof value === 'object' ? [value, ...getAllObjects(value)] : []);
-    const columns = getAllObjects(dict_columns)
+    const getAllObjects = (dict) => {
+        let columns = []
+        Object.entries(dict).map(([key,value])=>{
+            if (!(Object.keys(value).includes("headerName"))){
+                Object.entries(value).map(([key1,value1])=>{
+                    columns.push(value1)
+                })
+            }else{
+                columns.push(value)
+            }
+        })
+        return columns;
+    }
+    let columns = getAllObjects(dict_columns)
+    if (columns.length===0){
+        columns = [{ 
+            field: 'center', 
+            headerName: "CENTER",
+            type: "number",
+            flex:1, 
+            filterOperators: numeric_operators,
+        }]
+    }
+
 
     const columnGroupingModel = [];
     const t = {};
@@ -177,22 +222,89 @@ function Main(props) {
         )
     })
 
+    // searchbar -------------------------------------
+    const [searchValue, setSearchValue] = React.useState(()=>{
+        const data = new URLSearchParams(urlParams)
+        if (data.get("search")){
+            return data.get('search')
+        }else{
+            return ""
+        }
+    });
 
+    const searchInputRef = React.useRef(null);
+    React.useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+        // Make API call with the final search value
+        if (searchValue!==""){
+            const data = new URLSearchParams()
+            data.append("search",searchValue)
+            window.history.replaceState({}, '', `${window.location.pathname}?${data}`);
+            setUrlParams(data.toString())
+            console.log(searchValue)
+        }else{
+            const data = new URLSearchParams(urlParams)
+            data.delete("search")
+            window.history.replaceState({}, '', `${window.location.pathname}?${data}`);
+            setUrlParams(data.toString())
+        }
+    }, 1000);
+
+    return () => clearTimeout(delayDebounceFn);
+    }, [searchValue]);
+
+    const handleSearchInputChange = (event) => {
+        const newValue = event.target.value;
+        setSearchValue(newValue);
+    };
+
+    // -----------------------------------------------------------
     function CustomToolbar() {
         return (
             <GridToolbarContainer>
-                <Stack alignItems="center" direction="row" gap={1}>
-                    <GridToolbarFilterButton
-                        sx={{padding:"0 20px"}}
-                        componentsProps={{
-                            button: {
-                                startIcon: (
-                                    <FilterAlt />
-                                )
-                            }
-                        }}
-                    />
-                    <TextField sx={{width: "450px",my:2,mr:4, background:"#f4f2ff" }} id="contained-search" disabled={true} variant="outlined" value={search} onChange={handleSearch} placeholder='Search Stats' type="search" InputProps={{
+                <GridToolbarFilterButton/>
+            </GridToolbarContainer>
+        );
+    }
+
+    function CustomFooter () {
+    return (
+        <GridFooterContainer sx={{backgroundColor:"#f4f2ff"}}>
+        {/* Add what you want here */}
+        <GridFooter sx={{
+            border: 'none', // To delete double border.
+            justifyContent:"space-between"
+            }} />
+        </GridFooterContainer>
+    );
+    }
+    
+    const onFilterModelChange = (newFilterModel) => {
+        console.log("Filter model Changed!")
+        const data = new URLSearchParams();
+        newFilterModel['items'].map((value, index)=>{
+            if (value['value']){
+                data.append(`${value['field']}__${operator_to_string[value['operator']]}`, value['value'])
+            }
+        })
+        window.history.replaceState({}, '', `${window.location.pathname}?${data}`);
+        setUrlParams(data.toString())
+    }
+    return(
+        <>
+
+            <Box
+                component="main"
+                sx={{ display:"flex", flexFlow: "column", py: 2, px: 3, width: { sm: `calc(100% - ${drawerWidth}px)`,'& .MuiDataGrid-columnHeaders': { backgroundColor: '#f4f2ff',fontSize:"1.2rem", fontWeight:800,color:"#8b83ba"},} }}
+            >
+                <Toolbar />
+
+                <Typography variant="h1" noWrap component="div" textAlign="center" color="primary" borderBottom={"5px solid"} mb={2}>
+                    Alert Stats
+                </Typography>
+                
+                <Stack alignItems="center" direction="row" gap={1} justifyContent={"space-between"} sx={{width:"100%"}}>
+                    <TextField sx={{width: "450px",mb:2,mr:4, background:"#f4f2ff" }} variant="outlined" placeholder='Seach Id, Center' type="search" value={searchValue} onChange={handleSearchInputChange} inputRef={searchInputRef} InputProps={{
                         startAdornment: (
                             <InputAdornment>
                                 <IconButton>
@@ -235,46 +347,6 @@ function Main(props) {
                     </Grid>
                 </div>
                 </Stack>
-            </GridToolbarContainer>
-        );
-    }
-
-    function CustomFooter () {
-    return (
-        <GridFooterContainer sx={{backgroundColor:"#f4f2ff"}}>
-        {/* Add what you want here */}
-        <GridFooter sx={{
-            border: 'none', // To delete double border.
-            justifyContent:"space-between"
-            }} />
-        </GridFooterContainer>
-    );
-    }
-    
-    const onFilterModelChange = (newFilterModel) => {
-        console.log("Filter model Changed!")
-        const data = new URLSearchParams();
-        newFilterModel['items'].map((value, index)=>{
-            if (value['value']){
-                data.append(`${value['field']}__${operator_to_string[value['operator']]}`, value['value'])
-            }
-        })
-        window.history.replaceState({}, '', `${window.location.pathname}?${data}`);
-        setUrlParams(data.toString())
-    }
-    return(
-        <>
-
-            <Box
-                component="main"
-                sx={{ display:"flex", flexFlow: "column", py: 2, px: 3, width: { sm: `calc(100% - ${drawerWidth}px)`,'& .MuiDataGrid-columnHeaders': { backgroundColor: '#f4f2ff',fontSize:"1.2rem", fontWeight:800,color:"#8b83ba"},} }}
-            >
-                <Toolbar />
-
-                <Typography variant="h1" noWrap component="div" textAlign="center" color="primary" borderBottom={"5px solid"} mb={2}>
-                    Alert Stats
-                </Typography>
-                
 
                 <DataGridPro
                     sx={{

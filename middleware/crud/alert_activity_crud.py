@@ -1,6 +1,6 @@
 from json import JSONEncoder
 import logging
-from sqlalchemy import select
+from sqlalchemy import select, or_
 from db.database import *
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
@@ -14,13 +14,17 @@ async def get(
         request # *******SETBACK******* = in documentation query parameters are not specified with this approach    
     ):
     params = request.query_params
-    data = db.query(AlertActivity).options(joinedload(AlertActivity.alert)).order_by(AlertActivity.id.desc())
+    print(params)
+    alert_data = db.query(Alert).options(joinedload(Alert.activity))
     # for instances, active_exams would need to iterate through results as filter by cannot filter
     for query in [x for x in params if params[x] is not None]:
-        attr, operator = query.split('__') 
-        data = data.filter(get_sqlalchemy_operator(operator)(getattr(AlertActivity,attr),params[query]))
+        if query=="search":
+            alert_data = alert_data.filter(or_(Alert.id.like(params[query]),Alert.center.like(f"%{params[query]}%"),Alert.camera.like(f"%{params[query]}%"), Alert.location.like(f"%{params[query]}%"), Alert.sublocation.like(f"%{params[query]}%"), Alert.feature.like(f"%{params[query]}%")))
+        else:
+            attr, operator = query.split('__') 
+            alert_data = alert_data.filter(get_sqlalchemy_operator(operator)(getattr(Alert,attr),params[query]))
 
-    return data.all()
+    return [[activity_row.__dict__ for activity_row in row.__dict__['activity']] for row in alert_data]
 
 async def get_one(
         db: Session,
@@ -31,11 +35,13 @@ async def get_one(
     return data.all()
 
 async def post(db: Session,payload: AlertActivityInSchema):
+    data = db.query(Alert).filter_by(id=payload.alert_id).first()
+    data.status = payload.status
+
     db_item = AlertActivity(**payload.dict())
     db.add(db_item)
     db.commit()
     db.refresh(db_item)
-    print(db_item.__dict__)
     return db_item
 
 # async def put(db, create_body, server_id):

@@ -1,13 +1,13 @@
 import * as React from 'react';
 import { Grid, Box, IconButton, Toolbar, Typography, TextField, InputAdornment, Stack,Button, Modal, FormControl, Paper, Divider, Select, MenuItem, ToggleButtonGroup, ToggleButton} from '@mui/material';
-import { DataGrid,GridToolbarContainer,GridToolbarFilterButton,GridColumnHeaderParams, GridFooterContainer, GridFooter, gridClasses,getGridStringOperators, getGridNumericOperators} from '@mui/x-data-grid';
-import {Search, FilterAlt,Groups, Storage, LibraryBooks, CheckBox, Image, VideoCall, ArrowCircleUp, ArrowCircleDown} from "@mui/icons-material";
+import { DataGrid,GridToolbarContainer,GridToolbarFilterButton,GridToolbarExport,GridColumnHeaderParams, GridFooterContainer, GridFooter, gridClasses,getGridStringOperators, getGridNumericOperators} from '@mui/x-data-grid';
+import {Search, FilterAlt,Groups, Storage, LibraryBooks, CheckBox, Image, VideoCall, ArrowCircleUp, ArrowCircleDown, Download} from "@mui/icons-material";
 import { useTheme } from '@mui/material/styles';
 import {DataGridPro} from "@mui/x-data-grid-pro";
 import { LineChart } from '@mui/x-charts/LineChart';
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
-import {get, post, get_summary, get_group} from '../provider/alert_provider';
+import {get, post, get_summary, get_group,get_export} from '../provider/alert_provider';
 import { useForm } from 'react-hook-form'
 import dateFormat, { masks } from "dateformat";
 import { debounce } from 'lodash';
@@ -74,8 +74,9 @@ function Main(props) {
             if (!statusModal){
                 get_group((urlParams)).then((value)=>{
                     if (value){
-                        console.log(value)
-                        handleImgData({"row":value[0]})
+                        if (value.length > 0){
+                            handleImgData({"row":value[0]})
+                        }
                         setRows(value)
                     }
                 })
@@ -137,15 +138,28 @@ function Main(props) {
         field: 'group_count',
         headerName: "PRIORITY",
         flex:1.5,
-        // type:"singleSelect",
-        // valueOptions:["minor","moderate","major","critical"],
+        type:"singleSelect",
+        valueOptions:["insignificant","minor","moderate","major","critical"],
         renderCell: (params) => {
-            const priority = params.value===0 ? "Insignificant" : params.value<=2 ? "Minor" : params.value < 5 ? "Moderate" : params.value < 10 ? "Major" : "Critical"
+            const priority = params.value===0 ? "Insignificant" : params.value<=2 ? "Minor" : params.value <= 5 ? "Moderate" : params.value <= 10 ? "Major" : "Critical"
             return (
-                <Button variant="contained" sx={{background:params.value===0 ? "#39d56f" : params.value<=2 ? "#86ed62" : params.value < 5 ? "#ffcd29" : params.value < 10 ? "#ffa629" : "#ff7250"}}>{priority}</Button>
+                <Button variant="contained" sx={{background:params.value===0 ? "#39d56f" : params.value<=2 ? "#86ed62" : params.value <= 5 ? "#ffcd29" : params.value <= 10 ? "#ffa629" : "#ff7250"}}>{priority}</Button>
             )
         },
-        filterable: false,
+    },
+    {
+        field: 'status',
+        headerName: "STATUS",
+        flex:1.5,
+        type:"singleSelect",
+        valueOptions:["true","false"],
+        renderCell: (params) => {
+            return (
+                <div style={{display:"flex",justifyContent:"center",height:"100%",alignItems:"center"}}>
+                    <div style={{width:"10px", height:"10px",borderRadius:"50%", background:params.value==="true" ? "#39d56f" : params.value==="false" ? "red" : "grey"}}></div>
+                </div>
+            )
+        },
     },
     ];
 
@@ -192,7 +206,7 @@ function Main(props) {
         
     ];
 
-    // searchbar
+    // searchbar -------------------------------------
     const [searchValue, setSearchValue] = React.useState(()=>{
         const data = new URLSearchParams(urlParams)
         if (data.get("search")){
@@ -202,7 +216,6 @@ function Main(props) {
         }
     });
 
-    // search bar state
     const searchInputRef = React.useRef(null);
     React.useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
@@ -219,7 +232,7 @@ function Main(props) {
             window.history.replaceState({}, '', `${window.location.pathname}?${data}`);
             setUrlParams(data.toString())
         }
-    }, 1000); // Adjust the debounce delay as needed
+    }, 1000);
 
     return () => clearTimeout(delayDebounceFn);
     }, [searchValue]);
@@ -228,23 +241,12 @@ function Main(props) {
         const newValue = event.target.value;
         setSearchValue(newValue);
     };
+    // -----------------------------------------------------------
+
     function CustomToolbar() {
        return (
         <GridToolbarContainer>
-            <Stack alignItems="center" direction="row" gap={1}>
-                <GridToolbarFilterButton
-                    sx={{padding:"0 20px"}}
-                    componentsProps={{
-                        button: {
-                            startIcon: (
-                                <FilterAlt />
-                            )
-                        }
-                    }}
-                />
-                
-
-            </Stack>
+            <GridToolbarFilterButton/>
         </GridToolbarContainer>
     );
     }
@@ -276,10 +278,7 @@ function Main(props) {
         window.history.replaceState({}, '', `${window.location.pathname}?${data}`);
         setUrlParams(data.toString())
     }
-    
-    const {register, handleSubmit} = useForm([])
-    const onSubmit = (data, e) => {post(data)};
-    const onError = (errors, e) => {post(errors)};
+
 
     const openGroup = (ids) => {
         const data = new URLSearchParams(urlParams);
@@ -458,13 +457,15 @@ function Main(props) {
                 aria-labelledby="modal-modal-title"
                 aria-describedby="modal-modal-description"
             >
-                <Box sx={{maxWidth:"700px" ,position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', bgcolor: 'background.paper', boxShadow: 24,}}>
-                    <Stack direction="column" gap={1}>
+                <Box sx={{maxHeight:"100%",maxWidth:"700px" ,position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', bgcolor: 'background.paper', boxShadow: 24,}}>
+                    <div style={{display:"flex",flexDirection:"column",gap:"10px"}}>
                         <ToggleButtonGroup color="secondary" value={alignment2} fullWidth exclusive onClick={(e,newAlignment)=>setAlignment2(newAlignment)} aria-label="Platform" style={{width:"100%"}}>
                             <ToggleButton value="image" id="alert_image">Image</ToggleButton>
                             {/* <ToggleButton value="video" id="alert_video">Video</ToggleButton> */}
                         </ToggleButtonGroup>
-                        <img src={imgData['image_path']==="" ? "noimage.jpeg" : imgData['image_path']} alt="Alert for Zone Intrusion" onClick={()=>{setImageModal(true)}} style={{width:"100%"}}/>
+                        <div style={{height:'200px',position:"relative",alignContent:"center",textAlign:"center"}}>
+                            <img src={imgData['image_path']==="" ? "noimage.jpeg" : imgData['image_path']} alt="Alert for Zone Intrusion" onClick={()=>{setImageModal(true)}} style={{maxWidth:"100%",maxHeight:"100%",height:"auto",width:"auto"}} />
+                        </div>
                         <Box container border={"1px solid #e8e8e8"} borderRadius={3} p={2}>
                             <Grid container rowSpacing={1} columnSpacing={{ xs: 1, sm: 2, md: 3 }}>
                                 {Object.entries(imgData).map(([key,value])=>
@@ -484,9 +485,9 @@ function Main(props) {
                             <ToggleButton value="true" >True</ToggleButton>
                             <ToggleButton value="false" >False</ToggleButton>
                         </ToggleButtonGroup>
-                        <Button variant="contained" color="primary" onClick={()=>{setStatus("list",imgData['Event Id'], alignment3);setStatusModal(false)}}>Submit</Button>
+                        <Button variant="contained" color="primary" onClick={()=>{setStatus("list",imgData['Event Id'], alignment3);setStatusModal(false)}} sx={{width:"100%"}}>Submit</Button>
                         
-                    </Stack>
+                    </div>
                 </Box>
             </Modal>
 
@@ -558,15 +559,21 @@ function Main(props) {
 
                 <Stack direction="row" gap={2} sx={{height:"100% !important"}}>
                     <div style={{minWidth:"60%"}}>
-                        <TextField sx={{width: "450px",mb:2,mr:4, background:"#f4f2ff" }} variant="outlined" placeholder='Seach Name, Location, Sub-Location, Feature' type="search" value={searchValue} onChange={handleSearchInputChange} inputRef={searchInputRef} InputProps={{
-                            startAdornment: (
-                                <InputAdornment>
-                                    <IconButton>
-                                        <Search />
-                                    </IconButton>
-                                </InputAdornment>
-                            )
-                        }}/>
+
+                        <Stack alignItems="center" direction="row" gap={1} sx={{width:"100%"}} justifyContent={"space-between"}>
+                            <TextField sx={{width: "450px",mb:2,mr:4, background:"#f4f2ff" }} variant="outlined" placeholder='Seach Name, Location, Sub-Location, Feature' type="search" value={searchValue} onChange={handleSearchInputChange} inputRef={searchInputRef} InputProps={{
+                                startAdornment: (
+                                    <InputAdornment>
+                                        <IconButton>
+                                            <Search />
+                                        </IconButton>
+                                    </InputAdornment>
+                                )
+                            }}/>
+
+                            <Button startIcon={<Download/>} color="secondary" variant="outlined" onClick={()=>{get_export(urlParams)}}>Export</Button>
+                        </Stack>
+                        
                         <DataGridPro
                             sx={{
                                 [`& .${gridClasses.cell}:focus, & .${gridClasses.cell}:focus-within`]: {
@@ -630,11 +637,14 @@ function Main(props) {
                             rowCount = {rows.length}
                         />  
                     </div>
-                    <Stack direction="column" gap={1} sx={{width:'40%'}}>
+
+                    <div style={{width:'40%',display:"flex",flexDirection:"column",gap:"10px"}}>
                         <ToggleButtonGroup color="secondary" value={alignment2} fullWidth exclusive onChange={handleToggleChange2} aria-label="Platform" style={{width:"100%"}}>
                             <ToggleButton value="image" id="alert_image">Image</ToggleButton>
                         </ToggleButtonGroup>
-                        <img src={imgData['image_path']==="" ? "noimage.jpeg" : imgData['image_path']} alt="Alert for Zone Intrusion" onClick={()=>{setImageModal(true)}} style={{width:"100%"}}/>
+                        <div style={{height:'300px',position:"relative",alignContent:"center",textAlign:"center"}}>
+                            <img src={imgData['image_path']==="" ? "noimage.jpeg" : imgData['image_path']} alt="Alert for Zone Intrusion" onClick={()=>{setImageModal(true)}} style={{maxWidth:"100%",maxHeight:"100%",height:"auto",width:"auto"}} />
+                        </div>
                         <Box container border={"1px solid #e8e8e8"} borderRadius={3} p={2}>
                             <Grid container rowSpacing={1}>
                                 {Object.entries(imgData).map(([key,value])=>
@@ -654,9 +664,9 @@ function Main(props) {
                             <ToggleButton value="true">True</ToggleButton>
                             <ToggleButton value="false">False</ToggleButton>
                         </ToggleButtonGroup>
-                        <Button variant="contained" color="primary" onClick={()=>{setStatus("group",imgData['Event Id'], alignment3)}}>Submit</Button>
+                        <Button variant="contained" color="primary" onClick={()=>{setStatus("group",imgData['Event Id'], alignment3)}} sx={{width:"100%"}}>Submit</Button>
                         
-                    </Stack>
+                    </div>
                 </Stack>
 
             </Box>

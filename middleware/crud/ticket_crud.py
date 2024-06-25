@@ -1,6 +1,6 @@
 from json import JSONEncoder
 import logging
-from sqlalchemy import select
+from sqlalchemy import select, or_
 from db.database import *
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
@@ -19,7 +19,6 @@ async def get(
     data = db.query(Ticket).options(joinedload(Ticket.activity), joinedload(Ticket.alert))
     # for instances, active_exams would need to iterate through results as filter by cannot filter
     for query in [x for x in params if params[x] is not None]:
-        print(params[query])
         attr, operator = query.split('__') 
         data = data.filter(get_sqlalchemy_operator(operator)(getattr(Ticket,attr),params[query]))
 
@@ -31,41 +30,52 @@ async def get_group(
     ):
     # using joinedLoad instead of response_model to only fetch required data
     params = request.query_params
-    print(params)
     latest_subquery = db.query(func.max(Ticket.id).label('id'),func.count().label('row_count')).group_by(Ticket.camera, Ticket.feature).subquery()
     data = db.query(Ticket, latest_subquery.c.row_count).options(joinedload(Ticket.activity), joinedload(Ticket.alert)).join(latest_subquery, Ticket.id == latest_subquery.c.id)
     # for instances, active_exams would need to iterate through results as filter by cannot filter
     for query in [x for x in params if params[x] is not None]:
-        attr, operator = query.split('__') 
-        if attr=="status":
-            temp = []
-            for row in data.all():
-                row = {**row._asdict()['Ticket'].__dict__,**{"group_count":row._asdict()['row_count']}}
-                if row['activity'][0].__dict__['status'].value==params[query]:
-                    temp.append(row)
-            return temp
+        if query=="search":
+            data = data.filter(or_(Ticket.id.like(params[query]),Ticket.center.like(f"%{params[query]}%"),Ticket.camera.like(f"%{params[query]}%"),Ticket.feature.like(f"%{params[query]}%"),Ticket.sublocation.like(f"%{params[query]}%")))
         else:
-            data = data.filter(get_sqlalchemy_operator(operator)(getattr(Ticket,attr),f"%{params[query]}%" if operator=="like" else params[query]))
+            attr, operator = query.split('__') 
+            if attr=="status" or attr=="group_count":
+                temp = []
+                order = {"insignificant":[0,0], "minor":[0,2],"moderate": [2,5], "major":[5,10]}
+                for row in data.all():
+                    row = {**row._asdict()['Ticket'].__dict__,**{"group_count":row._asdict()['row_count']}}
+                    if attr=="status":
+                        if row['activity'][0].__dict__['status'].value==params[query]:
+                            temp.append(row)
+                    else:
+                        if params[query]=="critical":
+                            if int(row['group_count'])>=10:
+                                temp.append(row)
+                        else:
+                            if order[params[query]][0]<int(row['group_count'])<=order[params[query]][1]:
+                                temp.append(row)
+                return temp
+            else:
+                data = data.filter(get_sqlalchemy_operator(operator)(getattr(Ticket,attr),f"%{params[query]}%" if operator=="like" else params[query]))
     
     return [{**row._asdict()['Ticket'].__dict__,**{"group_count":row._asdict()['row_count']}} for row in data.all()]
 
 
 async def get_stats(
         db: Session,
-        request # *******SETBACK******* = in documentation query parameters are not specified with this approach
+        request 
     ):
-    # using joinedLoad instead of response_model to only fetch required data
     params = request.query_params
 
-    # filtered on camera and feature
     latest_activity_subquery = db.query(TicketActivity.ticket_id,func.max(TicketActivity.id).label("latest_activity_id")).group_by(TicketActivity.ticket_id).subquery()
     data = db.query(Ticket.id,Ticket.center,Ticket.camera,Ticket.feature,Ticket.sublocation,TicketActivity.status,func.count().label("group_count")).join(latest_activity_subquery,Ticket.id == latest_activity_subquery.c.ticket_id).join(TicketActivity,(Ticket.id == TicketActivity.ticket_id)& (TicketActivity.id == latest_activity_subquery.c.latest_activity_id)).group_by(Ticket.camera,Ticket.feature,)
 
     for query in [x for x in params if params[x] is not None]:
-        attr, operator = query.split('__') 
-        data = data.filter(get_sqlalchemy_operator(operator)(getattr(Alert,attr),params[query]))
+        if query=="search":
+            data = data.filter(or_(Ticket.id.like(params[query]),Ticket.center.like(f"%{params[query]}%")))
+        else:
+            attr, operator = query.split('__') 
+            data = data.filter(get_sqlalchemy_operator(operator)(getattr(Ticket,attr),f"%{params[query]}%" if operator=="like" else params[query]))
 
-    print([row._asdict() for row in data.all()])
     return [row._asdict() for row in data.all()]
 
 async def post(db: Session,payload: TicketInSchema):
@@ -77,7 +87,6 @@ async def post(db: Session,payload: TicketInSchema):
     # add ticket activity 
     activity = await post_activity(db, TicketActivityInSchema(ticket_id=db_item.id))
 
-    print(db_item.id)
     return db_item
 
 # async def put(db, create_body, server_id):

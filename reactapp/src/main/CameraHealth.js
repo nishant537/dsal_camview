@@ -141,7 +141,7 @@ function Main(props) {
 
     const getDetailedRow = () => {
         return (
-            <DataGrid
+            <DataGridPro
                         sx={{
                             [`& .${gridClasses.cell}:focus, & .${gridClasses.cell}:focus-within`]: {
                             outline: 'none',

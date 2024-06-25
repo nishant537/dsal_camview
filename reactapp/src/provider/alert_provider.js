@@ -64,7 +64,7 @@ export const get_stats = async(urlParams) => {
 
 export const get_activity = async(urlParams) => {
   try {
-      const response = await fetch(`http://${window.location.hostname}:${process.env.REACT_APP_PORT}/alert_activity`,{method : "GET"});
+      const response = await fetch(`http://${window.location.hostname}:${process.env.REACT_APP_PORT}/alert_activity?${urlParams}`,{method : "GET"});
       if (!response.ok) {
         throw new Error('Network response was not ok.');
       }
@@ -90,6 +90,25 @@ export const get_summary = async(urlParams) => {
       //   returned_response.push(temp)
       // })
       return data;
+    } catch (error) {
+      alert(error.message)
+  }
+}
+
+export const get_export = async(urlParams) => {
+  try {
+      const response = await fetch(`http://${window.location.hostname}:${process.env.REACT_APP_PORT}/alert/export?${urlParams}`,{method : "GET"});
+      if (!response.ok) {
+        throw new Error('Network response was not ok.');
+      }
+      const blob = await response.blob();
+      var url = window.URL.createObjectURL(new Blob([blob]));
+      var a = document.createElement('a');
+      a.href = url;
+      a.setAttribute('download',"export.csv")
+      document.body.appendChild(a); // append the element to the dom
+      a.click();
+      a.parentNode.removeChild(a);
     } catch (error) {
       alert(error.message)
   }

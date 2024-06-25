@@ -55,6 +55,7 @@ def get_sqlalchemy_operator(operator_str):
         "lt": lambda field, value: field < value,
         "lte": lambda field, value: field <= value,
         "like": lambda field, value: field.like(value),
+        "undefined": lambda field, value: field.like(value),
         # Add more operators as needed
     }
 
@@ -172,9 +173,10 @@ class Roi(Base):
     feature = relationship("Feature", back_populates="roi")     
     feature_name = association_proxy("feature","name")
 
-# class AlertTypeEnum(str, enum.Enum):
-#     supressed = '0'
-#     active = '1'
+
+class AlertActivityStatusEnum(str, enum.Enum):
+    true = 'true'
+    false = 'false'
 
 class Alert(Base):
     __tablename__ = "alert"
@@ -191,14 +193,10 @@ class Alert(Base):
     # status = Column(Enum(AlertTypeEnum), nullable=True, server_default=AlertTypeEnum.active)
     image_path = Column(Text, nullable=False)
     video_path = Column(Text, nullable=False)
+    status = Column(Enum(AlertActivityStatusEnum), nullable=True)
 
     activity = relationship("AlertActivity", back_populates="alert",cascade="delete-orphan")  
     ticket = relationship("Ticket", back_populates="alert")  
-
-
-class AlertActivityStatusEnum(str, enum.Enum):
-    true = 'true'
-    false = 'false'
 
 class AlertActivity(Base):
     __tablename__ = "alert_activity"

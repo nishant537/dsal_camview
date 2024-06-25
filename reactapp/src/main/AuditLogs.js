@@ -29,6 +29,7 @@ function Main(props) {
 
     const [modalOpen, setModalOpen] = React.useState(false);    
     const [statusModal, setStatusModal] = React.useState(false);    
+    const [imageModal, setImageModal] = React.useState(false);    
     const [rows,setRows] = React.useState([])
     const [subRows,setSubRows] = React.useState([])
     const [urlParams, setUrlParams] = React.useState(()=>{
@@ -62,77 +63,120 @@ function Main(props) {
     const [reviewLogs, setReviewLogs] = React.useState([])
 
     React.useEffect(() => {
-        const interval = setInterval(() => {
-            get_activity((urlParams)).then((value)=>{
+        // const interval = setInterval(() => {
+        //     get_activity((urlParams)).then((value)=>{
+        //         if (value){
+        //             console.log(value)
+        //             setReviewLogs(value)
+        //         }
+        //     })
+        //     if (!statusModal){
+        //         get_group((urlParams)).then((value)=>{
+        //             if (value){
+        //                 console.log(value)
+        //                 if (value.length > 0){
+        //                     handleImgData({"row":value[0]})
+        //                 }
+        //                 setRows(value)
+        //             }
+        //         })
+        //     }
+        // }, 2000);
+        // return () => clearInterval(interval);
+        get_activity((urlParams)).then((value)=>{
+            if (value){
+                console.log(value)
+                setReviewLogs(value)
+            }
+        })
+        if (!statusModal){
+            get_group((urlParams)).then((value)=>{
                 if (value){
-                    setReviewLogs(value)
+                    console.log(value)
+                    if (value.length > 0){
+                        handleImgData({"row":value[0]})
+                    }
+                    setRows(value)
                 }
             })
-            if (!statusModal){
-                get_group((urlParams)).then((value)=>{
-                    if (value){
-                        handleImgData({"row":value[0]})
-                        setRows(value)
-                    }
-                })
-            }
-        }, 2000);
-        return () => clearInterval(interval);
+        }
     }, [urlParams, statusModal]);
 
     
     const columns = [
-    { 
-        field: 'id', 
-        headerName: "#",
-        type: "number",
-        flex:1, 
-        filterOperators: numeric_operators,
-        filterable:false
-    },
-    {
-        field: 'camera',
-        headerName: "NAME",
-        flex:1,
-        filterOperators: string_operators,
-        filterable:false
-    },
-    {
-        field: 'location',
-        headerName: "LOCATION",
-        flex:1,
-        filterOperators: string_operators,
-        filterable:false
-    },
-    {
-        field: 'feature',
-        headerName: "FEATURE",
-        flex:1,
-        filterOperators: string_operators,
-        filterable:false
-    },
-    {
-        field: 'timestamp',
-        headerName: "TIME",
-        type: "date",
-        flex:1,
-        renderCell: (params) => {return (dateFormat(new Date(params.value), "yyyy-mm-dd hh:mm:ss")).toString()},
-        valueGetter: (value) => value && new Date(value),
-        filterable: false,
-    },
-    // {
-    //     field: 'total_alert',
-    //     headerName: "PRIORITY",
-    //     flex:1,
-    //     renderCell: (params) => {
-    //         return (
-    //             <div style={{display:"flex",justifyContent:"center",height:"100%",alignItems:"center"}}>
-    //                 <div style={{width:"20px", height:"20px", background:params.value===0 ? "#39d56f" : params.value<=2 ? "#86ed62" : params.value < 5 ? "#ffcd29" : params.value < 10 ? "#ffa629" : "#ff7250" ,borderRadius:"3px"}}></div>
-    //             </div>
-    //         )
-    //     },
-    //     filterable: false,
-    // },
+        { 
+            field: 'id', 
+            headerName: "#",
+            type: "number",
+            flex:1, 
+            filterOperators: numeric_operators,
+        },
+        {
+            field: 'center',
+            headerName: "CENTER",
+            flex:1.5,
+            filterOperators: string_operators,
+        },
+        {
+            field: 'camera',
+            headerName: "NAME",
+            flex:2,
+            filterOperators: string_operators,
+        },
+        {
+            field: 'location',
+            headerName: "LOCATION",
+            flex:2,
+            filterOperators: string_operators,
+        },
+        {
+            field: 'sublocation',
+            headerName: "SUB-LOCATION",
+            flex:1.5,
+            filterOperators: string_operators,
+        },
+        {
+            field: 'feature',
+            headerName: "FEATURE",
+            flex:1.5,
+            filterOperators: string_operators,
+        },
+        {
+            field: 'timestamp',
+            headerName: "TIME",
+            type: "date",
+            flex:2,
+            renderCell: (params) => {return (dateFormat(new Date(params.value), "yyyy-mm-dd hh:mm:ss")).toString()},
+            valueGetter: (value) => value && new Date(value),
+            filterable: false,
+        },
+        {
+            field: 'group_count',
+            headerName: "PRIORITY",
+            flex:1.5,
+            type:"singleSelect",
+            valueOptions:["insignificant","minor","moderate","major","critical"],
+            renderCell: (params) => {
+                const priority = params.value===0 ? "Insignificant" : params.value<=2 ? "Minor" : params.value <= 5 ? "Moderate" : params.value <= 10 ? "Major" : "Critical"
+                return (
+                    <Button variant="contained" sx={{background:params.value===0 ? "#39d56f" : params.value<=2 ? "#86ed62" : params.value <= 5 ? "#ffcd29" : params.value <= 10 ? "#ffa629" : "#ff7250"}}>{priority}</Button>
+                )
+            },
+        },
+        {
+            field: 'status',
+            headerName: "STATUS",
+            flex:1.5,
+            type:"singleSelect",
+            valueOptions:["true","false"],
+            renderCell: (params) => {
+                return (
+                    <div style={{display:"flex",justifyContent:"center",height:"100%",alignItems:"center"}}>
+                        <div style={{width:"10px", height:"10px",borderRadius:"50%", background:params.value==="true" ? "#39d56f" : params.value==="false" ? "red" : "grey"}}></div>
+                    </div>
+                )
+            },
+        },
     ];
 
     const sub_columns = [
@@ -150,7 +194,6 @@ function Main(props) {
             flex:1,
             renderCell: (params) => {return (dateFormat(new Date(params.value), "yyyy-mm-dd hh:mm:ss")).toString()},
             valueGetter: (value) => value && new Date(value),
-            filterable:false
         },
         {
             field: 'image_path',
@@ -176,10 +219,48 @@ function Main(props) {
             },
             filterable: false,
         },
-        ];
+        
+    ];
+
+    // searchbar -------------------------------------
+    const [searchValue, setSearchValue] = React.useState(()=>{
+        const data = new URLSearchParams(urlParams)
+        if (data.get("search")){
+            return data.get('search')
+        }else{
+            return ""
+        }
+    });
+
+    const searchInputRef = React.useRef(null);
+    React.useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+        // Make API call with the final search value
+        if (searchValue!==""){
+            const data = new URLSearchParams()
+            data.append("search",searchValue)
+            window.history.replaceState({}, '', `${window.location.pathname}?${data}`);
+            setUrlParams(data.toString())
+            console.log(searchValue)
+        }else{
+            const data = new URLSearchParams(urlParams)
+            data.delete("search")
+            window.history.replaceState({}, '', `${window.location.pathname}?${data}`);
+            setUrlParams(data.toString())
+        }
+    }, 1000);
+
+    return () => clearTimeout(delayDebounceFn);
+    }, [searchValue]);
+
+    const handleSearchInputChange = (event) => {
+        const newValue = event.target.value;
+        setSearchValue(newValue);
+    };
+    // -----------------------------------------------------------
 
     function CustomToolbar() {
-    return (
+       return (
         <GridToolbarContainer>
             <Stack alignItems="center" direction="row" gap={1}>
                 <GridToolbarFilterButton
@@ -192,15 +273,7 @@ function Main(props) {
                         }
                     }}
                 />
-                {/* <TextField sx={{width: "450px",my:2,mr:4, background:"#f4f2ff" }} id="contained-search" variant="outlined" placeholder='Seach Client' type="search" InputProps={{
-                    startAdornment: (
-                        <InputAdornment>
-                            <IconButton>
-                                <Search />
-                            </IconButton>
-                        </InputAdornment>
-                    )
-                }}/> */}
+                
 
             </Stack>
         </GridToolbarContainer>
@@ -253,7 +326,7 @@ function Main(props) {
     }
 
     const handleImgData = (ids) => {
-        setimgData({"image_path":ids['row']['image_path'],"video_path":ids['row']['video_path'],'Event Id':ids['row']['id'],'Center Name':ids['row']['center'],'Timestamp':ids['row']['timestamp'],'Camera Name':ids['row']['camera'],'Alert Type':ids['row']['feature'],'Location':ids['row']['location'],'status':ids['row']['activity'][(ids['row']['activity']).length-1]['status'],'comment':ids['row']['activity'][(ids['row']['activity']).length-1]['comment']})
+        setimgData({"image_path":ids['row']['image_path'],"video_path":ids['row']['video_path'],'Event Id':ids['row']['id'],'Center Name':ids['row']['center'],'Timestamp':ids['row']['timestamp'],'Camera Name':ids['row']['camera'],'Alert Type':ids['row']['feature'],'Location':ids['row']['location'],'Sub-Location':ids['row']['sublocation'],'status':ids['row']['activity'][(ids['row']['activity']).length-1]['status'],'comment':ids['row']['activity'][(ids['row']['activity']).length-1]['comment']})
         setAlignment3(ids['row']['activity'][(ids['row']['activity']).length-1]['status'])
         // document.getElementById('alert_image').click()
         // setUserSelected(true)
@@ -277,18 +350,20 @@ function Main(props) {
         })
     }
 
-    const chartSeries = [];
-    Object.entries(cardData).map(([key,value])=>{
-        chartSeries.push(
-            {
-                label:key,
-                curve:"linear",
-                data: Object.values(value)
-            }
-        )
-    })
     return(
         <>
+
+            {/* Image Enlarge */}
+            <Modal
+                open={imageModal}
+                onClose={() => {setImageModal(false)}}
+                aria-labelledby="modal-modal-title"
+                aria-describedby="modal-modal-description"
+            >
+                <Box sx={{width:"50%" ,position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', bgcolor: 'background.paper', boxShadow: 24,}}>
+                    <img src={imgData['image_path']==="" ? "noimage.jpeg" : imgData['image_path']} alt="Alert for Zone Intrusion" style={{width:"100%"}}/>
+                </Box>
+            </Modal>
 
             {/* Group Alerts */}
             <Modal
@@ -375,13 +450,15 @@ function Main(props) {
                 aria-labelledby="modal-modal-title"
                 aria-describedby="modal-modal-description"
             >
-                <Box sx={{maxWidth:"700px" ,position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', bgcolor: 'background.paper', boxShadow: 24,}}>
-                    <Stack direction="column" gap={1}>
+                <Box sx={{maxHeight:"100%",maxWidth:"700px" ,position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', bgcolor: 'background.paper', boxShadow: 24,}}>
+                    <div style={{display:"flex",flexDirection:"column",gap:"10px"}}>
                         <ToggleButtonGroup color="secondary" value={alignment2} fullWidth exclusive onClick={(e,newAlignment)=>setAlignment2(newAlignment)} aria-label="Platform" style={{width:"100%"}}>
                             <ToggleButton value="image" id="alert_image">Image</ToggleButton>
                             <ToggleButton value="video" id="alert_video">Video</ToggleButton>
                         </ToggleButtonGroup>
-                        <img src={imgData['image_path']==="" ? "noimage.jpeg" : imgData['image_path']} alt="Alert for Zone Intrusion" style={{width:"100%"}}/>
+                        <div style={{height:'200px',position:"relative",alignContent:"center",textAlign:"center"}}>
+                            <img src={imgData['image_path']==="" ? "noimage.jpeg" : imgData['image_path']} alt="Alert for Zone Intrusion" onClick={()=>{setImageModal(true)}} style={{maxWidth:"100%",maxHeight:"100%",height:"auto",width:"auto"}} />
+                        </div>
                         <Box container border={"1px solid #e8e8e8"} borderRadius={3} p={2}>
                             <Grid container rowSpacing={1} columnSpacing={{ xs: 1, sm: 2, md: 3 }}>
                                 {Object.entries(imgData).map(([key,value])=>
@@ -401,9 +478,9 @@ function Main(props) {
                             <ToggleButton value="true" id="alert_image">True</ToggleButton>
                             <ToggleButton value="false" id="alert_video">False</ToggleButton>
                         </ToggleButtonGroup>
-                        <Button variant="contained" color="primary" onClick={()=>{setStatus("list",imgData['Event Id'], alignment3)}}>Submit</Button>
+                        <Button variant="contained" color="primary" onClick={()=>{setStatus("list",imgData['Event Id'], alignment3)}} sx={{width:"100%"}}>Submit</Button>
                         
-                    </Stack>
+                    </div>
                 </Box>
             </Modal>
 
@@ -415,9 +492,17 @@ function Main(props) {
 
                 <Stack direction="row" gap={2} sx={{height:"100%"}}>
                     <div style={{minWidth:"60%"}}>
+                        <TextField sx={{width: "450px",mb:2,mr:4, background:"#f4f2ff" }} variant="outlined" placeholder='Seach Name, Location, Sub-Location, Feature' type="search" value={searchValue} onChange={handleSearchInputChange} inputRef={searchInputRef} InputProps={{
+                            startAdornment: (
+                                <InputAdornment>
+                                    <IconButton>
+                                        <Search />
+                                    </IconButton>
+                                </InputAdornment>
+                            )
+                        }}/>
                         <DataGridPro
                             sx={{
-                                height:"100% !important",
                                 [`& .${gridClasses.cell}:focus, & .${gridClasses.cell}:focus-within`]: {
                                 outline: 'none',
                                 },
@@ -451,13 +536,10 @@ function Main(props) {
                             //     },
                             // },
                             // }}
-                            autoHeight={true}
                             slots={{
-                                // toolbar: CustomToolbar,
-                                footer: CustomFooter,
+                                toolbar: CustomToolbar,
+                                // footer: CustomFooter,
                             }}
-                            pageSizeOptions={[5]}
-                            // pageSize={100}
                             // checkboxSelection
                             disableRowSelectionOnClick
                             
@@ -479,14 +561,17 @@ function Main(props) {
                                 setSelectedRow(selectedRowData);
                             }}
                             onRowClick = {(ids) => {handleImgData(ids);openGroup(ids)}}
+                            rowCount = {rows.length}
                         />  
                     </div>
-                    <Stack direction="column" gap={1} sx={{width:'40%'}}>
+                    <div style={{width:'40%',display:"flex",flexDirection:"column",gap:"10px"}}>
                         <ToggleButtonGroup color="secondary" value={alignment2} fullWidth exclusive onChange={handleToggleChange2} aria-label="Platform" style={{width:"100%"}}>
                             <ToggleButton value="image" id="alert_image">Image</ToggleButton>
                             <ToggleButton value="video" id="alert_video">Video</ToggleButton>
                         </ToggleButtonGroup>
-                        <img src={imgData['image_path']==="" ? "noimage.jpeg" : imgData['image_path']} alt="Alert for Zone Intrusion" style={{width:"100%"}}/>
+                        <div style={{height:'300px',position:"relative",alignContent:"center",textAlign:"center"}}>
+                            <img src={imgData['image_path']==="" ? "noimage.jpeg" : imgData['image_path']} alt="Alert for Zone Intrusion" onClick={()=>{setImageModal(true)}} style={{maxWidth:"100%",maxHeight:"100%",height:"auto",width:"auto"}} />
+                        </div>
                         <Box container border={"1px solid #e8e8e8"} borderRadius={3} p={2}>
                             <Grid container rowSpacing={1} columnSpacing={{ xs: 1, sm: 2, md: 3 }}>
                                 {Object.entries(imgData).map(([key,value])=>
@@ -506,9 +591,9 @@ function Main(props) {
                             <ToggleButton value="true">True</ToggleButton>
                             <ToggleButton value="false">False</ToggleButton>
                         </ToggleButtonGroup>
-                        <Button variant="contained" color="primary" onClick={()=>{setStatus("group",imgData['Event Id'], alignment3)}}>Submit</Button>
+                        <Button variant="contained" color="primary" onClick={()=>{setStatus("group",imgData['Event Id'], alignment3)}} sx={{width:"100%"}}>Submit</Button>
                         
-                    </Stack>
+                    </div>
                 </Stack>
 
                 <Divider sx={{marginY:"30px"}}/>
@@ -516,8 +601,10 @@ function Main(props) {
                 <div style={{height:"400px"}}>
                     <Typography variant="h2" component="div" borderBottom={"2px solid"} mb={2}>Activity Logs</Typography>
                     <div style={{height:"100%", overflowY:"scroll"}}>
-                        {reviewLogs.map((value,index)=>
-                            <Typography variant="h2" color={theme.palette.text.disabled}>Alert #{value['alert_id']} status updated to <u>{value['status'] ? value['status'] : "null"}</u> at <u>{value['last_updated'] ? (dateFormat(new Date(value['last_updated']), "hh:mm:ss TT yyyy-mm-dd")).toString() : ""}.</u></Typography>
+                        {reviewLogs.map((alertGroup,index)=>
+                            alertGroup.map((value,index)=>
+                                <Typography variant="h2" color={theme.palette.text.disabled}>Alert #{value['alert_id']} status updated to <u>{value['status'] ? value['status'] : "null"}</u> at <u>{value['last_updated'] ? (dateFormat(new Date(value['last_updated']), "hh:mm:ss TT yyyy-mm-dd")).toString() : ""}.</u></Typography>
+                            )
                         )}
                     </div>
                 </div>

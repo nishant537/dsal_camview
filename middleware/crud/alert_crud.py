@@ -1,4 +1,3 @@
-from json import JSONEncoder
 import logging
 from sqlalchemy import select, update, orm
 from db.database import *
@@ -13,6 +12,10 @@ from crud.ticket_crud import post as post_ticket
 from model.ticket_model import *
 from crud.alert_activity_crud import post as post_activity
 from model.alert_activity_model import *
+import csv
+from fastapi.responses import FileResponse, StreamingResponse
+from io import BytesIO, StringIO
+import json
 
 
 async def get(
@@ -21,8 +24,9 @@ async def get(
     ):
     # using joinedLoad instead of response_model to only fetch required data
     params = request.query_params
-    data = db.query(Alert).options(joinedload(Alert.activity)).order_by(Alert.id.desc())
-
+    data = db.query(Alert).options(joinedload(Alert.activity)).order_by(Alert.timestamp.desc())
+    # data = data.filter(Alert.activity.any(AlertActivity.status == "true"))
+    
     # for instances, active_exams would need to iterate through results as filter by cannot filter
     for query in [x for x in params if params[x] is not None]:
         attr, operator = query.split('__')
@@ -48,7 +52,20 @@ async def get_group(
             data = data.filter(or_(Alert.id.like(params[query]),Alert.center.like(f"%{params[query]}%"),Alert.camera.like(f"%{params[query]}%"), Alert.location.like(f"%{params[query]}%"), Alert.sublocation.like(f"%{params[query]}%"), Alert.feature.like(f"%{params[query]}%")))
         else:
             attr, operator = query.split('__')
-            data = data.filter(get_sqlalchemy_operator(operator)(getattr(Alert,attr),f"%{params[query]}%" if operator=="like" else params[query]))
+            if attr=="group_count":
+                temp = []
+                order = {"insignificant":[0,0], "minor":[0,2],"moderate": [2,5], "major":[5,10]}
+                for row in data.all():
+                    row = {**row._asdict()['Alert'].__dict__,**{"group_count":row._asdict()['group_count']}}
+                    if params[query]=="critical":
+                        if int(row['group_count'])>=10:
+                            temp.append(row)
+                    else:
+                        if order[params[query]][0]<int(row['group_count'])<=order[params[query]][1]:
+                            temp.append(row)
+                return temp
+            else:
+                data = data.filter(get_sqlalchemy_operator(operator)(getattr(Alert,attr),f"%{params[query]}%" if operator=="like" else params[query]))
 
     return [{**row._asdict()['Alert'].__dict__,**{"group_count":row._asdict()['group_count']}} for row in data.all()]
 
@@ -78,20 +95,56 @@ async def get_summary(
 
 async def get_stats(
         db: Session,
-        request # *******SETBACK******* = in documentation query parameters are not specified with this approach
+        request 
     ):
-    # using joinedLoad instead of response_model to only fetch required data
     params = request.query_params
-    # data = db.query(Alert.id,Alert.center,Alert.feature,Alert.sublocation,AlertActivity.status,func.count().label("count")).join(AlertActivity,Alert.id == AlertActivity.alert_id).group_by(Alert.feature,Alert.sublocation,AlertActivity.status)
 
     latest_last_updated_subquery = db.query(AlertActivity.alert_id,func.max(AlertActivity.id).label("latest_last_updated")).group_by(AlertActivity.alert_id).subquery()
     data = db.query(Alert.id,Alert.center,Alert.feature,Alert.sublocation,AlertActivity.status,).join(latest_last_updated_subquery,Alert.id == latest_last_updated_subquery.c.alert_id).join(AlertActivity,(Alert.id == AlertActivity.alert_id)& (AlertActivity.id == latest_last_updated_subquery.c.latest_last_updated)).group_by(Alert.id,Alert.center,Alert.feature,Alert.sublocation,AlertActivity.status)
     
     for query in [x for x in params if params[x] is not None]:
+        if query=="search":
+            data = data.filter(or_(Alert.id.like(params[query]),Alert.center.like(f"%{params[query]}%")))
+        else:
+            attr, operator = query.split('__')
+            data = data.filter(get_sqlalchemy_operator(operator)(getattr(Alert,attr),f"%{params[query]}%" if operator=="like" else params[query]))
+
+    return [row._asdict() for row in data.all()]
+
+async def export(
+        db: Session,
+        request # *******SETBACK******* = in documentation query parameters are not specified with this approach
+    ):
+    # using joinedLoad instead of response_model to only fetch required data
+    params = request.query_params
+    data = db.query(Alert).options(joinedload(Alert.activity)).order_by(Alert.timestamp.desc())
+    # data = data.filter(Alert.activity.any(AlertActivity.status == "true"))
+    
+    # for instances, active_exams would need to iterate through results as filter by cannot filter
+    for query in [x for x in params if params[x] is not None]:
         attr, operator = query.split('__')
         data = data.filter(get_sqlalchemy_operator(operator)(getattr(Alert,attr),params[query]))
 
-    return [row._asdict() for row in data.all()]
+    temp_export_data = []
+    for i in data:
+        row = i.__dict__
+        temp_export_data.append({key:row[key] for key in ["id","camera","exam","center","feature","sublocation","status"]})
+    stream = StringIO()
+    writer = csv.writer(stream)
+    count = 0
+    for alert in temp_export_data:
+        if count == 0:
+    
+            # Writing headers of CSV file
+            header = ["id","camera","exam","center","feature","sublocation","status"]
+            writer.writerow(header)
+            count += 1
+    
+        # Writing data of CSV file
+        writer.writerow(alert.values())
+    
+    # stream.close()
+    return StreamingResponse(iter([stream.getvalue()]), media_type="text/csv", headers={"Content-Disposition": f"attachment; filename=export.csv"})
 
 async def get_review(
         db: Session,
