@@ -454,7 +454,6 @@ function Main(props) {
                     <div style={{display:"flex",flexDirection:"column",gap:"10px"}}>
                         <ToggleButtonGroup color="secondary" value={alignment2} fullWidth exclusive onClick={(e,newAlignment)=>setAlignment2(newAlignment)} aria-label="Platform" style={{width:"100%"}}>
                             <ToggleButton value="image" id="alert_image">Image</ToggleButton>
-                            <ToggleButton value="video" id="alert_video">Video</ToggleButton>
                         </ToggleButtonGroup>
                         <div style={{height:'200px',position:"relative",alignContent:"center",textAlign:"center"}}>
                             <img src={imgData['image_path']==="" ? "noimage.jpeg" : imgData['image_path']} alt="Alert for Zone Intrusion" onClick={()=>{setImageModal(true)}} style={{maxWidth:"100%",maxHeight:"100%",height:"auto",width:"auto"}} />
@@ -567,7 +566,6 @@ function Main(props) {
                     <div style={{width:'40%',display:"flex",flexDirection:"column",gap:"10px"}}>
                         <ToggleButtonGroup color="secondary" value={alignment2} fullWidth exclusive onChange={handleToggleChange2} aria-label="Platform" style={{width:"100%"}}>
                             <ToggleButton value="image" id="alert_image">Image</ToggleButton>
-                            <ToggleButton value="video" id="alert_video">Video</ToggleButton>
                         </ToggleButtonGroup>
                         <div style={{height:'300px',position:"relative",alignContent:"center",textAlign:"center"}}>
                             <img src={imgData['image_path']==="" ? "noimage.jpeg" : imgData['image_path']} alt="Alert for Zone Intrusion" onClick={()=>{setImageModal(true)}} style={{maxWidth:"100%",maxHeight:"100%",height:"auto",width:"auto"}} />

@@ -66,7 +66,7 @@ function Main(props) {
                 const temp = {"total":0,"new":0,"open":0,"resolved":0}
                 value.map((row,index)=>{
                     temp['total']+=1
-                    temp[value['status']]+=1
+                    temp[row['status']]+=1
                 })
                 setMetaData(temp)
                 setRows(value)

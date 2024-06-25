@@ -150,7 +150,7 @@ function Main(props) {
                 </Box>
 
                 <Typography variant="h2">Activity</Typography>
-                <div style={{overflowY:"scroll"}}>
+                <div style={{overflowY:"scroll",minHeight:"200px"}}>
                     {ticketDetails['activity'].map((key,value)=>
                         <Typography variant="h2" color={theme.palette.text.disabled}>Ticket #{key['id']} status updated to <u>{key['status']}</u> at <u>{key['last_updated'] ? (dateFormat(new Date(key['last_updated']), "hh:mm:ss TT yyyy-mm-dd")).toString() : ""}.</u></Typography>
                     )}
