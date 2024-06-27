@@ -83,6 +83,22 @@ function Main(props) {
             }
         }, 2000);
         return () => clearInterval(interval);
+        // get_summary((urlParams)).then((value)=>{
+        //     if (value){
+        //         console.log(value)
+        //         setCardData(value)
+        //     }
+        // })
+        // if (!statusModal){
+        //     get_group((urlParams)).then((value)=>{
+        //         if (value){
+        //             if (value.length > 0){
+        //                 handleImgData({"row":value[0]})
+        //             }
+        //             setRows(value)
+        //         }
+        //     })
+        // }
         
       }, [urlParams, statusModal]);
 
@@ -279,12 +295,12 @@ function Main(props) {
         setUrlParams(data.toString())
     }
 
-
     const openGroup = (ids) => {
-        const data = new URLSearchParams(urlParams);
+        const temp = urlParams;
+        const data = new URLSearchParams(temp);
         data.append(`camera__${operator_to_string['contains']}`, ids['row']['camera'])
         data.append(`feature__${operator_to_string['contains']}`, ids['row']['feature'])
-        get((data.toString())).then((value)=>{
+        get(data.toString()).then((value)=>{
             if (value){
                 console.log(value)
                 setSubRows(value)

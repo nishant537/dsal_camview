@@ -29,8 +29,11 @@ async def get(
     
     # for instances, active_exams would need to iterate through results as filter by cannot filter
     for query in [x for x in params if params[x] is not None]:
-        attr, operator = query.split('__')
-        data = data.filter(get_sqlalchemy_operator(operator)(getattr(Alert,attr),params[query]))
+        if query=="search":
+            data = data.filter(or_(Alert.id.like(params[query]),Alert.center.like(f"%{params[query]}%"),Alert.camera.like(f"%{params[query]}%"), Alert.location.like(f"%{params[query]}%"), Alert.sublocation.like(f"%{params[query]}%"), Alert.feature.like(f"%{params[query]}%")))
+        else:
+            attr, operator = query.split('__')
+            data = data.filter(get_sqlalchemy_operator(operator)(getattr(Alert,attr),f"%{params[query]}%"))
 
     return data.all()
 
