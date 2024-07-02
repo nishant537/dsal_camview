@@ -44,34 +44,22 @@ function Main(props) {
     const [metaData,setMetaData] = React.useState({"total":0,"new":0,"open":0,"resolved":0})
 
     React.useEffect(() => {
-        // const interval = setInterval(() => {
-        //     get_group((urlParams)).then((value)=>{
-        //         if (value){
-        //             console.log(value)
-        //             const temp = {"total":0,"new":0,"open":0,"resolved":0}
-        //             value.map((row,index)=>{
-        //                 temp['total']+=1
-        //                 temp[value['status']]+=1
-        //             })
-        //             setMetaData(temp)
-        //             setRows(value)
-        //         }
-        //     })
-        // }, 2000);
-        // return () => clearInterval(interval);
+        const interval = setInterval(() => {
+            get_group((urlParams)).then((value)=>{
+                if (value){
+                    console.log(value)
+                    const temp = {"total":0,"new":0,"open":0,"resolved":0}
+                    value.map((row,index)=>{
+                        temp['total']+=1
+                        temp[value['status']]+=1
+                    })
+                    setMetaData(temp)
+                    setRows(value)
+                }
+            })
+        }, 2000);
+        return () => clearInterval(interval);
 
-        get_group((urlParams)).then((value)=>{
-            if (value){
-                console.log(value)
-                const temp = {"total":0,"new":0,"open":0,"resolved":0}
-                value.map((row,index)=>{
-                    temp['total']+=1
-                    temp[row['status']]+=1
-                })
-                setMetaData(temp)
-                setRows(value)
-            }
-        })
       }, [urlParams]);
 
     const columns = [

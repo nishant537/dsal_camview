@@ -25,7 +25,7 @@ from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.sql import func, select
 from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
 
-DATABASE_URL = "mysql+pymysql://root:nishant@127.0.0.1:3306/trustview"
+DATABASE_URL = "mysql+pymysql://root:nishant@127.0.0.1:3306/camview"
 
 engine = create_engine(DATABASE_URL, )
 
@@ -196,7 +196,7 @@ class Alert(Base):
     status = Column(Enum(AlertActivityStatusEnum), nullable=True)
 
     activity = relationship("AlertActivity", back_populates="alert",cascade="delete-orphan")  
-    ticket = relationship("Ticket", back_populates="alert")  
+    ticket = relationship("Ticket", back_populates="alert",cascade="delete-orphan")  
 
 class AlertActivity(Base):
     __tablename__ = "alert_activity"
@@ -221,7 +221,7 @@ class Ticket(Base):
     feature = Column(Text, nullable=False)
     sublocation = Column(Text, nullable=False)
 
-    activity = relationship("TicketActivity", back_populates="ticket",order_by="desc(TicketActivity.id)")     
+    activity = relationship("TicketActivity", back_populates="ticket",order_by="desc(TicketActivity.id)",cascade="all, delete-orphan")     
     alert =   relationship("Alert", back_populates="ticket")
 
 class TicketActivityStatusEnum(str, enum.Enum):
@@ -233,7 +233,7 @@ class TicketActivity(Base):
     __tablename__ = "ticket_activity"
 
     id = Column(Integer, primary_key=True, index=True)
-    ticket_id = Column(Integer, ForeignKey("ticket.id"), nullable=False,)
+    ticket_id = Column(Integer, ForeignKey("ticket.id",ondelete="CASCADE"), nullable=False,)
     # to be done
     # user_id = Column(Integer, ForeignKey("user.id"), nullable=False,)
     status = Column(Enum(TicketActivityStatusEnum), nullable=False,server_default=TicketActivityStatusEnum.new)

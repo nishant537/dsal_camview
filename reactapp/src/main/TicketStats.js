@@ -51,35 +51,23 @@ function Main(props) {
 
     let dict_columns = {}
     React.useEffect(() => {
-        // const interval = setInterval(() => {
-        //     get_stats((urlParams)).then((value)=>{
-        //         if (value){
-        //             const temp = {"center":0,"total":0,"open":0,"resolved":0}
-        //             value.map((row,index)=>{
-        //                 temp['center']+=1
-        //                 temp['total']+=Object.values(row['total']).reduce((acc, val) => acc + val, 0);
-        //                 temp['open']+=row['total']['open']
-        //                 temp['resolved']+=row['total']['resolved']
-        //             })
-        //             setMetaData(temp)
-        //             setRows(value)
-        //         }
-        //     })
-        // }, 2000);
-        // return () => clearInterval(interval);
-        get_stats((urlParams)).then((value)=>{
-            if (value){
-                const temp = {"center":0,"total":0,"open":0,"resolved":0}
-                value.map((row,index)=>{
-                    temp['center']+=1
-                    temp['total']+=Object.values(row['total']).reduce((acc, val) => acc + val, 0);
-                    temp['open']+=row['total']['open']
-                    temp['resolved']+=row['total']['resolved']
-                })
-                setMetaData(temp)
-                setRows(value)
-            }
-        })
+        const interval = setInterval(() => {
+            get_stats((urlParams)).then((value)=>{
+                if (value){
+                    const temp = {"center":0,"total":0,"open":0,"resolved":0}
+                    value.map((row,index)=>{
+                        temp['center']+=1
+                        temp['total']+=Object.values(row['total']).reduce((acc, val) => acc + val, 0);
+                        temp['open']+=row['total']['open']
+                        temp['resolved']+=row['total']['resolved']
+                    })
+                    setMetaData(temp)
+                    setRows(value)
+                }
+            })
+        }, 2000);
+        return () => clearInterval(interval);
+
     }, [urlParams]);
 
     if (rows.length>0){

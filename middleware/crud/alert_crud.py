@@ -172,8 +172,7 @@ async def post(db: Session,payload: AlertInSchema):
     db.commit()
     db.refresh(db_item)
 
-    # add a ticket
-    ticket = await post_ticket(db, TicketInSchema(alert_id=db_item.id,center=payload.center,camera=payload.camera,feature=payload.feature,sublocation=payload.sublocation))
+    # add a ticket only when alert is marked true
 
     # add a status
     activity = await post_activity(db, AlertActivityInSchema(alert_id=db_item.id))

@@ -63,43 +63,27 @@ function Main(props) {
     const [reviewLogs, setReviewLogs] = React.useState([])
 
     React.useEffect(() => {
-        // const interval = setInterval(() => {
-        //     get_activity((urlParams)).then((value)=>{
-        //         if (value){
-        //             console.log(value)
-        //             setReviewLogs(value)
-        //         }
-        //     })
-        //     if (!statusModal){
-        //         get_group((urlParams)).then((value)=>{
-        //             if (value){
-        //                 console.log(value)
-        //                 if (value.length > 0){
-        //                     handleImgData({"row":value[0]})
-        //                 }
-        //                 setRows(value)
-        //             }
-        //         })
-        //     }
-        // }, 2000);
-        // return () => clearInterval(interval);
-        get_activity((urlParams)).then((value)=>{
-            if (value){
-                console.log(value)
-                setReviewLogs(value)
-            }
-        })
-        if (!statusModal){
-            get_group((urlParams)).then((value)=>{
+        const interval = setInterval(() => {
+            get_activity((urlParams)).then((value)=>{
                 if (value){
                     console.log(value)
-                    if (value.length > 0){
-                        handleImgData({"row":value[0]})
-                    }
-                    setRows(value)
+                    setReviewLogs(value)
                 }
             })
-        }
+            if (!statusModal){
+                get_group((urlParams)).then((value)=>{
+                    if (value){
+                        console.log(value)
+                        if (value.length > 0){
+                            handleImgData({"row":value[0]})
+                        }
+                        setRows(value)
+                    }
+                })
+            }
+        }, 2000);
+        return () => clearInterval(interval);
+
     }, [urlParams, statusModal]);
 
     
@@ -144,10 +128,11 @@ function Main(props) {
         {
             field: 'timestamp',
             headerName: "TIME",
-            type: "date",
+            // type: "date",
             flex:2,
-            renderCell: (params) => {return (dateFormat(new Date(params.value), "yyyy-mm-dd hh:mm:ss")).toString()},
-            valueGetter: (value) => value && new Date(value),
+            renderCell: (params) => {return (params.value).replace('T',' ')},
+            // renderCell: (params) => {return (dateFormat(new Date(params.value), "yyyy-mm-dd hh:mm:ss")).toString()},
+            // valueGetter: (value) => value && new Date(value),
             filterable: false,
         },
         {
@@ -190,10 +175,11 @@ function Main(props) {
         {
             field: 'timestamp',
             headerName: "TIME",
-            type: "date",
+            // type: "date",
             flex:1,
-            renderCell: (params) => {return (dateFormat(new Date(params.value), "yyyy-mm-dd hh:mm:ss")).toString()},
-            valueGetter: (value) => value && new Date(value),
+            renderCell: (params) => {return (params.value).replace('T',' ')},
+            // renderCell: (params) => {return (dateFormat(new Date(params.value), "yyyy-mm-dd hh:mm:ss")).toString()},
+            // valueGetter: (value) => value && new Date(value),
         },
         {
             field: 'image_path',
@@ -458,6 +444,12 @@ function Main(props) {
                         <div style={{height:'200px',position:"relative",alignContent:"center",textAlign:"center"}}>
                             <img src={imgData['image_path']==="" ? "noimage.jpeg" : imgData['image_path']} alt="Alert for Zone Intrusion" onClick={()=>{setImageModal(true)}} style={{maxWidth:"100%",maxHeight:"100%",height:"auto",width:"auto"}} />
                         </div>
+                        <ToggleButtonGroup color="secondary" value={alignment3} fullWidth exclusive onChange={handleToggleChange3} aria-label="Platform" style={{width:"100%"}}>
+                            <ToggleButton value="true" id="alert_image">True</ToggleButton>
+                            <ToggleButton value="false" id="alert_video">False</ToggleButton>
+                        </ToggleButtonGroup>
+                        <Button variant="contained" color="primary" onClick={()=>{setStatus("list",imgData['Event Id'], alignment3)}} sx={{width:"100%"}}>Submit</Button>
+                        
                         <Box container border={"1px solid #e8e8e8"} borderRadius={3} p={2}>
                             <Grid container rowSpacing={1} columnSpacing={{ xs: 1, sm: 2, md: 3 }}>
                                 {Object.entries(imgData).map(([key,value])=>
@@ -465,7 +457,7 @@ function Main(props) {
                                     <Grid item xs={12}>
                                         <Stack direction="row" gap={1} sx={{overflowWrap:"anywhere"}}>
                                             <Typography variant="h3" color={theme.palette.text.disabled} sx={{textWrap:"nowrap"}}>{key} : </Typography>
-                                            <Typography variant="h3">{value}</Typography>
+                                            <Typography variant="h3">{key=="Timestamp" ? value.replace('T',' ') : value}</Typography>
                                         </Stack>
                                     </Grid>
                                     :
@@ -473,11 +465,6 @@ function Main(props) {
                                 )}
                             </Grid>
                         </Box>
-                        <ToggleButtonGroup color="secondary" value={alignment3} fullWidth exclusive onChange={handleToggleChange3} aria-label="Platform" style={{width:"100%"}}>
-                            <ToggleButton value="true" id="alert_image">True</ToggleButton>
-                            <ToggleButton value="false" id="alert_video">False</ToggleButton>
-                        </ToggleButtonGroup>
-                        <Button variant="contained" color="primary" onClick={()=>{setStatus("list",imgData['Event Id'], alignment3)}} sx={{width:"100%"}}>Submit</Button>
                         
                     </div>
                 </Box>
@@ -570,6 +557,12 @@ function Main(props) {
                         <div style={{height:'300px',position:"relative",alignContent:"center",textAlign:"center"}}>
                             <img src={imgData['image_path']==="" ? "noimage.jpeg" : imgData['image_path']} alt="Alert for Zone Intrusion" onClick={()=>{setImageModal(true)}} style={{maxWidth:"100%",maxHeight:"100%",height:"auto",width:"auto"}} />
                         </div>
+                        <ToggleButtonGroup color="secondary" value={alignment3} fullWidth exclusive onChange={handleToggleChange3} aria-label="Platform" style={{width:"100%"}}>
+                            <ToggleButton value="true">True</ToggleButton>
+                            <ToggleButton value="false">False</ToggleButton>
+                        </ToggleButtonGroup>
+                        <Button variant="contained" color="primary" onClick={()=>{setStatus("group",imgData['Event Id'], alignment3)}} sx={{width:"100%"}}>Submit</Button>
+                        
                         <Box container border={"1px solid #e8e8e8"} borderRadius={3} p={2}>
                             <Grid container rowSpacing={1} columnSpacing={{ xs: 1, sm: 2, md: 3 }}>
                                 {Object.entries(imgData).map(([key,value])=>
@@ -577,7 +570,7 @@ function Main(props) {
                                     <Grid item xs={12}>
                                         <Stack direction="row" gap={1} sx={{overflowWrap:"anywhere"}}>
                                             <Typography variant="h3" color={theme.palette.text.disabled} sx={{textWrap:"nowrap"}}>{key} : </Typography>
-                                            <Typography variant="h3">{value}</Typography>
+                                            <Typography variant="h3">{key=="Timestamp" ? value.replace('T',' ') : value}</Typography>
                                         </Stack>
                                     </Grid>
                                     :
@@ -585,11 +578,6 @@ function Main(props) {
                                 )}
                             </Grid>
                         </Box>
-                        <ToggleButtonGroup color="secondary" value={alignment3} fullWidth exclusive onChange={handleToggleChange3} aria-label="Platform" style={{width:"100%"}}>
-                            <ToggleButton value="true">True</ToggleButton>
-                            <ToggleButton value="false">False</ToggleButton>
-                        </ToggleButtonGroup>
-                        <Button variant="contained" color="primary" onClick={()=>{setStatus("group",imgData['Event Id'], alignment3)}} sx={{width:"100%"}}>Submit</Button>
                         
                     </div>
                 </Stack>

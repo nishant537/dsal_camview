@@ -52,36 +52,23 @@ function Main(props) {
     let dict_columns = {}
 
     React.useEffect(() => {
-        // const interval = setInterval(() => {
-        //     get_stats((urlParams)).then((value)=>{
-        //         if (value){
-        //             const temp = {"center":0,"total":0,"true":0,"false":0}
-        //             value.map((row,index)=>{
-        //                 temp['center']+=1
-        //                 temp['total']+=Object.values(row['total']).reduce((acc, val) => acc + val, 0);
-        //                 temp['true']+=row['total']['true']
-        //                 temp['false']+=row['total']['false']
-        //             })
-        //             setMetaData(temp)
-        //             setRows(value)
-        //         }
-        //     })
-        // }, 2000);
-        // return () => clearInterval(interval);
+        const interval = setInterval(() => {
+            get_stats((urlParams)).then((value)=>{
+                if (value){
+                    const temp = {"center":0,"total":0,"true":0,"false":0}
+                    value.map((row,index)=>{
+                        temp['center']+=1
+                        temp['total']+=Object.values(row['total']).reduce((acc, val) => acc + val, 0);
+                        temp['true']+=row['total']['true']
+                        temp['false']+=row['total']['false']
+                    })
+                    setMetaData(temp)
+                    setRows(value)
+                }
+            })
+        }, 2000);
+        return () => clearInterval(interval);
 
-        get_stats((urlParams)).then((value)=>{
-            if (value){
-                const temp = {"center":0,"total":0,"true":0,"false":0}
-                value.map((row,index)=>{
-                    temp['center']+=1
-                    temp['total']+=Object.values(row['total']).reduce((acc, val) => acc + val, 0);
-                    temp['true']+=row['total']['true']
-                    temp['false']+=row['total']['false']
-                })
-                setMetaData(temp)
-                setRows(value)
-            }
-        })
     }, [urlParams]);
 
     if (rows.length>0){
@@ -391,7 +378,7 @@ function Main(props) {
                     }}
                     pageSizeOptions={[5]}
                     // pageSize={100}
-                    checkboxSelection
+                    // checkboxSelection
                     disableRowSelectionOnClick
                     
                     // this does not trigger model change, just shows on ui

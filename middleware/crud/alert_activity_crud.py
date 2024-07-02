@@ -7,7 +7,8 @@ from fastapi import HTTPException, status
 from sqlalchemy.orm import joinedload
 from model.alert_activity_model import *
 from html_response_codes import *
-
+from crud.ticket_crud import post as post_ticket
+from model.ticket_model import *
 
 async def get(
         db: Session,
@@ -37,6 +38,16 @@ async def get_one(
 async def post(db: Session,payload: AlertActivityInSchema):
     data = db.query(Alert).filter_by(id=payload.alert_id).first()
     data.status = payload.status
+
+    if payload.status:
+        ticket = db.query(Ticket).filter_by(alert_id=payload.alert_id).first()
+        if (payload.status).value=="true":
+            if ticket is None:
+                await post_ticket(db, TicketInSchema(alert_id=payload.alert_id,center=data.center,camera=data.camera,feature=data.feature,sublocation=data.sublocation))
+        else:
+            if ticket:
+                db.delete(ticket)
+                db.commit()
 
     db_item = AlertActivity(**payload.dict())
     db.add(db_item)

@@ -9,6 +9,7 @@ from model.ticket_model import *
 from html_response_codes import *
 from crud.ticket_activity_crud import post as post_activity
 from model.ticket_activity_model import *
+from sqlalchemy.sql import desc
 
 
 async def get(
@@ -66,8 +67,11 @@ async def get_stats(
     ):
     params = request.query_params
 
+    print(func.max(TicketActivity.id))
+    latest_ticket_subquery = db.query(Ticket.camera, Ticket.feature, func.max(Ticket.id).label('latest_ticket_id')).group_by(Ticket.camera, Ticket.feature).subquery()
     latest_activity_subquery = db.query(TicketActivity.ticket_id,func.max(TicketActivity.id).label("latest_activity_id")).group_by(TicketActivity.ticket_id).subquery()
-    data = db.query(Ticket.id,Ticket.center,Ticket.camera,Ticket.feature,Ticket.sublocation,TicketActivity.status,func.count().label("group_count")).join(latest_activity_subquery,Ticket.id == latest_activity_subquery.c.ticket_id).join(TicketActivity,(Ticket.id == TicketActivity.ticket_id)& (TicketActivity.id == latest_activity_subquery.c.latest_activity_id)).group_by(Ticket.camera,Ticket.feature,)
+    data = db.query(Ticket.id, Ticket.center, Ticket.camera, Ticket.feature, Ticket.sublocation, TicketActivity.status, func.count().label("group_count")).join(latest_ticket_subquery, (Ticket.camera == latest_ticket_subquery.c.camera) & (Ticket.feature == latest_ticket_subquery.c.feature) & (Ticket.id == latest_ticket_subquery.c.latest_ticket_id)).join(latest_activity_subquery, Ticket.id == latest_activity_subquery.c.ticket_id).join(TicketActivity, (Ticket.id == TicketActivity.ticket_id) & (TicketActivity.id == latest_activity_subquery.c.latest_activity_id)).group_by(Ticket.camera, Ticket.feature).order_by(desc(Ticket.camera), desc(Ticket.feature))
+    # data = db.query(Ticket.id,Ticket.center,Ticket.camera,Ticket.feature,Ticket.sublocation,TicketActivity.status,func.count().label("group_count")).join(latest_activity_subquery,Ticket.id == latest_activity_subquery.c.ticket_id).join(TicketActivity,(Ticket.id == TicketActivity.ticket_id)& (TicketActivity.id == latest_activity_subquery.c.latest_activity_id)).group_by(Ticket.camera,Ticket.feature)
 
     for query in [x for x in params if params[x] is not None]:
         if query=="search":
@@ -76,6 +80,7 @@ async def get_stats(
             attr, operator = query.split('__') 
             data = data.filter(get_sqlalchemy_operator(operator)(getattr(Ticket,attr),f"%{params[query]}%" if operator=="like" else params[query]))
 
+    print([row._asdict() for row in data.all()])
     return [row._asdict() for row in data.all()]
 
 async def post(db: Session,payload: TicketInSchema):

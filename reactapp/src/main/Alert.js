@@ -74,6 +74,7 @@ function Main(props) {
             if (!statusModal){
                 get_group((urlParams)).then((value)=>{
                     if (value){
+                        console.log(value)
                         if (value.length > 0){
                             handleImgData({"row":value[0]})
                         }
@@ -144,10 +145,11 @@ function Main(props) {
     {
         field: 'timestamp',
         headerName: "TIME",
-        type: "date",
+        // type: "date",
         flex:2,
-        renderCell: (params) => {return (dateFormat(new Date(params.value), "yyyy-mm-dd hh:mm:ss")).toString()},
-        valueGetter: (value) => value && new Date(value),
+        renderCell: (params) => {return (params.value).replace('T',' ')},
+        // renderCell: (params) => {return (dateFormat(new Date(params.value), "yyyy-mm-dd hh:mm:ss")).toString()},
+        // valueGetter: (value) => value && new Date(value),
         filterable: false,
     },
     {
@@ -190,10 +192,9 @@ function Main(props) {
         {
             field: 'timestamp',
             headerName: "TIME",
-            type: "date",
+            // type: "date",
             flex:1,
-            renderCell: (params) => {return (dateFormat(new Date(params.value), "yyyy-mm-dd hh:mm:ss")).toString()},
-            valueGetter: (value) => value && new Date(value),
+            renderCell: (params) => {return (params.value).replace('T',' ')},
         },
         {
             field: 'image_path',
@@ -312,6 +313,7 @@ function Main(props) {
     const handleImgData = (ids) => {
         setimgData({"image_path":ids['row']['image_path'],"video_path":ids['row']['video_path'],'Event Id':ids['row']['id'],'Center Name':ids['row']['center'],'Timestamp':ids['row']['timestamp'],'Camera Name':ids['row']['camera'],'Alert Type':ids['row']['feature'],'Location':ids['row']['location'],'Sub-Location':ids['row']['sublocation'],'status':ids['row']['activity'][(ids['row']['activity']).length-1]['status'],'comment':ids['row']['activity'][(ids['row']['activity']).length-1]['comment']})
         setAlignment3(ids['row']['activity'][(ids['row']['activity']).length-1]['status'])
+        console.log(ids['row']['activity'][(ids['row']['activity']).length-1])
         // document.getElementById('alert_image').click()
         // setUserSelected(true)
         // setSelectTime(Date.now())
@@ -482,6 +484,12 @@ function Main(props) {
                         <div style={{height:'200px',position:"relative",alignContent:"center",textAlign:"center"}}>
                             <img src={imgData['image_path']==="" ? "noimage.jpeg" : imgData['image_path']} alt="Alert for Zone Intrusion" onClick={()=>{setImageModal(true)}} style={{maxWidth:"100%",maxHeight:"100%",height:"auto",width:"auto"}} />
                         </div>
+                        <ToggleButtonGroup color="secondary" value={alignment3} fullWidth exclusive onChange={handleToggleChange3} aria-label="Platform" style={{width:"100%"}}>
+                            <ToggleButton value="true" >True</ToggleButton>
+                            <ToggleButton value="false" >False</ToggleButton>
+                        </ToggleButtonGroup>
+                        <Button variant="contained" color="primary" onClick={()=>{setStatus("list",imgData['Event Id'], alignment3);setStatusModal(false)}} sx={{width:"100%"}}>Submit</Button>
+                        
                         <Box container border={"1px solid #e8e8e8"} borderRadius={3} p={2}>
                             <Grid container rowSpacing={1} columnSpacing={{ xs: 1, sm: 2, md: 3 }}>
                                 {Object.entries(imgData).map(([key,value])=>
@@ -489,7 +497,7 @@ function Main(props) {
                                     <Grid item xs={12}>
                                         <Stack direction="row" gap={1} sx={{overflowWrap:"anywhere"}}>
                                             <Typography variant="h3" color={theme.palette.text.disabled} sx={{textWrap:"nowrap"}}>{key} : </Typography>
-                                            <Typography variant="h3">{value}</Typography>
+                                            <Typography variant="h3">{key=="Timestamp" ? value.replace('T',' ') : value}</Typography>
                                         </Stack>
                                     </Grid>
                                     :
@@ -497,11 +505,6 @@ function Main(props) {
                                 )}
                             </Grid>
                         </Box>
-                        <ToggleButtonGroup color="secondary" value={alignment3} fullWidth exclusive onChange={handleToggleChange3} aria-label="Platform" style={{width:"100%"}}>
-                            <ToggleButton value="true" >True</ToggleButton>
-                            <ToggleButton value="false" >False</ToggleButton>
-                        </ToggleButtonGroup>
-                        <Button variant="contained" color="primary" onClick={()=>{setStatus("list",imgData['Event Id'], alignment3);setStatusModal(false)}} sx={{width:"100%"}}>Submit</Button>
                         
                     </div>
                 </Box>
@@ -533,8 +536,8 @@ function Main(props) {
                             <LineChart
                                 xAxis={[{ data: Array.from({ length: 24 }, (_, index) => index) }]}
                                 series={chartSeries}
-                                height={300}
-                                margin={{ left: 30, right: 30, top: 30, bottom: 30 }}
+                                height={400}
+                                margin={{top: 100}}
                                 grid={{ vertical: true, horizontal: true }}
                             />
                         </Stack>
@@ -545,8 +548,8 @@ function Main(props) {
                         <Grid container spacing={1} rowSpacing={1}>
                             <Grid item xs={4}>
                                 <Paper>
-                                    <Stack direction="column" p={2}>
-                                        <Typography variant="h3" color={theme.palette.text.disabled}>Total Alerts:</Typography>
+                                    <Stack direction="column" p={'10px'}>
+                                        <Typography color={theme.palette.text.disabled} sx={{margin: 0,fontFamily: 'Poppins',fontSize: "1rem",fontWeight:" bold",overflow: "visible",letterSpacing:" 0em"}}>Total Alerts:</Typography>
                                         <Typography variant="h3" textAlign="right">{Object.values(cardData).flatMap(Object.values).reduce((acc, currentValue) => acc + currentValue, 0)}</Typography>
                                     </Stack>
                                 </Paper>
@@ -555,8 +558,8 @@ function Main(props) {
                             {Object.entries(cardData).map(([key, value]) => 
                                 <Grid item xs={4}>
                                     <Paper onClick={()=>{navigate(`/alert?feature__like=${key}`);window.location.reload()}} sx={(new URLSearchParams(urlParams).get("feature__like") && key.indexOf(new URLSearchParams(urlParams).get("feature__like"))>=0) ? {background:"whitesmoke"} : {background:"white"}}>
-                                        <Stack direction="column" p={2}>
-                                            <Typography variant="h3" color={theme.palette.text.disabled}>{key}:</Typography>
+                                        <Stack direction="column" p={'10px'}>
+                                            <Typography color={theme.palette.text.disabled} sx={{margin: 0,fontFamily: 'Poppins',fontSize: "1rem",fontWeight:" bold",overflow: "visible",letterSpacing:" 0em"}}>{key}:</Typography>
                                             <Typography variant="h3" textAlign="right">{Object.values(value).reduce((acc, currentValue) => acc + currentValue, 0)}</Typography>
                                         </Stack>
                                     </Paper>
@@ -568,9 +571,10 @@ function Main(props) {
                     </Box>
                 </Stack>
                 
-                <div style={{position:"relative", margin:"20px 0 "}}>
+                <div style={{position:"relative"}}>
                     <Divider sx={{marginY:"10px"}}/>
-                    <ArrowCircleUp onClick={()=>{document.getElementById("analytics").style.display=="none" ? document.getElementById("analytics").style.display="flex" : document.getElementById("analytics").style.display="none"}} sx={{position:"absolute", left:"50%", top:"0%"}}/>
+                    <ArrowCircleUp onClick={()=>{document.getElementById("analytics").style.display!="none" ? document.getElementById("analytics").style.display="none" : console.log()}} sx={{position:"absolute", left:"50%", top:"0%"}}/>
+                    <ArrowCircleDown onClick={()=>{document.getElementById("analytics").style.display=="none" ? document.getElementById("analytics").style.display="flex" : console.log()}} sx={{position:"absolute", left:"calc(50% + 25px)", top:"0%"}}/>
                 </div>
 
                 <Stack direction="row" gap={2} sx={{height:"100% !important"}}>
@@ -661,6 +665,11 @@ function Main(props) {
                         <div style={{height:'300px',position:"relative",alignContent:"center",textAlign:"center"}}>
                             <img src={imgData['image_path']==="" ? "noimage.jpeg" : imgData['image_path']} alt="Alert for Zone Intrusion" onClick={()=>{setImageModal(true)}} style={{maxWidth:"100%",maxHeight:"100%",height:"auto",width:"auto"}} />
                         </div>
+                        <ToggleButtonGroup color="secondary" value={alignment3} fullWidth exclusive onChange={handleToggleChange3} aria-label="Platform" style={{width:"100%"}}>
+                            <ToggleButton value="true">True</ToggleButton>
+                            <ToggleButton value="false">False</ToggleButton>
+                        </ToggleButtonGroup>
+                        <Button variant="contained" color="primary" onClick={()=>{setStatus("group",imgData['Event Id'], alignment3)}} sx={{width:"100%"}}>Submit</Button>
                         <Box container border={"1px solid #e8e8e8"} borderRadius={3} p={2}>
                             <Grid container rowSpacing={1}>
                                 {Object.entries(imgData).map(([key,value])=>
@@ -668,7 +677,7 @@ function Main(props) {
                                     <Grid item xs={12}>
                                         <Stack direction="row" gap={1} sx={{overflowWrap:"anywhere"}}>
                                             <Typography variant="h3" color={theme.palette.text.disabled} sx={{textWrap:"nowrap"}}>{key} : </Typography>
-                                            <Typography variant="h3">{value}</Typography>
+                                            <Typography variant="h3">{key=="Timestamp" ? value.replace('T',' ') : value}</Typography>
                                         </Stack>
                                     </Grid>
                                     :
@@ -676,11 +685,6 @@ function Main(props) {
                                 )}
                             </Grid>
                         </Box>
-                        <ToggleButtonGroup color="secondary" value={alignment3} fullWidth exclusive onChange={handleToggleChange3} aria-label="Platform" style={{width:"100%"}}>
-                            <ToggleButton value="true">True</ToggleButton>
-                            <ToggleButton value="false">False</ToggleButton>
-                        </ToggleButtonGroup>
-                        <Button variant="contained" color="primary" onClick={()=>{setStatus("group",imgData['Event Id'], alignment3)}} sx={{width:"100%"}}>Submit</Button>
                         
                     </div>
                 </Stack>
