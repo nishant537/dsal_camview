@@ -111,7 +111,8 @@ function Main(props) {
                                 </Stack>
                                 <Stack direction="row" spacing={2}>
                                     <Typography variant="h2" color={theme.palette.text.disabled}>Timestamp :</Typography>
-                                    <Typography variant="h2">{ticketDetails['activity'][0]['last_updated'] ? (dateFormat(new Date(ticketDetails['activity'][0]['last_updated']), "hh:mm:ss TT yyyy-mm-dd")).toString() : ""}</Typography>
+                                    <Typography variant="h2">{ticketDetails['activity'][0]['last_updated'] ? ticketDetails['activity'][0]['last_updated'].replace('T', ' ') : ""}</Typography>
+                                    {/* <Typography variant="h2">{ticketDetails['activity'][0]['last_updated'] ? (dateFormat(new Date(ticketDetails['activity'][0]['last_updated']), "hh:mm:ss TT yyyy-mm-dd")).toString() : ""}</Typography> */}
                                 </Stack>
                                 <Stack direction="row" spacing={2}>
                                     <Typography variant="h2" color={theme.palette.text.disabled}>Priority :</Typography>
@@ -152,7 +153,8 @@ function Main(props) {
                 <Typography variant="h2">Activity</Typography>
                 <div style={{overflowY:"scroll",minHeight:"200px"}}>
                     {ticketDetails['activity'].map((key,value)=>
-                        <Typography variant="h2" color={theme.palette.text.disabled}>Ticket #{key['id']} status updated to <u>{key['status']}</u> at <u>{key['last_updated'] ? (dateFormat(new Date(key['last_updated']), "hh:mm:ss TT yyyy-mm-dd")).toString() : ""}.</u></Typography>
+                        // <Typography variant="h2" color={theme.palette.text.disabled}>Ticket #{key['id']} status updated to <u>{key['status']}</u> at <u>{key['last_updated'] ? (dateFormat(new Date(key['last_updated']), "hh:mm:ss TT yyyy-mm-dd")).toString() : ""}.</u></Typography>
+                        <Typography variant="h2" color={theme.palette.text.disabled}>Ticket #{key['id']} status updated to <u>{key['status']}</u> at <u>{key['last_updated'] ? key['last_updated'].replace('T', ' ') : ""}.</u></Typography>
                     )}
                 </div>
             </Box>

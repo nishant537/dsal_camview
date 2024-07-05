@@ -448,7 +448,7 @@ function Main(props) {
                             <ToggleButton value="true" id="alert_image">True</ToggleButton>
                             <ToggleButton value="false" id="alert_video">False</ToggleButton>
                         </ToggleButtonGroup>
-                        <Button variant="contained" color="primary" onClick={()=>{setStatus("list",imgData['Event Id'], alignment3)}} sx={{width:"100%"}}>Submit</Button>
+                        <Button variant="contained" color="primary" onClick={()=>{setStatus("list",imgData['Event Id'], alignment3);setStatusModal(false)}} sx={{width:"100%"}}>Submit</Button>
                         
                         <Box container border={"1px solid #e8e8e8"} borderRadius={3} p={2}>
                             <Grid container rowSpacing={1} columnSpacing={{ xs: 1, sm: 2, md: 3 }}>

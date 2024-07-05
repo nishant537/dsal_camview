@@ -11,6 +11,7 @@ import {get, post, get_summary, get_group,get_export} from '../provider/alert_pr
 import { useForm } from 'react-hook-form'
 import dateFormat, { masks } from "dateformat";
 import { debounce } from 'lodash';
+import Loader from "../components/Loader"
 
 
 const drawerWidth = 280;
@@ -18,6 +19,8 @@ const drawerWidth = 280;
 function Main(props) {
     const theme = useTheme();
     const navigate = useNavigate();
+    const ref = React.useRef();
+
     const operator_to_string = {"=":"eq","!=":"not",">":"gt",">=":"gte","<":"lt","<=":"lte","contains":"like"};
     const string_to_operator = Object.fromEntries(Object.entries(operator_to_string).map(a => a.reverse()));
     const numeric_operators = getGridNumericOperators().filter(
@@ -382,6 +385,8 @@ function Main(props) {
 
     return(
         <>
+
+            <Loader ref={ref}/>
 
             {/* Image Enlarge */}
             <Modal

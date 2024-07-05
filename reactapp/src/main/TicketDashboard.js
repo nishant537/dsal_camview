@@ -51,7 +51,7 @@ function Main(props) {
                     const temp = {"total":0,"new":0,"open":0,"resolved":0}
                     value.map((row,index)=>{
                         temp['total']+=1
-                        temp[value['status']]+=1
+                        temp[row['status']]+=1
                     })
                     setMetaData(temp)
                     setRows(value)
@@ -128,7 +128,8 @@ function Main(props) {
         headerName: 'CREATED AT',
         flex:1,
         minWidth:150,
-        renderCell: (params) => {return (dateFormat(new Date(params.value), "hh:mm:ss TT yyyy-mm-dd ")).toString()},
+        renderCell: (params) => {return (params.value).replace('T',' ')},
+        // renderCell: (params) => {return (dateFormat(new Date(params.value), "hh:mm:ss TT yyyy-mm-dd ")).toString()},
         filterable: false,
     },
     {
@@ -136,7 +137,8 @@ function Main(props) {
         headerName: 'LAST UPDATED',
         flex:1,
         minWidth:150,
-        renderCell: (params) => {return (dateFormat(new Date(params.value), "hh:mm:ss TT yyyy-mm-dd ")).toString()},
+        renderCell: (params) => {return (params.value).replace('T',' ')},
+        // renderCell: (params) => {return (dateFormat(new Date(params.value), "hh:mm:ss TT yyyy-mm-dd ")).toString()},
         filterable: false,
     },
     ];
@@ -221,7 +223,7 @@ function Main(props) {
                 <Toolbar />
 
                 <Typography variant="h1" noWrap component="div" textAlign="center" borderBottom={"5px solid"} mb={2}>
-                    BPSC March 2024
+                    Ticket Dashboard
                 </Typography>
 
                 <Stack alignItems="center" direction="row" gap={1} sx={{width:"100%"}} justifyContent={"space-between"}>

@@ -1,6 +1,6 @@
 from json import JSONEncoder
 import logging
-from sqlalchemy import select, or_
+from sqlalchemy import select, or_, desc
 from db.database import *
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
@@ -16,7 +16,7 @@ async def get(
     ):
     params = request.query_params
     print(params)
-    alert_data = db.query(Alert).options(joinedload(Alert.activity))
+    alert_data = db.query(Alert).options(joinedload(Alert.activity)).order_by(desc(Alert.timestamp))
     # for instances, active_exams would need to iterate through results as filter by cannot filter
     for query in [x for x in params if params[x] is not None]:
         if query=="search":
