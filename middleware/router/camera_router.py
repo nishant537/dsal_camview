@@ -25,6 +25,16 @@ async def post(server_data:CameraInSchema, db: Session = Depends(get_db)):
     response = await camera_crud.post(db,payload=server_data)
     return response
 
+@router.post('/fetch_frame')
+async def post(server_data:FrameInSchema, db: Session = Depends(get_db)):
+    response = await camera_crud.fetch_frame(db,payload=server_data)
+    return response
+
+@router.put("/{id}")
+async def put(id: int, payload:CameraInSchema, db: Session = Depends(get_db)):
+    response = await camera_crud.put(db,id, payload)
+    return response
+
 # @router.get("/{id}")
 # async def get_service(id: int,db: Session = Depends(get_db)):
 #     response = await get(db,id=id)

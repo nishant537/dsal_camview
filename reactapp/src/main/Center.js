@@ -41,18 +41,19 @@ function Main(props) {
     })
     const [selectedRow, setSelectedRow] = React.useState([])
     const [metaData,setMetaData] = React.useState({"centers":0,"marked":0,"cameras":0,"approved":0})
-    rows.map((value,index)=>{
-        const temp = metaData
-        temp['centers']+=1
-        temp['marked']+= value['marked']
-        temp['cameras']+= value['cameras']
-        temp['approved']+= value['approved']
-    })
 
     React.useEffect(() => {
         get((urlParams)).then((value)=>{
             if (value){
                 console.log(value)
+                const temp = {"centers":0,"marked":0,"cameras":0,"approved":0}
+                value.map((row,index)=>{
+                    temp['centers']+=1
+                    temp['marked']+= row['marked']
+                    temp['cameras']+= row['cameras']
+                    temp['approved']+= row['approved']
+                })
+                setMetaData(temp)
                 setRows(value)
             }
         })
@@ -64,6 +65,13 @@ function Main(props) {
         headerName: "#",
         flex:1, 
         filterOperators: numeric_operators,
+    },
+    {
+        field: 'shift_code',
+        headerName: "SHIFT CODE",
+        flex:1,
+        // filterable:false,
+        filterOperators: string_operators,
     },
     {
         field: 'code',
@@ -103,13 +111,6 @@ function Main(props) {
         flex:1,
         renderCell: (params) => {return `${params.value}/${params.row.rois}`},
         filterable:false,
-    },
-    {
-        field: 'shift',
-        headerName: "FIRST NAME",
-        flex:1,
-        filterable:false,
-        // filterOperators: string_operators,
     },
     {
         field: 'status',
@@ -200,7 +201,7 @@ function Main(props) {
                             }
                         }}
                     />
-                    <TextField sx={{width: "450px",my:2,mr:4, background:"#f4f2ff" }} variant="outlined" placeholder='Seach Code, Center Name, Location' type="search" value={searchValue} onChange={handleSearchInputChange} inputRef={searchInputRef} InputProps={{
+                    <TextField sx={{width: "450px",my:2,mr:4, background:"#f4f2ff" }} variant="outlined" placeholder='Seach Shift Code, Center Code, Center Name, Location' type="search" value={searchValue} onChange={handleSearchInputChange} inputRef={searchInputRef} InputProps={{
                         startAdornment: (
                             <InputAdornment>
                                 <IconButton>

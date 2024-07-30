@@ -16,7 +16,7 @@ async def get(
     ):
     params = request.query_params
     print(params)
-    alert_data = db.query(Alert).options(joinedload(Alert.activity)).order_by(desc(Alert.timestamp))
+    alert_data = db.query(Alert).options(joinedload(Alert.activity)).order_by(desc(Alert.id))
     # for instances, active_exams would need to iterate through results as filter by cannot filter
     for query in [x for x in params if params[x] is not None]:
         if query=="search":

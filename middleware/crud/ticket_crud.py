@@ -17,12 +17,13 @@ async def get(
         request # *******SETBACK******* = in documentation query parameters are not specified with this approach    
     ):
     params = request.query_params
-    data = db.query(Ticket).options(joinedload(Ticket.activity), joinedload(Ticket.alert))
+    data = db.query(Ticket).options(joinedload(Ticket.activity), joinedload(Ticket.alert)).order_by(desc(Ticket.alert_id))
     # for instances, active_exams would need to iterate through results as filter by cannot filter
     for query in [x for x in params if params[x] is not None]:
         attr, operator = query.split('__') 
         data = data.filter(get_sqlalchemy_operator(operator)(getattr(Ticket,attr),params[query]))
 
+    print(data.all())
     return data.all()
 
 async def get_group(
@@ -31,8 +32,8 @@ async def get_group(
     ):
     # using joinedLoad instead of response_model to only fetch required data
     params = request.query_params
-    latest_subquery = db.query(func.max(Ticket.id).label('id'),func.count().label('row_count')).group_by(Ticket.camera, Ticket.feature).subquery()
-    data = db.query(Ticket, latest_subquery.c.row_count).options(joinedload(Ticket.activity), joinedload(Ticket.alert)).join(latest_subquery, Ticket.id == latest_subquery.c.id)
+    latest_subquery = db.query(func.max(Ticket.alert_id).label('id'),func.count().label('row_count')).group_by(Ticket.camera, Ticket.feature).subquery()
+    data = db.query(Ticket, latest_subquery.c.row_count).options(joinedload(Ticket.activity), joinedload(Ticket.alert)).join(latest_subquery, Ticket.alert_id == latest_subquery.c.id)
     # for instances, active_exams would need to iterate through results as filter by cannot filter
     for query in [x for x in params if params[x] is not None]:
         if query=="search":
@@ -88,9 +89,11 @@ async def post(db: Session,payload: TicketInSchema):
     db.add(db_item)
     db.commit()
     db.refresh(db_item)
-    
+
+    alert_item = db.get(Alert, payload.alert_id)
+
     # add ticket activity 
-    activity = await post_activity(db, TicketActivityInSchema(ticket_id=db_item.id))
+    activity = await post_activity(db, TicketActivityInSchema(ticket_id=db_item.id, last_updated=alert_item.timestamp))
 
     return db_item
 

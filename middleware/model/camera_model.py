@@ -4,11 +4,11 @@ from typing import Optional
 
 
 class CameraBaseSchema(BaseModel):
-    center_id: int
-    name: str
-    sublocation: str
-    dss_id: int
-    dss_channel: int
+    center_id: int | None = None
+    name: str | None = None
+    sublocation: str | None = None
+    dss_id: int | None = None
+    dss_channel: int | None = None
 
 class CameraInSchema(CameraBaseSchema):
     pass
@@ -18,4 +18,6 @@ class CameraOutSchema(CameraBaseSchema):
     class Config:
         orm_mode = True
 
-
+class FrameInSchema(BaseModel):
+    dss_id: int | None = None
+    dss_channel: int | None = None

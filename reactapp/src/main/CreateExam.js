@@ -160,18 +160,9 @@ function Main(props) {
             >
                 <Toolbar />
 
-                <Grid container gap={1} sx={{alignItems:"center",justifyContent:"space-around"}}>
-                    <Grid item xs={5} sx={{display:"flex",placeContent:"center",borderBottom:"5px solid"}} color={activeIndex==="view" ? theme.palette.primary.main : theme.palette.text.disabled} onClick={()=>{navigate('/exam')}}>
-                        <Typography variant="h1" noWrap component="span">
-                            View Exam
-                        </Typography>
-                    </Grid>
-                    <Grid item xs={5} sx={{display:"flex",placeContent:"center",borderBottom:"5px solid"}} color={activeIndex==="create" ? theme.palette.primary.main : theme.palette.text.disabled} onClick={()=>{setActiveIndex("create")}}>
-                        <Typography variant="h1" noWrap component="span">
-                            Create Exam
-                        </Typography>
-                    </Grid>
-                </Grid>
+                <Typography variant="h1" noWrap component="div" textAlign="center" borderBottom={"5px solid"} overflow={'visible'}>
+                    Create Exam
+                </Typography>
 
 
                 <div style={{display:"flex",justifyContent:"center",alignItems:"center",padding:"40px 0",width:"100%"}}>

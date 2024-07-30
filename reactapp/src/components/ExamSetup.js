@@ -115,7 +115,7 @@ function Main(props) {
                         <Grid item xs={12}>
                             <Stack alignItems="center" direction="row" justifyContent={"space-between"}>
                                 <div>
-                                    <Typography variant="h3">Exam Code</Typography>
+                                    <Typography variant="h3">Shift Code</Typography>
                                     <Stack direction="row" gap={1}>
                                         <TextField ref={selectRef} id={`code_${index}`} {...register(`code&${index}`)} required variant="outlined" defaultValue={value['code']} onChange={(e) => {selectRef.current_value = e.target.value}} sx={{width:'200px'}}/>
                                         <Button variant="outlined" color="secondary" onClick={()=>{document.getElementById(`code_${index}`).value = Math.random().toString(36).slice(8);document.getElementById(`code_${index}`).focus()}}>Generate</Button>

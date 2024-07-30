@@ -4,7 +4,7 @@ import {Divider, Toolbar, Typography, Grid, TextField, Button, Box, Dialog, Dial
 import FeatureCard from '../components/FeatureCard';
 import AddCameraModal from "../components/AddCameraModal"
 // import { useState } from "react";
-import {get_camera, post, del} from '../provider/camera_provider';
+import {get_camera, post, del, put, fetch_frame} from '../provider/camera_provider';
 import { useForm } from 'react-hook-form'
 import { type } from '@testing-library/user-event/dist/type';
 
@@ -14,6 +14,8 @@ export default function Provisioning(props){
 
     const [pageData, setPageData] = React.useState({});
     const [loading, setLoading] = React.useState(true)
+    const selectRef = React.useRef(null);
+
     const [time, setTime] = React.useState(true)
     const [videoFps, setVideoFps] = React.useState(1)
     const [videoLength, setVideoLength] = React.useState(10)
@@ -26,26 +28,28 @@ export default function Provisioning(props){
 
     React.useEffect(() => {
         get_camera(window.location.pathname.split("/")[2]).then((value)=>{
+            console.log(value)
             let object_alerts = {}
             value.features.map((feature,index)=>{
                 object_alerts[feature['name']] = feature
             })
             setCardData(object_alerts)
             setPageData(value)
+            fetch_frame(value['dss_id'], value['dss_channel']).then((bodyimg)=>{
+                setBodyImg(bodyimg)
+            })
         })
-    },[])
+    },[loading])
 
-    React.useEffect(() => {
-        console.log("Change in rtsp detected")
-        // if (rtsp!={} && (rtsp['rtsp']!="" || rtsp['dss_id']!="" || rtsp['dss_channel']!="")){
-        //     fetchFrame()
-        // }
-    },[rtsp])
+    // React.useEffect(() => {
+    //     console.log("Change in rtsp detected")
+        
+    // },[rtsp])
 
 
     const refreshFrame = async() => {
         console.log('refresh frame requested')
-        // fetchFrame()
+        fetch_frame(pageData['dss_id'], pageData['dss_channel'])
     }
 
 
@@ -56,9 +60,14 @@ export default function Provisioning(props){
     }
 
     // react-form
-    const {register, handleSubmit} = useForm([])
-    const onSubmit = (data, e) => {console.log(data)};
-    const onError = (errors, e) => {console.log(errors)};
+    const {register, handleSubmit} = useForm()
+    const onSubmit = (data, e) => {
+        console.log(data)
+        put(pageData['id'], data).then((value)=>{
+            setLoading(!loading)
+        })
+    };
+    const onError = (errors, e) => {alert(errors)};
 
     console.log(cardData)
     return(
@@ -75,10 +84,18 @@ export default function Provisioning(props){
                     <Paper>
                         <Grid container alignItems="flex-start" spacing={2} p={3}>
                             {Object.keys(pageData).map((value,index)=>
-                                (value!=="id" && (typeof pageData[value] === 'string' || typeof pageData[value] === 'number') ? 
+                                (value!=="id" && value!=="center_id" && (typeof pageData[value] === 'string' || typeof pageData[value] === 'number') ? 
+                                    // value=='center_id' ? 
+                                    //     <Grid item xs={3}>
+                                    //         <Typography variant="h3">{'Center'}</Typography>
+                                    //         <Select {...register('center_id')} required ref={selectRef} onClick={(e)=>{selectRef.current.value = e.target.value;}} value={pageData['center_id']} sx={{minWidth:"250px"}}>
+                                    //             <MenuItem value={pageData['center_id']}>{pageData['center']['name']}</MenuItem>
+                                    //         </Select>
+                                    //     </Grid>
+                                    // :
                                     <Grid item xs={3}>
                                         <Typography variant="h3">{value}</Typography>
-                                        <TextField  {...register('hi', { required: true })} defaultValue={pageData[value]} required placeholder="ABX-3241"/>
+                                        <TextField  {...register(value)} defaultValue={pageData[value]} required placeholder="ABX-3241"/>
                                     </Grid>
                                 :
                                 null

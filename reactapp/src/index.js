@@ -7,6 +7,10 @@ import App from './App';
 import PageNotFound from './PageNotFound';
 import UnauthorizedAccess from './UnauthorizedAccess';
 import Login from './/main/Login';
+import { LicenseInfo } from '@mui/x-license';
+
+LicenseInfo.setLicenseKey("20eae85dd8a93269f33071562e3f40d9Tz05MzgzMixFPTE3NTIwNDYxOTgwMDAsUz1wcm8sTE09c3Vic2NyaXB0aW9uLEtWPTI=");
+console.log("LICENSE IS SET!")
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
@@ -30,12 +34,10 @@ root.render(
       <Route exact path="/center" element={<App view = "Center"/>} /> 
       <Route exact path="/camera" element={<App view = "Camera"/>} /> 
       <Route exact path="/provisioning/:camera_id" element={<App view = "Provisioning"/>} /> 
-      <Route exact path="/alert" element={<App view = "Alert"/>} /> 
-      <Route exact path="/audit_logs" element={<App view = "AuditLogs"/>} /> 
-      <Route exact path="/user" element={<App view = "User"/>} /> 
-      <Route exact path="/camera" element={<App view = "Camera"/>} /> 
       <Route exact path="/roi_summary" element={<App view = "ROISummary"/>} /> 
       <Route exact path="/roi_review" element={<App view = "ROIReview"/>} /> 
+      <Route exact path="/alert" element={<App view = "Alert"/>} /> 
+      <Route exact path="/audit_logs" element={<App view = "AuditLogs"/>} /> 
       <Route exact path="/alert_stats" element={<App view = "AlertStats"/>} /> 
       <Route exact path="/ticket" element={<App view = "Ticket"/>} /> 
       <Route exact path="/ticket_dashboard" element={<App view = "TicketDashboard"/>} /> 
@@ -43,6 +45,7 @@ root.render(
       <Route exact path="/ticket_summary" element={<App view = "TicketSummary"/>} /> 
       <Route exact path="/camera_health" element={<App view = "CameraHealth"/>} /> 
       <Route exact path="/training_videos" element={<App view = "TrainingVideo"/>} /> 
+      <Route exact path="/user" element={<App view = "User"/>} /> 
       <Route path="*" element={<PageNotFound/>} />
       <Route path="/login" element={<Login view="SignIn"/>} />
       <Route path="/forgot_password" element={<Login view="ForgotPassword"/>} />

@@ -7,6 +7,8 @@ import { ReactDOM } from 'react';
 import ROI from './ROI'
 import LOF from './LOF'
 import {put, post, del} from '../provider/feature_provider';
+import {get_one} from '../provider/roi_provider';
+import { PropaneSharp } from '@mui/icons-material';
 
 const style = {
   position: 'absolute',
@@ -25,6 +27,7 @@ const style = {
 
 // Modal for adding/editing a camera
 export default function BasicModal(props) {
+  console.log(props)
   const [open, setOpen] = React.useState(false);
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
@@ -40,6 +43,17 @@ export default function BasicModal(props) {
     }
   });
   var [feature, setFeature] = React.useState('camera_fault');
+  const [roiData, setRoiData] = React.useState([])
+
+  React.useEffect(() => {
+    if (props.id){
+      get_one(props.id).then((value)=>{
+        console.log(value)
+        setRoiData(value)
+    })
+    }
+  },[])
+
 
   // setting roi points
   const [temp_points, setTempPoints] = React.useState(() => {
@@ -255,16 +269,26 @@ export default function BasicModal(props) {
 
                 <Typography variant='h5' sx={{pt:3,pb:1}}>Set Paramaters</Typography>
 
-                {feature != 'entryexit' ? null :
+                {/* {feature != 'entryexit' ? null :
                   <><LOF update_data = {setData} current_data = {data} points_data = {temp_lof_points} bodyimg={props.bodyimg}/></>
-                }
+                } */}
 
-                {Object.keys(data).includes("roi") ?
+                {/* {Object.keys(data).includes("roi") ?
                   Object.keys(data["roi"]).filter(k => k.startsWith("roi_")).map((e, i) => (
-                    <ROI id={e} update_data = {setData} current_data = {data} points_data = {temp_points} bodyimg={props.bodyimg} name={data['roi'][e]['name'] ? data['roi'][e]['name'] : null} refreshFrame={props.refreshFrame}/>
+                    <ROI id={e} feature_id={props.id || 0} update_data = {setData} current_data = {data} points_data = {temp_points} bodyimg={props.bodyimg} name={data['roi'][e]['name'] ? data['roi'][e]['name'] : null} refreshFrame={props.refreshFrame}/>
                   ))
                 :
                 null
+                } */}
+
+                {roiData.length==0?
+                <>
+                  <ROI feature_id={props.id || 0} points_data = {null} bodyimg={props.bodyimg} name={'ROI_01'} refreshFrame={props.refreshFrame}/>
+                </>
+                :
+                roiData.map((roi,index)=>
+                    <ROI feature_id={props.id || 0} points_data = {JSON.parse(roi['json']) || null} bodyimg={props.bodyimg} name={'ROI_01'} refreshFrame={props.refreshFrame}/>
+                )
                 }
 
                 {JSON.parse(process.env.REACT_APP_FEATURE_JSON)[feature]['json'].map((value,index) => 

@@ -40,11 +40,20 @@ function Main(props) {
         return filterItems;
     })
     const [selectedRow, setSelectedRow] = React.useState([])
+    const [metaData,setMetaData] = React.useState({"clients":0,"active_exams":0,"completed_exams":0,"instances":0})
 
     React.useEffect(() => {
         get((urlParams)).then((value)=>{
             if (value){
                 console.log(value)
+                const temp = {"clients":0,"active_exam":0,"completed_exam":0,"instances":0}
+                value.map((row,index)=>{
+                    temp['clients']+=1
+                    temp['active_exams']+=row['active_exam']
+                    temp['completed_exam']+=row['completed_exam']
+                    temp['instances']+=row['instances']
+                })
+                setMetaData(temp)
                 setRows(value)
             }
         })
@@ -178,28 +187,28 @@ function Main(props) {
                             <Stack alignItems="center" direction="row" gap={1}>
                                 <FilterAlt color={theme.palette.text.disabled}/>
                                 <Typography variant="h3" color={theme.palette.text.disabled}>Total Clients : </Typography>
-                                <Typography variant="h3">15</Typography>
+                                <Typography variant="h3">{metaData['clients']}</Typography>
                             </Stack>
                         </Grid>
                         <Grid item xs={6}>
                             <Stack alignItems="center" direction="row" gap={1}>
                                 <LibraryBooks color={theme.palette.text.disabled}/>
                                 <Typography variant="h3" color={theme.palette.text.disabled}>Active Exams : </Typography>
-                                <Typography variant="h3">3</Typography>
+                                <Typography variant="h3">{metaData['active_exam']}</Typography>
                             </Stack>
                         </Grid>
                         <Grid item xs={6}>
                             <Stack alignItems="center" direction="row" gap={1}>
                                 <Storage color={theme.palette.text.disabled}/>
                                 <Typography variant="h3" color={theme.palette.text.disabled}>Total Instances : </Typography>
-                                <Typography variant="h3">12</Typography>
+                                <Typography variant="h3">{metaData['instances']}</Typography>
                             </Stack>
                         </Grid>
                         <Grid item xs={6}>
                             <Stack alignItems="center" direction="row" gap={1}>
                                 <CheckBox color={theme.palette.text.disabled}/>
                                 <Typography variant="h3" color={theme.palette.text.disabled}>Completed Exams : </Typography>
-                                <Typography variant="h3">24</Typography>
+                                <Typography variant="h3">{metaData['completed_exam']}</Typography>
                             </Stack>
                         </Grid>
                     </Grid>
@@ -316,7 +325,7 @@ function Main(props) {
             >
                 <Toolbar />
 
-                <Typography variant="h1" noWrap component="div" textAlign="center" borderBottom={"5px solid"}>
+                <Typography variant="h1" noWrap component="div" textAlign="center" borderBottom={"5px solid"} overflow={'visible'}>
                     Client
                 </Typography>
 

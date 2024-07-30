@@ -18,7 +18,7 @@ async def get(
     # for instances, active_exams would need to iterate through results as filter by cannot filter
     for query in [x for x in params if params[x] is not None]:
         if query=="search":
-            data = data.filter(or_(Center.code.like(f"%{params[query]}%"),Center.name.like(f"%{params[query]}%"), Center.location.like(f"%{params[query]}%")))
+            data = data.filter(or_(Center.shift_code.like(f"%{params[query]}%"),Center.code.like(f"%{params[query]}%"),Center.name.like(f"%{params[query]}%"), Center.location.like(f"%{params[query]}%")))
         else:
             attr, operator = query.split('__') 
             data = data.filter(get_sqlalchemy_operator(operator)(getattr(Center,attr),f"%{params[query]}%" if operator=="like" else params[query]))

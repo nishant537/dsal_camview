@@ -86,6 +86,11 @@ function Main(props) {
                             flex:0.6,
                             minWidth:200,
                             filterable: false,
+                            sortable: true,
+                            // sortComparator: (v1, v2) => {
+                            //     // Custom sorting logic
+                            //     return Object.values(v1).reduce((acc, val) => acc + val, 0) - Object.values(v2).reduce((acc, val) => acc + val, 0);
+                            // },
                             renderCell: (params) => {
                                 return (
                                     <div style={{display:"flex", flexDirection:"column", alignItems:"center" , transform:"scale(0.5)",transformOrigin: '50% 0% 0px'}}>
@@ -111,6 +116,10 @@ function Main(props) {
                             flex:0.6,
                             minWidth:200,
                             filterable: false,
+                            sortComparator: (v1, v2) => {
+                                // Custom sorting logic
+                                return Object.values(v1).reduce((acc, val) => acc + val, 0) - Object.values(v2).reduce((acc, val) => acc + val, 0);
+                            },
                             renderCell: (params) => {
                                 return (
                                     <div style={{display:"flex", flexDirection:"column", alignItems:"center" , transform:"scale(0.5)",transformOrigin: '50% 0% 0px'}}>

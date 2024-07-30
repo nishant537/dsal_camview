@@ -15,7 +15,7 @@ export const get = async(urlParams) => {
         // })
         return data;
       } catch (error) {
-        alert(error.message)
+        console.log(error.message)
     }
 }
 
@@ -34,7 +34,7 @@ export const get_group = async(urlParams) => {
       // })
       return data;
     } catch (error) {
-      alert(error.message)
+      console.log(error.message)
   }
 }
 
@@ -58,7 +58,7 @@ export const get_stats = async(urlParams) => {
 
       return Object.values(temp)
     } catch (error) {
-      alert(error.message)
+      console.log(error.message)
   }
 }
 
@@ -72,7 +72,7 @@ export const get_activity = async(urlParams) => {
       
       return data;
     } catch (error) {
-      alert(error.message)
+      console.log(error.message)
   }
 }
 
@@ -91,7 +91,7 @@ export const get_summary = async(urlParams) => {
       // })
       return data;
     } catch (error) {
-      alert(error.message)
+      console.log(error.message)
   }
 }
 

@@ -3,10 +3,13 @@ import logging
 from sqlalchemy import select, or_
 from db.database import *
 from sqlalchemy.orm import Session
-from fastapi import HTTPException, status
+from fastapi import HTTPException, status, Response
 from sqlalchemy.orm import joinedload
 from model.camera_model import *
 from html_response_codes import *
+from dss_rtsp import DSS_RTSP
+import cv2
+import datetime
 
 
 async def get(
@@ -14,12 +17,12 @@ async def get(
         request 
     ):
     params = request.query_params
-    data = db.query(Camera).options(joinedload(Camera.features).subqueryload(Feature.roi))
+    data = db.query(Camera).options(joinedload(Camera.features).subqueryload(Feature.roi),joinedload(Camera.center))
     
     # for filtering through features in exam, change data query to have feature_names attr in data objects
     for query in [x for x in params if params[x] is not None]:
         if query=="search":
-            data = data.filter(or_(Camera.name.like(f"%{params[query]}%"),Camera.sublocation.like(f"%{params[query]}%")))
+            data = data.filter(or_(Camera.center_code.like(f"%{params[query]}%"),Camera.name.like(f"%{params[query]}%"),Camera.sublocation.like(f"%{params[query]}%")))
         else:
             attr, operator = query.split('__') 
             data = data.filter(get_sqlalchemy_operator(operator)(getattr(Camera,attr),f"%{params[query]}%" if operator=="like" else params[query]))
@@ -36,17 +39,30 @@ async def post(db: Session,payload: CameraInSchema):
     db.refresh(db_item)
     return db_item
 
-# async def put(db, create_body, server_id):
-#     db_object = db.query(Site).filter(Site.id.in_(create_body.sites)).all()
+async def fetch_frame(db: Session,payload: FrameInSchema):
+    print(payload)
+    try:
+        rtsp = DSS_RTSP().get_rtsp(int(payload.dss_id),int(payload.dss_channel))
+        cap = cv2.VideoCapture(rtsp)
 
-#     db_item = db.get(Server, server_id)
-#     db_item.name = create_body.name
-#     db_item.available = create_body.available
-#     db_item.recommended = create_body.recommended    
-#     db_item.sites = db_object
-#     db.commit()
-#     db.refresh(db_item)
-#     return db_item
+        for i in range(30):
+            ret, frame = cap.read()
+        image_bytes = cv2.imencode('.jpg', frame)[1].tobytes()
+        cap.release()
+        cv2.destroyAllWindows()
+        logging.info(f"{datetime.datetime.now().strftime('%d-%m-%Y %H-%M-%S')}  `get_frame()`, Image returned")
+        return Response(content=image_bytes, media_type="image/png")
+    except Exception as e:
+        logging.error(f"{datetime.datetime.now().strftime('%d-%m-%Y %H-%M-%S')}  `get_frame()`, Error fetching data!", e)
+        return ErrorResponseModel(400, 'Bad Request')
+
+async def put(db, id, payload):
+    db_item = db.query(Camera).where(Camera.id==id)
+    update_data = payload.dict(exclude_unset=True)
+    db_item.update(update_data)
+    db.commit()
+    # db.refresh(db_item)
+    return db_item.one()
 
 # async def delete(db, server_id):
 #     u = db.get(Server, server_id)

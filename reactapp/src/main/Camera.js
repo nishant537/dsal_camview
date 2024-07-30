@@ -42,18 +42,20 @@ function Main(props) {
     const [selectedRow, setSelectedRow] = React.useState([])    
     const [featureSelected, setFeatureSelected] = React.useState({"id":0,"index":0}); 
     const [metaData,setMetaData] = React.useState({"cameras":0,"marked":0,"approved":0,"rejected":0})
-    rows.map((value,index)=>{
-        const temp = metaData
-        temp['cameras']+=1
-        temp['marked']+=value['status']['marked']
-        temp['approved']+=value['status']['approved']
-        temp['rejected']+=value['status']['rejected']
-    })   
+       
 
     React.useEffect(() => {
         get((urlParams)).then((value)=>{
             if (value){
                 console.log(value)
+                const temp = {"cameras":0,"marked":0,"approved":0,"rejected":0}
+                value.map((row,index)=>{
+                    temp['cameras']+=1
+                    temp['marked']+=row['status']['marked']
+                    temp['approved']+=row['status']['approved']
+                    temp['rejected']+=row['status']['rejected']
+                })
+                setMetaData(temp)
                 setRows(value)
             }
         })
@@ -66,6 +68,13 @@ function Main(props) {
         headerName: "#",
         flex:1, 
         filterOperators: numeric_operators,
+    },
+    {
+        field: 'center_code',
+        headerName: "CENTER CODE",
+        flex:1,
+        filterOperators: string_operators,
+        // renderCell: (params) => {return <a href={`/provisioning/${params.row.id}`}>{params.value}</a>}
     },
     {
         field: 'name',
@@ -176,7 +185,7 @@ function Main(props) {
                             }
                         }}
                     />
-                    <TextField sx={{width: "450px",my:2,mr:4, background:"#f4f2ff" }} variant="outlined" placeholder='Seach Name, Sublocation' type="search" value={searchValue} onChange={handleSearchInputChange} inputRef={searchInputRef} InputProps={{
+                    <TextField sx={{width: "450px",my:2,mr:4, background:"#f4f2ff" }} variant="outlined" placeholder='Seach Center Code, Name, Sublocation' type="search" value={searchValue} onChange={handleSearchInputChange} inputRef={searchInputRef} InputProps={{
                         startAdornment: (
                             <InputAdornment>
                                 <IconButton>

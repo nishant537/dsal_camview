@@ -13,17 +13,30 @@ export const get = async(urlParams) => {
     }
 }
 
+export const get_one = async(id) => {
+  try {
+      const response = await fetch(`http://${window.location.hostname}:${process.env.REACT_APP_PORT}/roi/${id}`,{method : "GET"});
+      if (!response.ok) {
+        throw new Error('Network response was not ok.');
+      }
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      alert(error.message)
+  }
+}
 
-export const post = async(payload) => {
-    console.log(payload)
+
+export const post = async(id,name, json) => {
+  console.log(JSON.stringify({feature_id: id, name: name, json: json}))
     try {
-        const response = await fetch(`http://${window.location.hostname}:${process.env.REACT_APP_PORT}/roi/`,{method : "POST", body: JSON.stringify(payload)});
+        const response = await fetch(`http://${window.location.hostname}:${process.env.REACT_APP_PORT}/roi/`,{method : "POST", headers: {'Content-Type': 'application/json'}, body: JSON.stringify({feature_id: id, name: name, json: json})});
         if (!response.ok) {
           throw new Error('Network response was not ok.');
         }
         const data = await response.json()['data'];
         // return data
-        return [{ id: 1, name: 'NTA', code: 'Jon', address:"Lorem Ipsum", username: "nta_user", password: "nishant", instances: 8, active_exam:1, completed_exam: 3 }]
+        return data
       } catch (error) {
         alert(error.message)
     }

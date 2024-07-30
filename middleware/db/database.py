@@ -128,6 +128,7 @@ class Center(Base):
 
     shift = relationship("Shift", back_populates="centers")    
     cameras = relationship("Camera", back_populates="center")    
+    shift_code = association_proxy("shift","code")
 
 class Camera(Base):
     __tablename__ = "camera"
@@ -141,6 +142,7 @@ class Camera(Base):
 
     center = relationship("Center", back_populates="cameras") 
     features = relationship("Feature", back_populates="camera") 
+    center_code = association_proxy("center","code")
 
 class Feature(Base):
     __tablename__ = "feature"
@@ -195,7 +197,7 @@ class Alert(Base):
     video_path = Column(Text, nullable=False)
     status = Column(Enum(AlertActivityStatusEnum), nullable=True)
 
-    activity = relationship("AlertActivity", back_populates="alert",cascade="delete-orphan")  
+    activity = relationship("AlertActivity", order_by="desc(AlertActivity.id)", back_populates="alert",cascade="delete-orphan")  
     ticket = relationship("Ticket", back_populates="alert",cascade="delete-orphan")  
 
 class AlertActivity(Base):

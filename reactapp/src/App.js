@@ -82,21 +82,21 @@ function ResponsiveDrawer(props) {
         lineHeight: "3rem",
         fontWeight:"700",
         color:"#3c4046",
-        overflow: "visible",
+        overflow: "visible !important",
       },
       h2:{
         fontFamily: "Poppins",
         fontSize: "1.5rem",
         lineHeight: "2.5rem",
         fontWeight:"700",
-        overflow: "visible",
+        overflow: "visible !important",
       },
       h3:{
         fontFamily: "Poppins",
         fontSize: "1rem",
         lineHeight: "2rem",
         fontWeight:"500",
-        overflow: "visible",
+        overflow: "visible !important",
       }
     },
   });

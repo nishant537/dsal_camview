@@ -91,7 +91,10 @@ function Main(props) {
         renderCell: (params) => {
             const priority = params.value===0 ? "Insignificant" : params.value<=2 ? "Minor" : params.value <= 5 ? "Moderate" : params.value <= 10 ? "Major" : "Critical"
             return (
-                <Button variant="contained" sx={{background:params.value===0 ? "#39d56f" : params.value<=2 ? "#86ed62" : params.value <= 5 ? "#ffcd29" : params.value <= 10 ? "#ffa629" : "#ff7250"}}>{priority}</Button>
+                <div style={{display:"flex",justifyContent:"center",height:"100%",alignItems:"center"}}>
+                    <div variant="contained" style={{alignItems:'center',borderRadius:"5px",width:"25px",height:"25px",background:params.value===0 ? "#39d56f" : params.value<=2 ? "#86ed62" : params.value <= 5 ? "#ffcd29" : params.value <= 10 ? "#ffa629" : "#ff7250"}}></div>
+                </div>
+                // <Button variant="contained" sx={{background:params.value===0 ? "#39d56f" : params.value<=2 ? "#86ed62" : params.value <= 5 ? "#ffcd29" : params.value <= 10 ? "#ffa629" : "#ff7250"}}>{priority}</Button>
             )
         },
     },
@@ -112,6 +115,13 @@ function Main(props) {
     {
         field: 'feature',
         headerName: 'ALERT TYPE',
+        flex:1,
+        minWidth:150,
+        // filterOperators: string_operators,
+    },
+    {
+        field: 'location',
+        headerName: 'LOCATION',
         flex:1,
         minWidth:150,
         // filterOperators: string_operators,
@@ -142,8 +152,6 @@ function Main(props) {
         filterable: false,
     },
     ];
-
-    
 
     // searchbar -------------------------------------
     const [searchValue, setSearchValue] = React.useState(()=>{
@@ -222,7 +230,7 @@ function Main(props) {
             >
                 <Toolbar />
 
-                <Typography variant="h1" noWrap component="div" textAlign="center" borderBottom={"5px solid"} mb={2}>
+                <Typography variant="h1" noWrap component="div" textAlign="center" borderBottom={"5px solid"} mb={2} overflow="visible">
                     Ticket Dashboard
                 </Typography>
 
@@ -274,7 +282,7 @@ function Main(props) {
 
                 <DataGridPro
                     sx={{
-                        height:"100%",
+                        minHeight:"500px",
                         [`& .${gridClasses.cell}:focus, & .${gridClasses.cell}:focus-within`]: {
                         outline: 'none',
                         },
@@ -338,6 +346,18 @@ function Main(props) {
                     }}
                     onRowClick = {(ids) => {navigate(`/ticket/?camera__eq=${ids['row']['camera']}&feature__eq=${ids['row']['feature']}`);}}
                 />  
+                
+
+                <div style={{height:"400px", marginTop:"20px"}}>
+                    <Typography variant="h2" component="div" borderBottom={"2px solid"} mb={2}>Activity Logs</Typography>
+                    <div style={{height:"100%", overflowY:"scroll"}}>
+                        {rows.map((row,index)=>
+                            row['activity'].map((activity,index)=>
+                                <Typography variant="h2" color={theme.palette.text.disabled}>Ticket #{row['id']} status updated to <u>{activity['status'] ? activity['status'] : "null"}</u> at <u>{activity['last_updated'].replace('T',' ') || ""}.</u></Typography>
+                            )
+                        )}
+                    </div>
+                </div>
             </Box>
         </>
     );

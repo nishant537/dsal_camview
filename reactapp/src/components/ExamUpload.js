@@ -38,6 +38,7 @@ function Main(props) {
         upload_center(selectedCamera).then((value)=>{
             if (value){
                 console.log(value)
+                window.location.href = '/exam'
             }
         })
     };
@@ -92,7 +93,7 @@ function Main(props) {
                     <Stack alignItems="center" direction="row" gap={5} m={4}>
                         <Button variant="outlined" color="secondary" onClick={() => {props.setStep(3)}}>Back</Button>
                         {/* <Button variant="outlined" color="secondary">Save Draft</Button> */}
-                        <Button variant="contained" color="secondary" type="submit">Preview</Button>
+                        <Button variant="contained" color="secondary" type="submit">Submit</Button>
                     </Stack>
                 </Box>
             </Paper>

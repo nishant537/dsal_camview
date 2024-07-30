@@ -12,7 +12,7 @@ export const get = async(urlParams) => {
         console.log(data)
         return data;
       } catch (error) {
-        alert(error.message)
+        console.log(error.message)
     }
 }
 
@@ -28,12 +28,12 @@ export const get_group = async(urlParams) => {
       console.log(data)
       const returned_response = [];
       data.map((value,index)=>{
-        const temp={ id: value.id, status: value.activity[0].status,group_count: value.group_count, center: value.alert.center,camera: value.camera, feature:value.feature, sublocation: value.alert.sublocation, created_at: value.activity[value.activity.length-1].last_updated, last_updated: value.activity[0].last_updated};
+        const temp={ id: value.id, status: value.activity[0].status,group_count: value.group_count, center: value.alert.center,camera: value.camera, feature:value.feature, location: value.alert.location,sublocation: value.alert.sublocation, created_at: value.activity[value.activity.length-1].last_updated, last_updated: value.activity[0].last_updated,activity:value.activity};
         returned_response.push(temp)
       })
       return returned_response;
     } catch (error) {
-      alert(error.message)
+      console.log(error.message)
   }
 }
 
@@ -57,7 +57,7 @@ export const get_stats = async(urlParams) => {
 
       return Object.values(temp);
     } catch (error) {
-      alert(error.message)
+      console.log(error.message)
   }
 }
 

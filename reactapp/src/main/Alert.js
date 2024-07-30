@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Grid, Box, IconButton, Toolbar, Typography, TextField, InputAdornment, Stack,Button, Modal, FormControl, Paper, Divider, Select, MenuItem, ToggleButtonGroup, ToggleButton} from '@mui/material';
-import { DataGrid,GridToolbarContainer,GridToolbarFilterButton,GridToolbarExport,GridColumnHeaderParams, GridFooterContainer, GridFooter, gridClasses,getGridStringOperators, getGridNumericOperators} from '@mui/x-data-grid';
+import { DataGrid,GridToolbarContainer,GridToolbarFilterButton,GridToolbarExport,GridColumnHeaderParams, GridFooterContainer, GridFooter, gridClasses,getGridStringOperators, getGridNumericOperators, GridLogicOperator} from '@mui/x-data-grid-pro';
 import {Search, FilterAlt,Groups, Storage, LibraryBooks, CheckBox, Image, VideoCall, ArrowCircleUp, ArrowCircleDown, Download} from "@mui/icons-material";
 import { useTheme } from '@mui/material/styles';
 import {DataGridPro} from "@mui/x-data-grid-pro";
@@ -112,66 +112,77 @@ function Main(props) {
         field: 'id', 
         headerName: "#",
         type: "number",
-        flex:1, 
+        // flex:Dat1, 
+        // minWidth:document.getElementById('gridSpace').offsetWidth/7,
         filterOperators: numeric_operators,
     },
     {
         field: 'center',
         headerName: "CENTER",
-        flex:1.5,
+        // flex:1.5,Dat
+        // minWidth:document.getElementById('gridSpace').offsetWidth/7,
         filterOperators: string_operators,
     },
     {
         field: 'camera',
         headerName: "NAME",
-        flex:2,
+        // flex:2,Dat
+        // minWidth:document.getElementById('gridSpace').offsetWidth/7,
         filterOperators: string_operators,
     },
     {
         field: 'location',
         headerName: "LOCATION",
-        flex:2,
+        // flex:2,Dat
+        // minWidth:document.getElementById('gridSpace').offsetWidth/7,
         filterOperators: string_operators,
     },
     {
         field: 'sublocation',
         headerName: "SUB-LOCATION",
-        flex:1.5,
+        // flex:1.5,Dat
+        // minWidth:document.getElementById('gridSpace').offsetWidth/7,
         filterOperators: string_operators,
     },
     {
         field: 'feature',
         headerName: "FEATURE",
-        flex:1.5,
+        // flex:1.5,Dat
+        // minWidth:document.getElementById('gridSpace').offsetWidth/7,
         filterOperators: string_operators,
     },
     {
         field: 'timestamp',
         headerName: "TIME",
-        // type: "date",
-        flex:2,
-        renderCell: (params) => {return (params.value).replace('T',' ')},
+        type: "date",
+        // flex:2,Dat
+        // minWidth:document.getElementById('gridSpace').offsetWidth/7,
+        renderCell: (params) => {return JSON.stringify(params.value)},
         // renderCell: (params) => {return (dateFormat(new Date(params.value), "yyyy-mm-dd hh:mm:ss")).toString()},
-        // valueGetter: (value) => value && new Date(value),
-        filterable: false,
+        valueGetter: (value) => value && new Date(value),
+        // filterable: false,
     },
     {
         field: 'group_count',
         headerName: "PRIORITY",
-        flex:1.5,
+        // flex:1.5,Dat
+        // minWidth:document.getElementById('gridSpace').offsetWidth/7,
         type:"singleSelect",
         valueOptions:["insignificant","minor","moderate","major","critical"],
         renderCell: (params) => {
             const priority = params.value===0 ? "Insignificant" : params.value<=2 ? "Minor" : params.value <= 5 ? "Moderate" : params.value <= 10 ? "Major" : "Critical"
             return (
-                <Button variant="contained" sx={{background:params.value===0 ? "#39d56f" : params.value<=2 ? "#86ed62" : params.value <= 5 ? "#ffcd29" : params.value <= 10 ? "#ffa629" : "#ff7250"}}>{priority}</Button>
+                <div style={{display:"flex",justifyContent:"center",height:"100%",alignItems:"center"}}>
+                    <div variant="contained" style={{alignItems:'center',borderRadius:"5px",width:"25px",height:"25px",background:params.value===0 ? "#39d56f" : params.value<=2 ? "#86ed62" : params.value <= 5 ? "#ffcd29" : params.value <= 10 ? "#ffa629" : "#ff7250"}}></div>
+                </div>
             )
         },
     },
     {
         field: 'status',
         headerName: "STATUS",
-        flex:1.5,
+        // flex:1.5,Dat
+        // minWidth:document.getElementById('gridSpace').offsetWidth/7,
         type:"singleSelect",
         valueOptions:["true","false"],
         renderCell: (params) => {
@@ -191,6 +202,36 @@ function Main(props) {
             type: "number",
             flex:1, 
             filterable:false
+        },
+        {
+            field: 'center',
+            headerName: "CENTER",
+            flex:1.5,
+            filterOperators: string_operators,
+        },
+        {
+            field: 'camera',
+            headerName: "NAME",
+            flex:2,
+            filterOperators: string_operators,
+        },
+        {
+            field: 'location',
+            headerName: "LOCATION",
+            flex:2,
+            filterOperators: string_operators,
+        },
+        {
+            field: 'sublocation',
+            headerName: "SUB-LOCATION",
+            flex:1.5,
+            filterOperators: string_operators,
+        },
+        {
+            field: 'feature',
+            headerName: "FEATURE",
+            flex:1.5,
+            filterOperators: string_operators,
         },
         {
             field: 'timestamp',
@@ -283,7 +324,6 @@ function Main(props) {
     }
 
     const onFilterModelChange = (newFilterModel) => {
-        console.log(newFilterModel)
         console.log("Filter model Changed!")
         const data = new URLSearchParams();
         newFilterModel['items'].map((value, index)=>{
@@ -316,7 +356,6 @@ function Main(props) {
     const handleImgData = (ids) => {
         setimgData({"image_path":ids['row']['image_path'],"video_path":ids['row']['video_path'],'Event Id':ids['row']['id'],'Center Name':ids['row']['center'],'Timestamp':ids['row']['timestamp'],'Camera Name':ids['row']['camera'],'Alert Type':ids['row']['feature'],'Location':ids['row']['location'],'Sub-Location':ids['row']['sublocation'],'status':ids['row']['activity'][(ids['row']['activity']).length-1]['status'],'comment':ids['row']['activity'][(ids['row']['activity']).length-1]['comment']})
         setAlignment3(ids['row']['activity'][(ids['row']['activity']).length-1]['status'])
-        console.log(ids['row']['activity'][(ids['row']['activity']).length-1])
         // document.getElementById('alert_image').click()
         // setUserSelected(true)
         // setSelectTime(Date.now())
@@ -325,7 +364,6 @@ function Main(props) {
 
     const setStatus = (type,alert_id,status) => {
         post(alert_id,status).then((response)=>{
-            console.log(response)
             if (response){
                 console.log(response)
                 const new_data = type==="group" ? rows : subRows
@@ -334,7 +372,6 @@ function Main(props) {
                         new_data[index]["activity"].push(response)
                     }
                 })
-                console.log(new_data)
             }
         })
     }
@@ -383,6 +420,63 @@ function Main(props) {
     //     }
     // };
 
+
+
+    const filterColumns = ({ field, columns, currentFilters }) => {
+        // remove already filtered fields from list of columns
+        const filteredFields = currentFilters?.map((item) => item.field);
+        return columns
+          .filter(
+            (colDef) =>
+              colDef.filterable &&
+              (colDef.field === field || !filteredFields.includes(colDef.field)),
+          )
+          .map((column) => column.field);
+    };
+
+    const getColumnForNewFilter = ({ currentFilters, columns }) => {
+        const filteredFields = currentFilters?.map(({ field }) => field);
+        const columnForNewFilter = columns
+          .filter(
+            (colDef) => colDef.filterable && !filteredFields.includes(colDef.field),
+          )
+          .find((colDef) => colDef.filterOperators?.length);
+        return columnForNewFilter?.field ?? null;
+    };
+
+
+    const [columnWidths, setColumnWidths] = useState(()=>{
+        const initialWidths = columns.reduce((acc, col) => {
+            acc[col.field] = col.width || 100; // Default width if not specified
+            return acc;
+        }, {});
+        return initialWidths;
+    });
+    // React.useEffect(() => {
+    //     const initialWidths = columns.reduce((acc, col) => {
+    //       acc[col.field] = col.width || 100; // Default width if not specified
+    //       return acc;
+    //     }, {});
+    //     setColumnWidths(initialWidths);
+    // }, [columns]);
+
+    // Handle column resize
+    const handleColumnResize = (params) => {
+        console.log(params)
+        setColumnWidths((prev) => ({
+        ...prev,
+        [params.colDef.field]: params.width,
+        }));
+    };
+
+    // Apply saved column widths
+    const updatedColumns = columns.map((col) => ({
+        ...col,
+        width: columnWidths[col.field] || col.width,
+    }));
+      
+    console.log(updatedColumns)
+
     return(
         <>
 
@@ -407,7 +501,7 @@ function Main(props) {
                 aria-labelledby="modal-modal-title"
                 aria-describedby="modal-modal-description"
             >
-                <Box sx={{maxHeight:"80%", overflow:"scroll",position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', bgcolor: 'background.paper', boxShadow: 24,}}>
+                <Box sx={{maxHeight:"80%", width:"60%", overflow:"scroll",position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', bgcolor: 'background.paper', boxShadow: 24,}}>
                 <DataGridPro
                         sx={{
                             minHeight:"600px",
@@ -431,8 +525,7 @@ function Main(props) {
                             
                         }}
                         rows={subRows}
-                        columns={sub_columns
-                        }
+                        columns={sub_columns}
                         disableMultipleRowSelection={true}
                         // initialState={{
                         // pagination: {
@@ -454,9 +547,14 @@ function Main(props) {
                         // this does not trigger model change, just shows on ui
                         initialState={{
                             filter: {
-                            filterModel: {
-                                items: filter,
+                                filterModel: {
+                                    items: filter,
+                                },
                             },
+                            columns: {
+                                columnVisibilityModel: {
+                                  id: false,
+                                },
                             },
                         }}
                         filterMode='server'
@@ -583,7 +681,7 @@ function Main(props) {
                 </div>
 
                 <Stack direction="row" gap={2} sx={{height:"100% !important"}}>
-                    <div style={{minWidth:"60%"}}>
+                    <div id="gridSpace" style={{minWidth:"60%",maxWidth:"60%"}}>
 
                         <Stack alignItems="center" direction="row" gap={1} sx={{width:"100%"}} justifyContent={"space-between"}>
                             <TextField sx={{width: "450px",mb:2,mr:4, background:"#f4f2ff" }} variant="outlined" placeholder='Seach Name, Location, Sub-Location, Feature' type="search" value={searchValue} onChange={handleSearchInputChange} inputRef={searchInputRef} InputProps={{
@@ -608,7 +706,7 @@ function Main(props) {
                                 {
                                     outline: 'none',
                                 },
-                                [`& .${gridClasses.columnHeader}`]:
+                                [`& .${gridClasses.columnHeader}, & .${gridClasses.columnHeader}`]:
                                 {
                                     fontFamily: "Poppins",
                                     fontSize: "1rem",
@@ -622,10 +720,20 @@ function Main(props) {
                                     textAlign:"-webkit-center",
                                     justifyContent:"center"
                                 },
+                                overflowX:"scroll"
                                 
                             }}
                             rows={rows}
-                            columns={columns}
+                            columns={updatedColumns}
+                            onColumnResize={handleColumnResize}
+                            // onColumnWidthChange={(params) => {
+                            //     // Update column width in state
+                            //     setColumnWidths((prev) => ({
+                            //       ...prev,
+                            //       [params.field]: params.width,
+                            //     }));
+                            // }}
+
                             disableMultipleRowSelection={true}
                             // initialState={{
                             // pagination: {
@@ -638,15 +746,33 @@ function Main(props) {
                                 toolbar: CustomToolbar,
                                 // footer: CustomFooter,
                             }}
+                            // remove AND/OR Logical Operator
+                            slotProps={{
+                                filterPanel: {
+                                    filterFormProps: {
+                                        filterColumns,
+                                    },
+                                    logicOperators: [],
+                                    getColumnForNewFilter,
+                                },
+                            }}
+
                             // checkboxSelection
                             disableRowSelectionOnClick
                             
                             // this does not trigger model change, just shows on ui
                             initialState={{
                                 filter: {
-                                filterModel: {
-                                    items: filter,
+                                    filterModel: {
+                                        items: filter,
+                                    },
                                 },
+                                // Hide columns id and status, the other columns will remain visible
+                                columns: {
+                                    columnVisibilityModel: {
+                                      id: false,
+                                      status: false,
+                                    },
                                 },
                             }}
                             filterMode='server'

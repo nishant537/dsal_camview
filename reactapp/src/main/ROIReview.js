@@ -6,9 +6,11 @@ import { useTheme } from '@mui/material/styles';
 import {DataGridPro} from "@mui/x-data-grid-pro";
 import { TimelineDot, TimelineItem } from '@mui/lab';
 import { useNavigate } from 'react-router-dom';
+import ReactLassoSelect, { getCanvas } from "react-lasso-select";
 
 import {get, post, del, put} from '../provider/roi_provider';
 import { useForm } from 'react-hook-form'
+import { fetch_frame } from '../provider/camera_provider';
 
 const drawerWidth = 280;
 
@@ -43,15 +45,36 @@ function Main(props) {
     })
     const [selectedRow,setSelectedRow] = React.useState("")
     const [metaData,setMetaData] = React.useState({"marked":0,"approved":0,"rejected":0})
-    rows.map((value,index)=>{
-        const temp = metaData
-        temp[value['status']]+=1
-    })
+    const [bodyImg, setBodyImg] = React.useState({})
 
     React.useEffect(() => {
         get((urlParams)).then((value)=>{
             if (value){
                 console.log(value)
+                const temp = {"marked":0,"approved":0,"rejected":0}
+                value.map((row,index)=>{
+                    temp[row['status']]+=1
+                })
+                value.map((roi, index)=>{
+                    bodyImg[roi['id']] = {}
+                    fetch_frame(roi['feature']['camera']['dss_id'],roi['feature']['camera']['dss_channel']).then((img)=>{
+                        bodyImg[roi['id']]['img'] = img
+                    })
+                    const temp_points = [];
+                    
+                    let point_data;
+                    try {
+                        point_data = JSON.parse(roi.json);
+                    } catch (error) {
+                        console.error('Error parsing JSON:', error);
+                        point_data = {};
+                        return;
+                    }
+                    (Object.keys(point_data).filter(k => k.startsWith('point'))).forEach(key => {
+                    temp_points.push({'x':point_data[key][0],'y':point_data[key][1]})
+                    })
+                    bodyImg[roi['id']]['points'] = temp_points
+                })
                 setRows(value)
             }
         })
@@ -207,7 +230,24 @@ function Main(props) {
                 aria-describedby="modal-modal-description"
             >
                 <Box sx={{width:"50%" ,position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', bgcolor: 'background.paper', boxShadow: 24,}}>
-                    <img src={"sample.png"} alt="Alert for Zone Intrusion" style={{width:"100%"}}/>
+                    {/* <ReactLassoSelect
+                        value={bodyImg[value['id']]['points']}
+                        src={bodyImg[value['id']]['img']}
+                        disabled={true}
+                        // onImageLoad={(event) => {setRy(event.target.naturalHeight/event.target.height);setRx(event.target.naturalWidth/event.target.width);}}
+                        onComplete={(path) => {
+                        if (!path.length) return;
+                        getCanvas(bodyImg[value['id']]['img'], path, (err, canvas) => {
+                            if (!err) {
+                                console.log(canvas.toDataURL())
+                            // setClippedImg(canvas.toDataURL());
+                            }
+                        });
+                        }}
+                        imageStyle={{maxWidth:"800px", height:"auto"}}
+                        viewBox={{width:200,height:200}}
+                    /> */}
+                    {/* <img src={"sample.png"} alt="Alert for Zone Intrusion" style={{width:"100%"}}/> */}
                 </Box>
             </Modal>
 
@@ -238,12 +278,9 @@ function Main(props) {
                 <Toolbar />
 
                 <Typography variant="h1" noWrap component="div" textAlign="center" color="primary" borderBottom={"5px solid"}>
-                    Center ROI Review
+                    ROI Review
                 </Typography>
                 
-                <Typography variant="h2" noWrap component="div" textAlign={'center'} padding={2} overflow={'visible'}>
-                    ABC School
-                </Typography>
 
                 <div style={{width:"100%"}}>
                     <DataGridPro
@@ -277,12 +314,29 @@ function Main(props) {
                         <Paper>
                             <Divider/>
 
-                            <Grid container sx={{margin:"0px !important"}}>
+                            <Grid container sx={{margin:"0px !important",gap:'5px'}}>
 
                                 {rows.map((value, index) => 
-                                    <Grid item xs={3} sx={{backgroundColor:value.status==="marked" ? "#f5f5f5" : value.status==="approved" ? "#e5ffd6" : "#ffd6d6"}} p={1}>
+                                    <Grid item xs={3} sx={{backgroundColor:value.status==="marked" ? "#f5f5f5" : value.status==="approved" ? "#e5ffd6" : "#ffd6d6"}} p={1} py={3}>
                                         <Box sx={{display:"flex",flexDirection:"column",alignItems:"center"}}>
-                                            <img src="sample.png" class="custom-logo" alt="" style={{width:"50%"}} onClick={()=>{setImageModal(true)}}></img>
+                                            <ReactLassoSelect
+                                                value={bodyImg[value['id']]['points']}
+                                                src={bodyImg[value['id']]['img']}
+                                                disabled={true}
+                                                // onImageLoad={(event) => {setRy(event.target.naturalHeight/event.target.height);setRx(event.target.naturalWidth/event.target.width);}}
+                                                onComplete={(path) => {
+                                                if (!path.length) return;
+                                                getCanvas(bodyImg[value['id']]['img'], path, (err, canvas) => {
+                                                    if (!err) {
+                                                        console.log(canvas.toDataURL())
+                                                    // setClippedImg(canvas.toDataURL());
+                                                    }
+                                                });
+                                                }}
+                                                imageStyle={{maxWidth:"800px", height:"auto"}}
+                                                viewBox={{width:200,height:200}}
+                                            />
+                                            {/* <img src={bodyImg[value['id']]} class="custom-logo" alt="" style={{width:"100%"}} onClick={()=>{setImageModal(true)}}></img> */}
                                             <div>
                                                 <Typography variant="h3"><Typography variant="span" color={theme.palette.text.disabled}>Camera Name</Typography> : {value['feature']['camera']['name']}</Typography>
                                                 <Typography variant="h3"><Typography variant="span" color={theme.palette.text.disabled}>Sub Location</Typography> : {value['feature']['camera']['sublocation']}</Typography>

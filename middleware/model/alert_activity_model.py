@@ -11,7 +11,7 @@ class AlertActivityBaseSchema(BaseModel):
     alert_id: int | None = None
     comment: str | None = None
     status: AlertActivityStatusEnum | None = None
-    last_updated: datetime| None = datetime.now()
+    # last_updated: datetime| None = datetime.now()
 
 class AlertActivityInSchema(AlertActivityBaseSchema):
     pass

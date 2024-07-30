@@ -17,7 +17,7 @@ export const get = async(urlParams) => {
               roi_status[feature.roi[0]['status']]+=1
             }
           })
-          const temp={ id: value.id, name: value.name, sublocation: value.sublocation, features:value.features, status:roi_status};
+          const temp={ id: value.id, center_code:value.center.code, name: value.name, sublocation: value.sublocation, features:value.features, status:roi_status};
           returned_response.push(temp)
         })
         return returned_response;
@@ -78,6 +78,33 @@ export const post = async(payload) => {
       } catch (error) {
         alert(error.message)
     }
+}
+
+export const put = async(id, camera_data) => {
+  try {
+      const response = await fetch(`http://${window.location.hostname}:${process.env.REACT_APP_PORT}/camera/${id}`,{method : "PUT", headers: {'Content-Type': 'application/json'}, body: JSON.stringify(camera_data)});
+      if (!response.ok) {
+        throw new Error('Network response was not ok.');
+      }
+      const data = await response.json();
+      return data
+    } catch (error) {
+      alert(error.message)
+  }
+}
+
+export const fetch_frame = async(dss_id, dss_channel) => {
+  try{
+    const response = await fetch(`http://${window.location.hostname}:${process.env.REACT_APP_PORT}/camera/fetch_frame`,{method : "POST", headers: {'Content-Type':'application/json'}, body: JSON.stringify({"dss_id": dss_id, "dss_channel": dss_channel})});
+    if (!response.ok) {
+      throw new Error('Network response was not ok.');
+    }
+    const imageBlob = await response.blob();
+    const imageObjectURL = URL.createObjectURL(imageBlob);
+    return imageObjectURL
+  } catch (error){
+    alert(error.message)
+  }
 }
 
 export const del = async(row_id) => {

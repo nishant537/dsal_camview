@@ -20,6 +20,14 @@ async def get(
     response = await roi_crud.get(db, request)
     return response
 
+@router.get("/{id}")
+async def get(
+    id: int,
+    db: Session = Depends(get_db)
+    ):
+    response = await roi_crud.get_one(id, db)
+    return response
+
 @router.post('/')
 async def post(payload:RoiInSchema, db: Session = Depends(get_db)):
     response = await roi_crud.post(db,payload)

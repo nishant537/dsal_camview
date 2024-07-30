@@ -17,7 +17,7 @@ class RoiBaseSchema(BaseModel):
     status: StatusTypeEnum | None = StatusTypeEnum['pending']
     last_updated: datetime| None = datetime.now()
 
-class   RoiInSchema(RoiBaseSchema):
+class RoiInSchema(RoiBaseSchema):
     pass
 
 class RoiOutSchema(RoiBaseSchema):

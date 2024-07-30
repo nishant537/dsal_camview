@@ -202,21 +202,8 @@ function Main(props) {
             >
                 <Toolbar />
 
-                <Grid container gap={1} sx={{alignItems:"center",justifyContent:"space-around"}}>
-                    <Grid item xs={5} sx={{display:"flex",placeContent:"center",borderBottom:"5px solid"}} color={activeIndex==="view" ? theme.palette.primary.main : theme.palette.text.disabled} onClick={()=>{setActiveIndex("view")}}>
-                        <Typography variant="h1" noWrap component="span">
-                            View Exam
-                        </Typography>
-                    </Grid>
-                    <Grid item xs={5} sx={{display:"flex",placeContent:"center",borderBottom:"5px solid"}} color={activeIndex==="create" ? theme.palette.primary.main : theme.palette.text.disabled} onClick={()=>{navigate('/create_exam')}}>
-                        <Typography variant="h1" noWrap component="span">
-                            Create Exam
-                        </Typography>
-                    </Grid>
-                </Grid>
-
-                <Typography variant="h2" noWrap component="div" textAlign={'center'} padding={2}>
-                    Select Examination
+                <Typography variant="h1" noWrap component="div" textAlign="center" borderBottom={"5px solid"} overflow={'visible'}>
+                    Exam
                 </Typography>
 
                 <DataGridPro

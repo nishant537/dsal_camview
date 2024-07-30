@@ -22,7 +22,7 @@ export const get = async(urlParams) => {
               } 
             })
           })
-          const temp={ id: value.id, code: value.code, name: value.name, location:value.location, cameras: value.cameras.length, shift: value.shift.code, rois:roi, marked: marked, approved: approved };
+          const temp={ id: value.id, code: value.code, name: value.name, location:value.location, cameras: value.cameras.length, shift_code: value.shift.code, rois:roi, marked: marked, approved: approved };
           returned_response.push(temp)
         })
         return returned_response;

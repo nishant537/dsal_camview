@@ -131,7 +131,7 @@ async def export(
     temp_export_data = []
     for i in data:
         row = i.__dict__
-        temp_export_data.append({key:row[key] for key in ["id","camera","exam","center","feature","sublocation","status"]})
+        temp_export_data.append({key:row[key] for key in ["id","feature","camera","exam","center",'location',"sublocation","timestamp","status"]})
     stream = StringIO()
     writer = csv.writer(stream)
     count = 0
@@ -139,7 +139,7 @@ async def export(
         if count == 0:
     
             # Writing headers of CSV file
-            header = ["id","camera","exam","center","feature","sublocation","status"]
+            header = ["id","feature","camera","exam","center",'location',"sublocation","timestamp","status"]
             writer.writerow(header)
             count += 1
     
@@ -177,18 +177,15 @@ async def post(db: Session,payload: AlertInSchema):
     # add a status
     activity = await post_activity(db, AlertActivityInSchema(alert_id=db_item.id))
 
-    print(db_item.id)
     return db_item
 
 async def put(db: Session,id: id, payload: AlertInSchema):
     data = db.query(Alert).filter_by(id=id)
-    print(data)
     if not data:
             raise HTTPException(status_code=404, detail="Hero not found")
     # model_dump also takes all default values that might not be passed in post data
     put_data = payload.model_dump(exclude_unset=True)
     data.update(payload)
-    print(data)
     # db.add(data)
     # db.commit()
     # db.refresh(data)

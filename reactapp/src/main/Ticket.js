@@ -1,7 +1,7 @@
 import React, { useRef } from 'react';
 import { Grid, Box, IconButton, Toolbar, Typography, TextField, InputAdornment, Stack,Button, Modal, FormControl, Paper, Divider, Select, MenuItem,ToggleButtonGroup,ToggleButton, Pagination, PaginationItem} from '@mui/material';
 import { DataGrid,GridToolbarContainer,GridToolbarFilterButton,GridColumnHeaderParams, GridFooterContainer, GridFooter, gridClasses, getGridStringOperators, getGridNumericOperators} from '@mui/x-data-grid';
-import {Search, FilterAlt,Groups, Storage, LibraryBooks, CheckBox, Edit,ArrowBack, ArrowForward} from "@mui/icons-material";
+import {Search, FilterAlt,Groups, Storage, LibraryBooks, CheckBox, Edit,ArrowBack, ArrowForward, Cancel} from "@mui/icons-material";
 import { useTheme } from '@mui/material/styles';
 import {DataGridPro} from "@mui/x-data-grid-pro";
 import { useNavigate } from 'react-router-dom';
@@ -29,25 +29,26 @@ function Main(props) {
         const data = new URLSearchParams(window.location.search)
         return data.toString()
     })
-    const [data, setData] = React.useState([{"id":1}])
-    const [ticketDetails, setTicketDetails] = React.useState({"activity":[{}],"alert":{}})
+    const [data, setData] = React.useState([{"id":1,"activity":[{}],"alert":{}}])
+    const [ticketDetails, setTicketDetails] = React.useState(0)
 
     React.useEffect(() => {
         get(urlParams).then((value)=>{
             if (value){
-                console.log(value)
+                console.log(JSON.stringify(value))
                 setData(value)
-                setTicketDetails(value[0])
+                setTicketDetails(0)
             }
         })
       }, []);
 
     const {register, handleSubmit} = useForm()
-    const onSubmit = (data, e) => {
-        data['ticket_id'] = ticketDetails['id']
-        post_activity(data).then((value)=>{
+    const onSubmit = (formData, e) => {
+        formData['ticket_id'] = data[ticketDetails]['id']
+        post_activity(formData).then((value)=>{
             console.log(value)
-            const temp = Object.assign({},ticketDetails)
+            // need refresh or correct this portion
+            const temp = Object.assign({},data[ticketDetails])
             temp['activity'].unshift(value)
             setTicketDetails(temp)
             setEdit(!edit)
@@ -56,6 +57,7 @@ function Main(props) {
     const onError = (errors, e) => {
         alert(errors)
     };
+
 
     return(
         <>
@@ -66,22 +68,22 @@ function Main(props) {
             >
                 <Toolbar />
 
-                <Typography variant="h1" noWrap component="div" textAlign="center" borderBottom={"5px solid"}>
+                {/* <Typography variant="h1" noWrap component="div" textAlign="center" borderBottom={"5px solid"}>
                     Ticket #{data[0]['id']}
-                </Typography>
+                </Typography> */}
 
                 <Box my={4}>
                     <Paper component="form" sx={{padding:"20px"}} onSubmit={handleSubmit(onSubmit, onError)}>
                         <div style={{display:"flex",alignItems:"center", justifyContent:"space-between"}}>
                             <Stack direction="row" spacing={3} py={2}>
-                                <Typography variant="h2">#{ticketDetails['alert_id']} {ticketDetails['feature']} Alert</Typography>
-                                <Button color="primary" variant="contained">{ticketDetails['activity'][0]['status']}</Button>
+                                <Typography variant="h2">#{data[ticketDetails]['alert_id']} {data[ticketDetails]['feature']} Alert</Typography>
+                                <Button color="primary" variant="contained">{data[ticketDetails]['activity'][0]['status']}</Button>
                             </Stack>
                             <Stack direction="row" spacing={5} alignItems={"center"}>
-                                <Pagination count={data.length} color="primary" showFirstButton showLastButton onChange={(event,value)=>{setTicketDetails(data[value-1])}}/>
+                                <Pagination count={data.length} color="primary" showFirstButton showLastButton onChange={(event,value)=>{setTicketDetails(value-1)}}/>
 
                                 <Stack direction="row" spacing={3} py={2}>
-                                    <Button color="primary" variant="outlined" startIcon={<Edit/>} onClick={()=>{setEdit(!edit)}}>Edit</Button>
+                                    <Button color="primary" variant="outlined" startIcon={edit ? <Cancel/> : <Edit/>} onClick={()=>{setEdit(!edit)}}>{edit ? "Cancel" : "Edit"}</Button>
                                     {edit ? <Button color="primary" variant="contained" type="submit">Submit</Button> : null}
                                 </Stack>
                             </Stack>
@@ -101,18 +103,18 @@ function Main(props) {
                                             <MenuItem value={'resolved'}>Resolved</MenuItem>
                                         </Select>
                                     :
-                                        <Button color="primary" variant="contained">{ticketDetails['activity'][0]['status']}</Button>
+                                        <Button color="primary" variant="contained">{data[ticketDetails]['activity'][0]['status']}</Button>
                                     }
 
                                 </Stack>
                                 <Stack direction="row" spacing={2}>
                                     <Typography variant="h2" color={theme.palette.text.disabled}>Category :</Typography>
-                                    <Typography variant="h2">{ticketDetails['feature']}</Typography>
+                                    <Typography variant="h2">{data[ticketDetails]['feature']}</Typography>
                                 </Stack>
                                 <Stack direction="row" spacing={2}>
                                     <Typography variant="h2" color={theme.palette.text.disabled}>Timestamp :</Typography>
-                                    <Typography variant="h2">{ticketDetails['activity'][0]['last_updated'] ? ticketDetails['activity'][0]['last_updated'].replace('T', ' ') : ""}</Typography>
-                                    {/* <Typography variant="h2">{ticketDetails['activity'][0]['last_updated'] ? (dateFormat(new Date(ticketDetails['activity'][0]['last_updated']), "hh:mm:ss TT yyyy-mm-dd")).toString() : ""}</Typography> */}
+                                    <Typography variant="h2">{data[ticketDetails]['activity'][0]['last_updated'] ? data[ticketDetails]['activity'][0]['last_updated'].replace('T', ' ') : ""}</Typography>
+                                    {/* <Typography variant="h2">{data[ticketDetails]['activity'][0]['last_updated'] ? (dateFormat(new Date(data[ticketDetails]['activity'][0]['last_updated']), "hh:mm:ss TT yyyy-mm-dd")).toString() : ""}</Typography> */}
                                 </Stack>
                                 <Stack direction="row" spacing={2}>
                                     <Typography variant="h2" color={theme.palette.text.disabled}>Priority :</Typography>
@@ -120,7 +122,7 @@ function Main(props) {
                                 </Stack>
                                 <Stack direction="row" spacing={2} sx={{overflowWrap:"anywhere"}}>
                                     <Typography variant="h2" color={theme.palette.text.disabled} sx={{textWrap:"nowrap"}}>Description :</Typography>
-                                    <Typography variant="h2">Alert Detected at {ticketDetails['alert']['center']} on {ticketDetails['alert']['camera']}</Typography>
+                                    <Typography variant="h2">Alert Detected at {data[ticketDetails]['alert']['center']} on {data[ticketDetails]['alert']['camera']}</Typography>
                                 </Stack>
                                 <Stack direction="row" spacing={2} sx={{overflowWrap:"anywhere"}}>
                                     <Typography variant="h2" color={theme.palette.text.disabled} sx={{textWrap:"nowrap"}}>Comment :</Typography>
@@ -134,7 +136,7 @@ function Main(props) {
                                             placeholder="Enter Description for Ticket"
                                         />
                                     :
-                                        <Typography variant="h2">{ticketDetails['activity'][0]['comment']===null ? "-" : ticketDetails['activity'][0]['comment']}</Typography>
+                                        <Typography variant="h2">{data[ticketDetails]['activity'][0]['comment']===null ? "-" : data[ticketDetails]['activity'][0]['comment']}</Typography>
                                     }
                                 </Stack>
                             </div>
@@ -143,7 +145,7 @@ function Main(props) {
                                     <ToggleButton value="image" id="alert_image">Image</ToggleButton>
                                 </ToggleButtonGroup>
                                 <div style={{height:'250px',position:"relative",alignContent:"center",textAlign:"center"}}>
-                                    <img src={ticketDetails['alert']['image_path']} alt="Ticket view" style={{maxWidth:"100%",maxHeight:"100%",height:"auto",width:"auto"}} />
+                                    <img src={data[ticketDetails]['alert']['image_path']} alt="Ticket view" style={{maxWidth:"100%",maxHeight:"100%",height:"auto",width:"auto"}} />
                                 </div>
                             </Stack>
                         </div>
@@ -152,9 +154,13 @@ function Main(props) {
 
                 <Typography variant="h2">Activity</Typography>
                 <div style={{overflowY:"scroll",minHeight:"200px"}}>
-                    {ticketDetails['activity'].map((key,value)=>
+                    {data.slice(ticketDetails).map((ticket,ticketIndex)=> 
+
+                        ticket['activity'].map((key,value)=>
                         // <Typography variant="h2" color={theme.palette.text.disabled}>Ticket #{key['id']} status updated to <u>{key['status']}</u> at <u>{key['last_updated'] ? (dateFormat(new Date(key['last_updated']), "hh:mm:ss TT yyyy-mm-dd")).toString() : ""}.</u></Typography>
-                        <Typography variant="h2" color={theme.palette.text.disabled}>Ticket #{key['id']} status updated to <u>{key['status']}</u> at <u>{key['last_updated'] ? key['last_updated'].replace('T', ' ') : ""}.</u></Typography>
+                        <Typography variant="h2" color={theme.palette.text.disabled}>Ticket #{data[0]['id']} status updated to <u>{key['status']}</u> at <u>{key['last_updated'] ? key['last_updated'].replace('T', ' ') : ""}.</u></Typography>
+                        )
+                        
                     )}
                 </div>
             </Box>

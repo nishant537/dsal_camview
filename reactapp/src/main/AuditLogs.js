@@ -144,7 +144,9 @@ function Main(props) {
             renderCell: (params) => {
                 const priority = params.value===0 ? "Insignificant" : params.value<=2 ? "Minor" : params.value <= 5 ? "Moderate" : params.value <= 10 ? "Major" : "Critical"
                 return (
-                    <Button variant="contained" sx={{background:params.value===0 ? "#39d56f" : params.value<=2 ? "#86ed62" : params.value <= 5 ? "#ffcd29" : params.value <= 10 ? "#ffa629" : "#ff7250"}}>{priority}</Button>
+                    <div style={{display:"flex",justifyContent:"center",height:"100%",alignItems:"center"}}>
+                        <div variant="contained" style={{alignItems:'center',borderRadius:"5px",width:"25px",height:"25px",background:params.value===0 ? "#39d56f" : params.value<=2 ? "#86ed62" : params.value <= 5 ? "#ffcd29" : params.value <= 10 ? "#ffa629" : "#ff7250"}}></div>
+                    </div>
                 )
             },
         },
@@ -171,6 +173,36 @@ function Main(props) {
             type: "number",
             flex:1, 
             filterable:false
+        },
+        {
+            field: 'center',
+            headerName: "CENTER",
+            flex:1.5,
+            filterOperators: string_operators,
+        },
+        {
+            field: 'camera',
+            headerName: "NAME",
+            flex:2,
+            filterOperators: string_operators,
+        },
+        {
+            field: 'location',
+            headerName: "LOCATION",
+            flex:2,
+            filterOperators: string_operators,
+        },
+        {
+            field: 'sublocation',
+            headerName: "SUB-LOCATION",
+            flex:1.5,
+            filterOperators: string_operators,
+        },
+        {
+            field: 'feature',
+            headerName: "FEATURE",
+            flex:1.5,
+            filterOperators: string_operators,
         },
         {
             field: 'timestamp',
@@ -410,9 +442,14 @@ function Main(props) {
                             // this does not trigger model change, just shows on ui
                             initialState={{
                                 filter: {
-                                filterModel: {
-                                    items: filter,
+                                    filterModel: {
+                                        items: filter,
+                                    },
                                 },
+                                columns: {
+                                    columnVisibilityModel: {
+                                      id: false,
+                                    },
                                 },
                             }}
                             filterMode='server'
@@ -582,14 +619,12 @@ function Main(props) {
                     </div>
                 </Stack>
 
-                <Divider sx={{marginY:"30px"}}/>
-
-                <div style={{height:"400px"}}>
+                <div style={{height:"400px", paddingTop:"100px"}}>
                     <Typography variant="h2" component="div" borderBottom={"2px solid"} mb={2}>Activity Logs</Typography>
                     <div style={{height:"100%", overflowY:"scroll"}}>
                         {reviewLogs.map((alertGroup,index)=>
                             alertGroup.map((value,index)=>
-                                <Typography variant="h2" color={theme.palette.text.disabled}>Alert #{value['alert_id']} status updated to <u>{value['status'] ? value['status'] : "null"}</u> at <u>{value['last_updated'] ? (dateFormat(new Date(value['last_updated']), "hh:mm:ss TT yyyy-mm-dd")).toString() : ""}.</u></Typography>
+                                <Typography variant="h2" color={theme.palette.text.disabled}>Alert #{value['alert_id']} status updated to <u>{value['status'] ? value['status'] : "null"}</u> at <u>{value['last_updated'].replace('T',' ') || ""}.</u></Typography>
                             )
                         )}
                     </div>

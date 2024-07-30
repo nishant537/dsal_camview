@@ -3,7 +3,7 @@ import Box from '@mui/material/Box';
 import {Button, Modal, Typography} from '@mui/material';
 import ImageMarker, { Marker } from "react-image-marker";
 import ReactLassoSelect, { getCanvas } from "react-lasso-select";
-
+import {post, put} from '../provider/roi_provider';
 
 const style = {
   position: 'absolute',
@@ -26,10 +26,10 @@ export default function ROI(props) {
     const [loading,setLoading] = React.useState(false);
     const [clippedImg, setClippedImg] = React.useState('');  
     const [points, setPoints] = React.useState(()=>{
-        if (props.current_data!=null){
+        if (props.points_data!=null){
             const temp_points = [];
-            (Object.keys(props.current_data['roi'][props.id]).filter(k => k.startsWith('point'))).forEach(key => {
-              temp_points.push({'x':props.current_data['roi'][props.id][key][0],'y':props.current_data['roi'][props.id][key][1]})
+            (Object.keys(props.points_data).filter(k => k.startsWith('point'))).forEach(key => {
+              temp_points.push({'x':props.points_data[key][0],'y':props.points_data[key][1]})
             })
             temp_points['name'] = props.name
             return temp_points;
@@ -40,20 +40,28 @@ export default function ROI(props) {
 
       
     const saveROI = async() => {
-        let full_temp = props.current_data
         const temp = {}
-        for (var key in props.current_data['roi'][props.id]) if (key.startsWith("point_")) delete props.current_data[key];
+        // for (var key in props.points_data) if (key.startsWith("point_")) delete props.current_data[key];
         for (let i=0; i < points.length; i++){
             temp['point_'+String(i)] = [parseInt(parseInt(points[i]['x'])),parseInt(parseInt(points[i]['y']))]
         }
         temp["perimeter"] = points.length
         temp['name'] = props.name
-        if (props.id=="roi_1"){
-            full_temp = Object.assign(full_temp,temp)
+
+        console.log(props)
+
+        if (props.points_data){
+            post(props.feature_id, "ROI_01", JSON.stringify(temp)).then((value)=>{
+                console.log(value)
+            })
+        }else{
+            post(props.feature_id, "ROI_01", JSON.stringify(temp)).then((value)=>{
+                console.log(value)
+            })
         }
-        full_temp['roi'][props.id] = temp
-        props.update_data(full_temp)
-        handleClose()
+        
+
+        // handleClose()
     }
 
     const updatePoints = async(points) =>{

@@ -25,6 +25,13 @@ async def get(
 
     return data.all()
 
+async def get_one(
+        id,
+        db: Session,
+    ):
+    data = db.query(Roi).filter(Roi.feature_id.__eq__(id))
+    return data.all()
+
 async def post(db: Session,payload: RoiInSchema):
     # db_object = db.query(Exam).filter(Site.id.in_(payload.sites)).all()
     # payload.sites = db_object

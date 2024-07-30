@@ -71,7 +71,7 @@ function Main(props) {
         flex:1,
         minWidth:100,
         filterOperators: string_operators,
-        renderCell: (params) => {return <a href={`/center?shift_name__like=${params.value}`}>{params.value}</a>},
+        renderCell: (params) => {return <a href={`/center?shift_code__like=${params.value}`}>{params.value}</a>},
     },
     {
         field: 'exam_name',
@@ -86,6 +86,7 @@ function Main(props) {
         flex:1,
         minWidth:100,
         filterOperators: string_operators,
+        filterable: false
     },
     {
         field: 'start_time',
@@ -93,6 +94,7 @@ function Main(props) {
         flex:1,
         minWidth:100,
         filterOperators: string_operators,
+        filterable: false
     },
     {
         field: 'end_time',
@@ -101,6 +103,7 @@ function Main(props) {
         flex:1,
         minWidth:100,
         filterOperators: string_operators,
+        filterable: false
     },
     {
         field: 'centers',
@@ -118,13 +121,13 @@ function Main(props) {
         minWidth:100,
         filterable: false,
     },
-    {
-        field: 'feature_table',
-        headerName: 'FEATURE TABLE',
-        flex:0.5,
-        filterable: false,
-        renderCell: (params) => {return <div style={{textAlign:"center"}}><TableView onClick={()=>{navigate('/feature_table')}}/></div> },
-    },
+    // {
+    //     field: 'feature_table',
+    //     headerName: 'FEATURE TABLE',
+    //     flex:0.5,
+    //     filterable: false,
+    //     renderCell: (params) => {return <div style={{textAlign:"center"}}><TableView onClick={()=>{navigate('/feature_table')}}/></div> },
+    // },
     ];
 
     function CustomToolbar() {
@@ -313,9 +316,6 @@ function Main(props) {
 
                 <Typography variant="h1" noWrap component="div" textAlign="center" borderBottom={"5px solid"}>
                     Shift
-                </Typography>
-                <Typography variant="h2" noWrap component="div" textAlign={'center'} padding={2}>
-                    BPSC Exam
                 </Typography>
 
                 <DataGridPro
