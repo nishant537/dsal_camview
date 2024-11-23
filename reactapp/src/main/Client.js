@@ -258,13 +258,13 @@ function Main(props) {
         alert(errors)
     };
 
-    const socket = new WebSocket(`ws://${window.location.hostname}:${process.env.REACT_APP_PORT}/client/ws`);
-    socket.onmessage = function(event) {
-        console.log(event)
-        const message = event.data;
-        const temp_rows = [...rows, JSON.parse(message)]
-        setRows(temp_rows)
-    };
+    // const socket = new WebSocket(`ws://${window.location.hostname}:${process.env.REACT_APP_PORT}/client/ws`);
+    // socket.onmessage = function(event) {
+    //     console.log(event)
+    //     const message = event.data;
+    //     const temp_rows = [...rows, JSON.parse(message)]
+    //     setRows(temp_rows)
+    // };
     return(
         <>
 

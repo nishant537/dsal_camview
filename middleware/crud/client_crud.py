@@ -53,6 +53,11 @@ async def put(db: Session,id: id, payload: ClientInSchema):
 
 async def delete(db, id):
     data = db.get(Client, id)
-    db.delete(data)
-    db.commit()
-    return data
+    try:
+        db.delete(data)
+        db.commit()
+        return data
+    except:
+        raise HTTPException(status_code=500, detail="Delete Exams for client")
+    
+    

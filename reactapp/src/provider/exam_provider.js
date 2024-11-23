@@ -90,16 +90,13 @@ export const upload_camera = async(selectedFile) => {
 
 export const del = async(row_id) => {
     try {
-        const response = await fetch(`http://${window.location.hostname}:${process.env.REACT_APP_PORT}/exam/`,{method : "POST", body: JSON.stringify({"id": row_id})});
+        const response = await fetch(`http://${window.location.hostname}:${process.env.REACT_APP_PORT}/exam/${row_id}`,{method : "DELETE"});
         if (!response.ok) {
           throw new Error('Network response was not ok.');
         }
         const data = await response.json()['data'];
         // return data
-        return [
-          { id: 1, client_name: 'NTA', name: 'JEE MAINS', code: "NTAJEE24", date_range: "17 March - 19 March",total_shifts:8, total_centers: 100, total_instances: 4},
-          { id: 2, client_name: 'OBESE', name: 'BOARDS', code: "OBESE24", date_range: "17 March - 19 March",total_shifts:2, total_centers: 110, total_instances: 4},
-        ];
+        return [{ id: 1, center_name: '1350_ABC', location: 'Noida, Delhi', feature_type: 'Zone Intrusion', timestamp: "09:42:00 AM", total_alert:4},]
       } catch (error) {
         alert(error.message)
     }

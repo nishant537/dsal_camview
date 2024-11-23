@@ -50,6 +50,11 @@ async def upload_camera(file: UploadFile = File(...), db: Session = Depends(get_
     response = await exam_crud.upload_camera(db,file)
     return response
 
+@router.delete("/{id}")
+async def delete(id:int, db: Session = Depends(get_db)):
+    response = await exam_crud.delete(db,id=id)
+    return response
+
 # @router.get("/{id}")
 # async def get_service(id: int,db: Session = Depends(get_db)):
 #     response = await get(db,id=id)

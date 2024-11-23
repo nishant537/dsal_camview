@@ -144,64 +144,64 @@ function ResponsiveDrawer(props) {
       aria-labelledby="nested-list-subheader"
     >
           {/* FOR CLIENT PAGE */}
-          {/* <ListItem key="Clients" disablePadding>
-            <ListItemButton  onClick={(e)=> {navigate('/');}}>
+          <ListItem key="Clients" disablePadding>
+            <ListItemButton  onClick={(e)=> {navigate('/client');}}>
               <ListItemIcon sx={{color:theme.palette.primary.contrastText}}>
                 <Dashboard />
               </ListItemIcon>
               <ListItemText primary={<Typography variant="h3" component="span">Clients</Typography>} />
             </ListItemButton>
-          </ListItem> */}
+          </ListItem> 
 
           {/* FOR EXAM PAGE */}
-          {/* <ListItem key="Exam" disablePadding>
+          <ListItem key="Exam" disablePadding>
             <ListItemButton  onClick={(e)=> {navigate('/exam');}}>
               <ListItemIcon sx={{color:theme.palette.primary.contrastText}}>
                 <LibraryBooks />
               </ListItemIcon>
               <ListItemText primary={<Typography variant="h3" component="span">Exam</Typography>} />
             </ListItemButton>
-          </ListItem> */}
+          </ListItem>
 
           {/* FOR ROI SUMMARY PAGE */}
-          {/* <ListItem key="ROI_summary" disablePadding>
+          <ListItem key="ROI_summary" disablePadding>
             <ListItemButton  onClick={(e)=> {navigate('/roi_summary');}}>
               <ListItemIcon sx={{color:theme.palette.primary.contrastText}}>
                 <Summarize/>
               </ListItemIcon>
               <ListItemText primary={<Typography variant="h3" component="span">ROI Summary</Typography>} />
             </ListItemButton>
-          </ListItem> */}
+          </ListItem>
 
           {/* FOR ROI REVIEW PAGE */}
-          {/* <ListItem key="ROI_review" disablePadding>
+          <ListItem key="ROI_review" disablePadding>
             <ListItemButton  onClick={(e)=> {navigate('/roi_review');}}>
               <ListItemIcon sx={{color:theme.palette.primary.contrastText}}>
                 <RateReview/>
               </ListItemIcon>
               <ListItemText primary={<Typography variant="h3" component="span">ROI Review</Typography>} />
             </ListItemButton>
-          </ListItem> */}
+          </ListItem>
 
           {/* FOR FEATURE TABLE PAGE */}
-          {/* <ListItem key="Feature Table" disablePadding>
-            <ListItemButton  onClick={(e)=> {navigate('/');}}>
+          <ListItem key="Feature Table" disablePadding>
+            <ListItemButton  onClick={(e)=> {navigate('/feature_table');}}>
               <ListItemIcon sx={{color:theme.palette.primary.contrastText}}>
                 <TableView />
               </ListItemIcon>
               <ListItemText primary={<Typography variant="h3" component="span">Feature Table</Typography>}/>
             </ListItemButton>
-          </ListItem> */}
+          </ListItem>
 
           {/* FOR TRAINING VIDEOS PAGE */}
-          {/* <ListItem key="Feature Table" disablePadding>
+          <ListItem key="Feature Table" disablePadding>
             <ListItemButton  onClick={(e)=> {navigate('/training_videos');}}>
               <ListItemIcon sx={{color:theme.palette.primary.contrastText}}>
                 <TableView />
               </ListItemIcon>
               <ListItemText primary={<Typography variant="h3" component="span">Training Videos</Typography>}/>
             </ListItemButton>
-          </ListItem> */}
+          </ListItem>
           
           {/* FOR ALERT DASHBOARD PAGE */}
           <ListItem key="Feature Table" disablePadding>

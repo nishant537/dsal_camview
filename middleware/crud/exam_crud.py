@@ -43,7 +43,6 @@ async def get(
     return data.all()
 
 async def post(db: Session,payload: ExamInSchema):
-    print(payload)
     db_item = Exam(**payload.dict())
     db.add(db_item)
     db.commit()
@@ -59,6 +58,16 @@ async def get_plan(db: Session,payload: ExamInSchema):
     db.commit()
     db.refresh(db_item)
     return db_item
+
+async def delete(db, id):
+    data = db.get(Exam, id)
+    try:
+        db.delete(data)
+        db.commit()
+        return data
+    except:
+        raise HTTPException(status_code=500, detail="Delete Shifts for client")
+    
 
 async def upload_center(db: Session,file: UploadFile = File(...)):
     content = await file.read()

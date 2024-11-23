@@ -163,7 +163,7 @@ function Main(props) {
                 <Box sx={{display:"flex",justifyContent:"space-between",width:"400px"}}>
                     <Button color='secondary' size="medium" variant='outlined' onClick={()=>{navigate('/create_exam')}}>Add Exam</Button>
                     <Button color="secondary" size="medium" variant='outlined' disabled={selectedRow.length===0 ? true : false} onClick={()=>{navigate(`/create_exam/${selectedRow[0]['id']}`)}}>Edit Exam</Button>
-                    <Button color='secondary' size="medium" variant='outlined'disabled={selectedRow.length===0 ? true : false} onClick={()=>{del(selectedRow[0]['id'])}}>Delete Exam</Button>
+                    <Button color='secondary' size="medium" variant='outlined'disabled={selectedRow.length===0 ? true : false} onClick={()=>{del(selectedRow[0]['id']).then((value)=>{window.location.reload()})}}>Delete Exam</Button>
                 </Box>
             </GridToolbarContainer>
         );

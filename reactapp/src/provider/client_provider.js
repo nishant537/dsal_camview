@@ -40,6 +40,7 @@ export const get = async(urlParams) => {
 export const post = async(payload) => {
     try {
         const response = await fetch(`http://${window.location.hostname}:${process.env.REACT_APP_PORT}/client/`,{method : "POST",headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload)});
+        console.log(JSON.stringify(response))
         if (!response.ok) {
           throw new Error('Network response was not ok.');
         }
