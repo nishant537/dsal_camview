@@ -202,6 +202,7 @@ function Main(props) {
 
     }
     
+    alert(feature)
     let columns;
     if (Object.keys(JSON.parse(process.env.REACT_APP_FEATURE_ALERTS)).includes(feature)){
       columns = JSON.parse(process.env.REACT_APP_FEATURE_ALERTS)[feature]

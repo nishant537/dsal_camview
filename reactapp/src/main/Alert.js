@@ -64,7 +64,6 @@ function Main(props) {
     }; 
     const [imgData, setimgData] = React.useState({"image_path":"","video_path":"",'Event Id':"?",'Center Name':"?",'Timestamp':"?",'Camera Name':"?",'Alert Type':"?",'Location':"?","Sub-Location":"?",'status':"?","comment":"?"})
 
-
     React.useEffect(() => {
 
         const interval = setInterval(() => {
@@ -119,7 +118,7 @@ function Main(props) {
     {
         field: 'center',
         headerName: "CENTER",
-        // flex:1.5,Dat
+        flex:1.5,
         // minWidth:document.getElementById('gridSpace').offsetWidth/7,
         filterOperators: string_operators,
     },
@@ -354,6 +353,7 @@ function Main(props) {
     }
 
     const handleImgData = (ids) => {
+        console.log(ids)
         setimgData({"image_path":ids['row']['image_path'],"video_path":ids['row']['video_path'],'Event Id':ids['row']['id'],'Center Name':ids['row']['center'],'Timestamp':ids['row']['timestamp'],'Camera Name':ids['row']['camera'],'Alert Type':ids['row']['feature'],'Location':ids['row']['location'],'Sub-Location':ids['row']['sublocation'],'status':ids['row']['activity'][(ids['row']['activity']).length-1]['status'],'comment':ids['row']['activity'][(ids['row']['activity']).length-1]['comment']})
         setAlignment3(ids['row']['activity'][(ids['row']['activity']).length-1]['status'])
         // document.getElementById('alert_image').click()
@@ -447,7 +447,7 @@ function Main(props) {
 
     const [columnWidths, setColumnWidths] = useState(()=>{
         const initialWidths = columns.reduce((acc, col) => {
-            acc[col.field] = col.width || 100; // Default width if not specified
+            acc[col.field] = col.width || 150; // Default width if not specified
             return acc;
         }, {});
         return initialWidths;
@@ -475,8 +475,6 @@ function Main(props) {
         width: columnWidths[col.field] || col.width,
     }));
       
-    console.log(updatedColumns)
-
     return(
         <>
 
