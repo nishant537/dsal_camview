@@ -28,8 +28,8 @@ function Main(props) {
     {
         field: 'name',
         flex:1,
-        renderHeader:() => (<Typography variant="h3" component="span">CAMERA NAME</Typography>),
-        renderCell: (params) => {return <a href="hi">{params.value}</a>}
+        renderHeader:() => (<Typography variant="h3" component="span">CENTER NAME</Typography>),
+        renderCell: (params) => {return <a href={`/center?name__like=${params.value}`}>{params.value}</a>}
     },
     {
         field: 'location',
@@ -42,15 +42,18 @@ function Main(props) {
         renderHeader:() => (<Typography variant="h3" component="span">CLASSROOM</Typography>),
         renderCell: (params) => {
             return (
-                <Stack direction="row" gap={1}>
-                    {
-                        Object.keys(params.row.classroom).map((value, index)=>(
-                            <Stack direction="row" gap={0.2}>
-                                {params.row.classroom[value]} <TimelineDot sx={{ margin:0,placeSelf:"center",width: '5px',backgroundColor: value==="unmarked" ? 'grey': value==="marked" ? 'yellow': value==="approved" ? "green" : value==="rejected" ? "red" : null,}}/>
-                            </Stack>
-                        ))
-                    }
-                </Stack>
+                <div style={{display:"flex", flexDirection:"column", alignItems:"center" , transform:"scale(0.5)",transformOrigin: '50% 0% 0px'}}>
+                    <span style={{fontSize:"25px"}}>{params.value===undefined ? 0 : Object.values(params.value).reduce((acc, val) => acc + val, 0)}</span>
+                    <Stack direction="row" gap={1} sx={{background:"whitesmoke",padding:"0 20px", borderRadius:"30px"}}>
+                        {   
+                            Object.entries(params.value===undefined ? {"true":0,"false":0,"null":0} : params.value).map(([key, value])=>(
+                                <div style={{"display":"flex", 'gap':"10px"}}>
+                                    <span style={{fontSize:"25px"}}>{value}</span> <TimelineDot sx={{ margin:0,placeSelf:"center",width: '5px',backgroundColor: key==="unmarked" ? 'grey': key==="marked" ? "yellow" : key==="approved" ? "green" : key=="rejected" ? "red" : null,}}/>
+                                </div>
+                            ))
+                        }
+                    </Stack>
+                </div>
             )
         },
     },
@@ -60,15 +63,18 @@ function Main(props) {
         renderHeader:() => (<Typography variant="h3" component="span">ENTRY-EXIT</Typography>),
         renderCell: (params) => {
             return (
-                <Stack direction="row" gap={1}>
-                    {
-                        Object.keys(params.row.entry_exit).map((value, index)=>(
-                            <Stack direction="row" gap={0.2}>
-                                {params.row.entry_exit[value]} <TimelineDot sx={{ margin:0,placeSelf:"center",width: '5px',backgroundColor: value==="unmarked" ? 'grey': value==="marked" ? 'yellow': value==="approved" ? "green" : value==="rejected" ? "red" : null,}}/>
-                            </Stack>
-                        ))
-                    }
-                </Stack>
+                <div style={{display:"flex", flexDirection:"column", alignItems:"center" , transform:"scale(0.5)",transformOrigin: '50% 0% 0px'}}>
+                    <span style={{fontSize:"25px"}}>{params.value===undefined ? 0 : Object.values(params.value).reduce((acc, val) => acc + val, 0)}</span>
+                    <Stack direction="row" gap={1} sx={{background:"whitesmoke",padding:"0 20px", borderRadius:"30px"}}>
+                        {   
+                            Object.entries(params.value===undefined ? {"true":0,"false":0,"null":0} : params.value).map(([key, value])=>(
+                                <div style={{"display":"flex", 'gap':"10px"}}>
+                                    <span style={{fontSize:"25px"}}>{value}</span> <TimelineDot sx={{ margin:0,placeSelf:"center",width: '5px',backgroundColor: key==="unmarked" ? 'grey': key==="marked" ? "yellow" : key==="approved" ? "green" : key=="rejected" ? "red" : null,}}/>
+                                </div>
+                            ))
+                        }
+                    </Stack>
+                </div>
             )
         },
     },
@@ -78,18 +84,18 @@ function Main(props) {
         renderHeader:() => (<Typography variant="h3" component="span">CONTROL-ROOM</Typography>),
         renderCell: (params) => {
             return (
-                <Stack direction="column" alignItems="center" sx={{transform:"scale(0.5)",transformOrigin: '0% 0% 0px'}}>
-                    9
-                    <Stack direction="row" gap={1}>
-                        {
-                            Object.keys(params.row.control_room).map((value, index)=>(
-                                <Stack direction="row" gap={0.2}>
-                                    {params.row.control_room[value]} <TimelineDot sx={{ margin:0,placeSelf:"center",width: '5px',backgroundColor: value==="unmarked" ? 'grey': value==="marked" ? 'yellow': value==="approved" ? "green" : value==="rejected" ? "red" : null,}}/>
-                                </Stack>
+                <div style={{display:"flex", flexDirection:"column", alignItems:"center" , transform:"scale(0.5)",transformOrigin: '50% 0% 0px'}}>
+                    <span style={{fontSize:"25px"}}>{params.value===undefined ? 0 : Object.values(params.value).reduce((acc, val) => acc + val, 0)}</span>
+                    <Stack direction="row" gap={1} sx={{background:"whitesmoke",padding:"0 20px", borderRadius:"30px"}}>
+                        {   
+                            Object.entries(params.value===undefined ? {"true":0,"false":0,"null":0} : params.value).map(([key, value])=>(
+                                <div style={{"display":"flex", 'gap':"10px"}}>
+                                    <span style={{fontSize:"25px"}}>{value}</span> <TimelineDot sx={{ margin:0,placeSelf:"center",width: '5px',backgroundColor: key==="unmarked" ? 'grey': key==="marked" ? "yellow" : key==="approved" ? "green" : key=="rejected" ? "red" : null,}}/>
+                                </div>
                             ))
                         }
                     </Stack>
-                </Stack>
+                </div>
             )
         },
     },

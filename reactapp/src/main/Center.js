@@ -78,7 +78,7 @@ function Main(props) {
         headerName: "CENTER CODE",
         flex:1,
         filterOperators: string_operators,
-        renderCell: (params) => {return <a href={`/camera?center_code=${params.value}`}>{params.value}</a>},
+        renderCell: (params) => {return <a href={`/camera?center_code__like=${params.value}`}>{params.value}</a>},
     },
     {
         field: 'name',
